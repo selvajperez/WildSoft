@@ -1,0 +1,62 @@
+---
+const pasos = [
+  { titulo: 'Comprender', texto: 'Definir la necesidad, la pregunta y el objetivo.' },
+  { titulo: 'Ordenar', texto: 'Limpiar, conectar y estructurar los datos.' },
+  { titulo: 'Analizar', texto: 'Buscar patrones, relaciones y hallazgos relevantes.' },
+  { titulo: 'Construir', texto: 'Crear dashboards, análisis o soluciones adaptadas al problema.' },
+  { titulo: 'Comunicar', texto: 'Presentar resultados de forma clara y accionable.' },
+];
+---
+<section id="como-construyo">
+  <div class="section-head">
+    <h2>De los datos dispersos a una solución clara</h2>
+    <p>Organizo la información, identifico el problema y construyo una respuesta paso a paso. Combino análisis, herramientas técnicas y criterio para transformar datos en soluciones comprensibles, útiles y sostenibles.</p>
+  </div>
+  <div class="construccion-body wrap">
+    <div class="construccion-img">
+      <img src="/images/construccion.png" alt="WildFox construyendo soluciones, rodeado de herramientas y gráficos" />
+    </div>
+    <div class="pasos">
+      {pasos.map((p, i) => (
+        <div class="paso">
+          <div class="paso-num">{i + 1}</div>
+          <div class="paso-txt">
+            <h3>{p.titulo}</h3>
+            <p>{p.texto}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .construccion-body{ display: flex; align-items: center; gap: 70px; padding: 0; }
+  .construccion-img{ flex: 0 0 420px; }
+  .construccion-img img{ width: 100%; border-radius: 20px; }
+  .pasos{ flex: 1; display: flex; flex-direction: column; gap: 22px; }
+  .paso{ display: flex; gap: 20px; align-items: flex-start; }
+  .paso-num{
+    flex: 0 0 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--naranja);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .paso-txt h3{ font-size: 18px; font-weight: 700; margin: 0 0 4px; }
+  .paso-txt p{ font-size: 15px; line-height: 1.6; color: var(--gris); margin: 0; }
+
+  @media (max-width: 760px){
+    .construccion-body{ flex-direction: column; gap: 0; }
+    .construccion-img{ flex: none; width: 100%; margin-bottom: 30px; }
+    .pasos{ gap: 20px; width: 100%; }
+    .paso-num{ flex: 0 0 36px; height: 36px; font-size: 15px; }
+    .paso-txt h3{ font-size: 17px; }
+    .paso-txt p{ font-size: 14.5px; }
+  }
+</style>

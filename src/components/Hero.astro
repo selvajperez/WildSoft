@@ -1,0 +1,82 @@
+---
+---
+<section class="hero" id="inicio">
+  <img class="hero-illus-mobile" src="/images/hero.png" alt="WildFox caminando con mochila por un sendero" />
+  <div class="hero-text">
+    <h1>WildSoft</h1>
+    <p class="phrase">&ldquo;Tecnología construida con años de experiencia y la curiosidad del primer día.&rdquo;</p>
+    <p class="lead">Portfolio profesional de Selva J. Pérez. Un espacio donde conviven proyectos de datos y tecnología, experiencia profesional, aprendizaje continuo y reflexiones sobre el camino de construir soluciones.</p>
+    <div class="btn-row">
+      <a class="btn btn-primary" href="#proyectos">Explorar proyectos</a>
+      <a class="btn btn-secondary" href="#recorrido">Conocer mi recorrido</a>
+    </div>
+    <a class="link-discreet" href="#notas">Leer notas y reflexiones →</a>
+  </div>
+  <div class="hero-img">
+    <img src="/images/hero.png" alt="WildFox caminando con mochila por un sendero" />
+  </div>
+</section>
+
+<style>
+  .hero{
+    display: flex;
+    align-items: center;
+    gap: 60px;
+    padding: 10px 60px 70px;
+    background: var(--fondo-claro);
+  }
+  .hero-text{ flex: 0 0 520px; }
+  .hero-text h1{
+    font-size: 64px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: var(--naranja);
+    margin: 0 0 22px;
+  }
+  .phrase{
+    font-family: var(--font-secundaria);
+    font-size: 26px;
+    color: var(--negro);
+    line-height: 1.4;
+    margin: 0 0 22px;
+  }
+  .lead{
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--gris);
+    margin: 0 0 34px;
+  }
+  .btn-row{ display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+  .link-discreet{
+    margin-top: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--verde);
+    display: inline-block;
+    border-bottom: 1px solid var(--verde);
+    padding-bottom: 2px;
+  }
+  .hero-img{ flex: 1; display: flex; justify-content: center; }
+  .hero-img img{ width: 100%; max-width: 640px; }
+  .hero-illus-mobile{ display: none; }
+
+  @media (max-width: 760px){
+    .hero{
+      flex-direction: column;
+      padding: 10px 24px 46px;
+      text-align: center;
+    }
+    .hero-img{ display: none; }
+    .hero-illus-mobile{
+      display: block;
+      width: 100%;
+      max-width: 340px;
+      margin: 0 auto 22px;
+    }
+    .hero-text{ flex: none; }
+    .hero-text h1{ font-size: 38px; margin-bottom: 16px; }
+    .phrase{ font-size: 19px; margin-bottom: 16px; }
+    .lead{ font-size: 14.5px; margin-bottom: 26px; }
+    .btn-row{ flex-direction: column; gap: 14px; }
+  }
+</style>

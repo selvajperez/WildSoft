@@ -1,0 +1,64 @@
+---
+const areas = [
+  {
+    titulo: 'Datos y análisis',
+    texto: 'Dashboards, visualizaciones e indicadores que transforman información en decisiones claras.',
+  },
+  {
+    titulo: 'Web y presencia digital',
+    texto: 'Sitios, portfolios y experiencias web pensadas para comunicar con claridad y funcionar en distintos dispositivos.',
+  },
+  {
+    titulo: 'E-commerce',
+    texto: 'Tiendas online, catálogos y soluciones orientadas a organizar productos y facilitar la experiencia de compra.',
+  },
+  {
+    titulo: 'Sistemas y automatización',
+    texto: 'Procesos, herramientas e integraciones que ordenan tareas, conectan información y reducen trabajo repetitivo.',
+  },
+];
+---
+<section class="section-crema" id="proyectos">
+  <div class="section-head">
+    <h2>Soluciones para distintos desafíos digitales</h2>
+    <p>Proyectos desarrollados desde diferentes áreas de la tecnología, combinando experiencia, análisis y una mirada práctica para responder a necesidades concretas.</p>
+  </div>
+  <div class="proyectos-body wrap">
+    <div class="proyectos-grid">
+      {areas.map((a) => (
+        <div class="area-card">
+          <h3>{a.titulo}</h3>
+          <p>{a.texto}</p>
+        </div>
+      ))}
+    </div>
+    <div class="proyectos-img">
+      <img src="/images/proyectos.png" alt="WildFox trabajando entre dashboards, código y bases de datos" />
+    </div>
+  </div>
+  <div class="center-btn"><a class="btn btn-primary" href="#">Explorar proyectos</a></div>
+</section>
+
+<style>
+  .proyectos-body{ display: flex; align-items: center; gap: 70px; padding: 0; }
+  .proyectos-grid{ flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .area-card{
+    background: var(--fondo-claro);
+    border-radius: 16px;
+    padding: 28px 26px;
+    border-left: 5px solid var(--naranja);
+  }
+  .area-card h3{ font-size: 19px; font-weight: 700; margin: 0 0 10px; color: var(--negro); }
+  .area-card p{ font-size: 15px; line-height: 1.6; color: var(--gris); margin: 0; }
+  .proyectos-img{ flex: 0 0 420px; }
+  .proyectos-img img{ width: 100%; border-radius: 20px; }
+
+  @media (max-width: 760px){
+    .proyectos-body{ flex-direction: column; gap: 0; }
+    .proyectos-grid{ display: flex; flex-direction: column; gap: 16px; width: 100%; }
+    .area-card{ padding: 22px 20px; border-radius: 14px; }
+    .area-card h3{ font-size: 17.5px; margin-bottom: 8px; }
+    .area-card p{ font-size: 14.5px; }
+    .proyectos-img{ flex: none; width: 100%; margin-bottom: 30px; }
+  }
+</style>

@@ -1,0 +1,102 @@
+---
+---
+<header class="site-header">
+  <a href="#" class="logo-link" aria-label="WildSoft — inicio">
+    <img src="/images/logo.png" alt="WildSoft" class="logo" />
+  </a>
+  <nav class="nav-desktop" aria-label="Navegación principal">
+    <a href="#proyectos">Proyectos</a>
+    <a href="#recorrido">Recorrido</a>
+    <a href="#notas">Notas y reflexiones</a>
+    <a href="#contacto">Contacto</a>
+  </nav>
+  <button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false" id="menu-toggle">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<nav class="nav-mobile" id="nav-mobile" aria-label="Navegación móvil">
+  <a href="#proyectos">Proyectos</a>
+  <a href="#recorrido">Recorrido</a>
+  <a href="#notas">Notas y reflexiones</a>
+  <a href="#contacto">Contacto</a>
+</nav>
+
+<style>
+  .site-header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 60px;
+    background: var(--fondo-claro);
+    position: relative;
+    z-index: 20;
+  }
+  .logo{ height: 60px; }
+  .nav-desktop{
+    display: flex;
+    gap: 44px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--negro);
+  }
+  .menu-toggle{
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+  }
+  .menu-toggle span{
+    width: 22px;
+    height: 3px;
+    background: var(--negro);
+    border-radius: 2px;
+    display: block;
+  }
+  .nav-mobile{
+    display: none;
+    flex-direction: column;
+    background: var(--fondo-claro);
+    padding: 0 24px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--negro);
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.25s ease;
+  }
+  .nav-mobile a{
+    padding: 14px 0;
+    border-top: 1px solid rgba(21,22,18,0.1);
+  }
+  .nav-mobile.open{
+    max-height: 300px;
+    padding-bottom: 12px;
+  }
+
+  @media (max-width: 760px){
+    .site-header{ padding: 18px 20px; }
+    .logo{ height: 48px; }
+    .nav-desktop{ display: none; }
+    .menu-toggle{ display: flex; }
+    .nav-mobile{ display: flex; }
+  }
+</style>
+
+<script>
+  const toggle = document.getElementById('menu-toggle');
+  const nav = document.getElementById('nav-mobile');
+  toggle?.addEventListener('click', () => {
+    const isOpen = nav?.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', String(!!isOpen));
+  });
+  nav?.querySelectorAll('a').forEach((a) => {
+    a.addEventListener('click', () => {
+      nav.classList.remove('open');
+      toggle?.setAttribute('aria-expanded', 'false');
+    });
+  });
+</script>

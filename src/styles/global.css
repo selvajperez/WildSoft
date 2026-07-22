@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Belleza&family=Poppins:wght@400;500;600;700;800&display=swap');
+
+/* Glacial Indifference es la tipografía principal oficial de la marca (Manual de Identidad, punto 4).
+   Es una fuente con licencia propia y no se distribuye por este medio: coloca aquí los archivos
+   GlacialIndifference-Regular.woff2 y GlacialIndifference-Bold.woff2 (ver public/fonts/README.txt).
+   Hasta que agregues esos archivos, el sitio usa Poppins como reemplazo visual equivalente. */
+@font-face {
+  font-family: 'Glacial Indifference';
+  src: url('/fonts/GlacialIndifference-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Glacial Indifference';
+  src: url('/fonts/GlacialIndifference-Bold.woff2') format('woff2');
+  font-weight: 700 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root{
+  /* Paleta oficial WildSoft (Manual de Identidad, punto 3) */
+  --naranja: #EC7323;   /* Naranja Zorro */
+  --fondo-claro: #FDEEDB;
+  --negro: #151612;     /* Negro Profundo */
+  --verde: #71781A;     /* Verde Musgo */
+  --crema: #FBF2E2;
+  --gris: #302F2E;      /* Gris Auxiliar */
+
+  --font-principal: 'Glacial Indifference', 'Poppins', sans-serif;
+  --font-secundaria: 'Belleza', serif;
+
+  --max-width: 1240px;
+}
+
+*, *::before, *::after{ box-sizing: border-box; }
+html{ scroll-behavior: smooth; }
+body{
+  margin: 0;
+  font-family: var(--font-principal);
+  background: var(--fondo-claro);
+  color: var(--negro);
+  -webkit-font-smoothing: antialiased;
+}
+img{ max-width: 100%; display: block; }
+a{ text-decoration: none; color: inherit; }
+
+.wrap{ max-width: var(--max-width); margin: 0 auto; padding: 0 60px; }
+
+.btn{
+  display: inline-block;
+  padding: 15px 30px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 15px;
+  text-align: center;
+  font-family: var(--font-principal);
+}
+.btn-primary{ background: var(--naranja); color: #fff; }
+.btn-secondary{ border: 2px solid var(--negro); color: var(--negro); }
+
+.section-crema{ background: var(--crema); }
+
+.section-head{ max-width: 720px; margin: 0 auto 56px; text-align: center; }
+.section-head h2{ font-size: 38px; font-weight: 800; color: var(--negro); margin: 0 0 18px; }
+.section-head p{ font-size: 16px; line-height: 1.7; color: var(--gris); margin: 0; }
+
+.center-btn{ text-align: center; margin-top: 50px; }
+
+section{ padding: 90px 60px; }
+
+@media (max-width: 760px){
+  .wrap{ padding: 0 24px; }
+  section{ padding: 56px 24px; }
+  .section-head{ margin-bottom: 34px; }
+  .section-head h2{ font-size: 27px; line-height: 1.25; margin-bottom: 14px; }
+  .section-head p{ font-size: 14.5px; line-height: 1.65; }
+  .center-btn{ margin-top: 34px; }
+  .btn{ display: block; }
+}

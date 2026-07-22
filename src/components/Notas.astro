@@ -1,0 +1,33 @@
+---
+---
+<section id="notas">
+  <div class="notas-body wrap">
+    <div class="notas-text">
+      <h2>Ideas que aparecen mientras sigo el camino</h2>
+      <p>Apuntes, comentarios y reflexiones sobre datos, tecnología, proyectos, aprendizaje y trabajo. Una bitácora abierta para registrar decisiones, preguntas, descubrimientos y todo aquello que también forma parte del proceso.</p>
+      <a class="btn btn-primary" href="#">Leer las notas</a>
+    </div>
+    <div class="notas-img">
+      <img src="/images/notas.png" alt="WildFox sentado bajo un árbol, con mochila, mirando el camino" />
+    </div>
+  </div>
+</section>
+
+<style>
+  #notas{ padding-bottom: 150px; }
+  .notas-body{ display: flex; align-items: center; gap: 70px; padding: 0; }
+  .notas-text{ flex: 1; }
+  .notas-text h2{ font-size: 38px; font-weight: 800; margin: 0 0 18px; }
+  .notas-text p{ font-size: 16px; line-height: 1.75; color: var(--gris); margin: 0 0 30px; }
+  .notas-img{ flex: 0 0 380px; }
+  .notas-img img{ width: 100%; border-radius: 20px; }
+
+  @media (max-width: 760px){
+    #notas{ padding-bottom: 90px; }
+    .notas-body{ flex-direction: column; gap: 0; }
+    .notas-img{ flex: none; width: 100%; margin-bottom: 26px; }
+    .notas-text{ text-align: center; }
+    .notas-text h2{ font-size: 26px; margin-bottom: 14px; }
+    .notas-text p{ font-size: 14.5px; margin-bottom: 26px; }
+  }
+</style>

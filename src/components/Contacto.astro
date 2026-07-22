@@ -1,0 +1,31 @@
+---
+const email = 'selvajperez@gmail.com';
+const linkedin = 'https://www.linkedin.com/in/selva-j-perez';
+const github = 'https://github.com/selvajperez';
+---
+<section class="contacto" id="contacto">
+  <h2>Conversemos</h2>
+  <p>Si querés conocer mejor alguno de mis proyectos, conversar sobre datos y tecnología o explorar una posible colaboración, podés encontrarme en LinkedIn, GitHub o escribirme por correo.</p>
+  <div class="contacto-links">
+    <a href={linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+    <a href={github} target="_blank" rel="noopener noreferrer">GitHub</a>
+    <a href={`mailto:${email}`}>Correo electrónico</a>
+  </div>
+  <a class="btn btn-primary" href={`mailto:${email}`}>Escribirme</a>
+</section>
+
+<style>
+  .contacto{ background: var(--negro); color: var(--crema); text-align: center; }
+  .contacto h2{ font-size: 38px; font-weight: 800; margin: 0 0 18px; color: #fff; }
+  .contacto p{ font-size: 16px; line-height: 1.7; max-width: 640px; margin: 0 auto 34px; color: var(--crema); }
+  .contacto-links{ display: flex; justify-content: center; gap: 40px; margin-bottom: 40px; font-size: 16px; font-weight: 700; }
+  .contacto-links a{ border-bottom: 1px solid var(--naranja); padding-bottom: 3px; }
+  .contacto .btn-primary{ font-size: 16px; padding: 16px 36px; }
+
+  @media (max-width: 760px){
+    .contacto h2{ font-size: 27px; margin-bottom: 14px; }
+    .contacto p{ font-size: 15.5px; margin-bottom: 26px; }
+    .contacto-links{ flex-direction: column; gap: 16px; margin-bottom: 30px; font-size: 16px; }
+    .contacto-links a{ margin: 0 auto; }
+  }
+</style>

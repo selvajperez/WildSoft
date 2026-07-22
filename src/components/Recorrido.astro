@@ -1,0 +1,70 @@
+---
+const etapas = [
+  {
+    titulo: 'Tecnología y sistemas',
+    texto: 'Experiencia profesional desarrollando, coordinando y acompañando soluciones dentro de organizaciones reales.',
+  },
+  {
+    titulo: 'Gestión de proyectos',
+    texto: 'Planificación, organización y articulación de personas, necesidades y herramientas para llevar una idea a la práctica.',
+  },
+  {
+    titulo: 'Docencia y comunicación',
+    texto: 'Años de experiencia explicando conceptos complejos, acompañando procesos y adaptando el lenguaje a diferentes contextos.',
+  },
+  {
+    titulo: 'Datos y actualización profesional',
+    texto: 'Una etapa de formación intensiva en Ciencias de Datos, Business Intelligence, Python, SQL y visualización.',
+  },
+];
+---
+<section class="section-crema" id="recorrido">
+  <div class="section-head">
+    <h2>Experiencia, formación y curiosidad en movimiento</h2>
+    <p>Un camino construido entre tecnología, gestión, docencia y aprendizaje continuo. Distintas etapas que hoy se integran en una misma forma de analizar problemas, construir soluciones y comunicar con claridad.</p>
+  </div>
+  <div class="etapas-grid wrap">
+    {etapas.map((e, i) => (
+      <div class="etapa-card">
+        <div class="etapa-num">{String(i + 1).padStart(2, '0')}</div>
+        <h3>{e.titulo}</h3>
+        <p>{e.texto}</p>
+      </div>
+    ))}
+  </div>
+  <p class="cierre">&ldquo;No es un camino lineal ni terminado. Es una construcción permanente sostenida por la experiencia y la curiosidad del primer día.&rdquo;</p>
+  <div class="center-btn"><a class="btn btn-secondary" href="#">Conocer mi recorrido</a></div>
+</section>
+
+<style>
+  .etapas-grid{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding: 0; }
+  .etapa-card{
+    background: var(--fondo-claro);
+    border-radius: 16px;
+    padding: 30px 24px;
+    text-align: left;
+    border-top: 5px solid var(--verde);
+  }
+  .etapa-num{ font-family: var(--font-secundaria); font-size: 34px; color: var(--verde); margin-bottom: 14px; }
+  .etapa-card h3{ font-size: 18px; font-weight: 700; margin: 0 0 10px; }
+  .etapa-card p{ font-size: 14.5px; line-height: 1.6; color: var(--gris); margin: 0; }
+  .cierre{
+    max-width: 680px;
+    margin: 50px auto 0;
+    text-align: center;
+    font-family: var(--font-secundaria);
+    font-size: 20px;
+    color: var(--negro);
+    line-height: 1.5;
+  }
+  .center-btn .btn-secondary{ border-color: var(--negro); }
+
+  @media (max-width: 760px){
+    .etapas-grid{ display: flex; flex-direction: column; gap: 16px; }
+    .etapa-card{ padding: 24px 20px; border-radius: 14px; }
+    .etapa-num{ font-size: 28px; margin-bottom: 10px; }
+    .etapa-card h3{ font-size: 17px; margin-bottom: 8px; }
+    .etapa-card p{ font-size: 14.5px; }
+    .cierre{ margin-top: 30px; font-size: 17px; }
+  }
+</style>
