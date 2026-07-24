@@ -1,0 +1,145 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+export interface Props {
+  title: string;
+  description: string;
+  pubDate: Date;
+  tags: string[];
+  heroImage: string;
+}
+
+const { title, description, pubDate, tags, heroImage } = Astro.props;
+
+const fecha = pubDate.toLocaleDateString('es-AR', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+---
+<BaseLayout title={`${title} — WildSoft`} description={description}>
+  <Header />
+
+  <section class="nota-hero">
+    <div class="hero-inner">
+      <a class="volver" href="/notas">&larr; Volver a Notas</a>
+      <div class="tags">
+        {tags.map((tag, i) => (
+          <span class={`tag ${i === 1 ? 'alt' : ''}`}>{tag}</span>
+        ))}
+      </div>
+      <h1>{title}</h1>
+      <p class="nota-desc">{description}</p>
+      <p class="nota-meta">{fecha} · Nota</p>
+    </div>
+
+    <div class="figura">
+      <img src={heroImage} alt={`Imagen principal de la nota: ${title}`} />
+    </div>
+  </section>
+
+  <div class="articulo-body prose">
+    <slot />
+  </div>
+
+  <div class="fin-nota">
+    <a class="volver-abajo" href="/notas">&larr; Volver a Notas</a>
+    <div class="siguiente-card">
+      <p class="siguiente-label">También en tu Recorrido</p>
+      <p class="siguiente-periodo">1993 → 2026</p>
+      <p class="siguiente-texto">De las planillas en Quattro Pro a la notación matricial. Esta nota conecta la etapa laboral con la etapa universitaria de tu Recorrido.</p>
+      <a class="siguiente-link" href="/#recorrido">Ver en mi Recorrido →</a>
+    </div>
+  </div>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  /* HERO OSCURO DE LA NOTA */
+  .nota-hero{ background: var(--negro); color: var(--crema); padding: 56px 60px 80px; }
+  .hero-inner{ max-width: 920px; margin: 0 auto; }
+  .volver{
+    display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600;
+    color: #C9C2B4; margin-bottom: 34px;
+  }
+  .tags{ display: flex; gap: 12px; margin-bottom: 26px; flex-wrap: wrap; }
+  .tag{
+    font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 7px 16px; border-radius: 20px; border: 1px solid var(--naranja); color: var(--naranja);
+  }
+  .tag.alt{ border-color: var(--verde); color: #B9C05A; }
+  .nota-hero h1{
+    font-size: 46px; font-weight: 800; line-height: 1.2; color: #fff; margin: 0 0 20px; max-width: 760px;
+  }
+  .nota-desc{ font-size: 17px; line-height: 1.65; color: #D9D2C4; max-width: 640px; margin: 0 0 22px; }
+  .nota-meta{ font-size: 13.5px; color: #9C9689; font-weight: 600; letter-spacing: 0.02em; }
+
+  /* IMAGEN PRINCIPAL */
+  .figura{
+    max-width: 920px; margin: -40px auto 0; border-radius: 18px; overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.35); line-height: 0;
+  }
+  .figura img{ width: 100%; display: block; }
+
+  /* CUERPO DEL ARTICULO */
+  .articulo-body{ max-width: 810px; margin: 0 auto; padding: 80px 60px 20px; }
+  .articulo-body :global(p){ font-size: 17.5px; line-height: 1.85; color: var(--gris); margin: 0 0 26px; }
+  .articulo-body :global(blockquote){
+    font-family: var(--font-secundaria); font-style: italic; font-size: 30px; line-height: 1.55; color: var(--negro);
+    border-left: 5px solid var(--naranja); padding: 16px 0 16px 36px; margin: 68px 0;
+  }
+  .articulo-body :global(blockquote p){ margin: 0; font-size: inherit; line-height: inherit; color: inherit; }
+  /* El último blockquote de la nota es la pregunta de cierre: tratamiento distinto (centrado, sin línea naranja) */
+  .articulo-body :global(blockquote:last-of-type){
+    font-size: 24px; text-align: center; max-width: 600px; margin: 60px auto 10px; padding: 44px 0 0;
+    border-left: none; border-top: 1px solid rgba(21,22,18,0.15);
+  }
+
+  /* VOLVER + SUGERENCIA FINAL */
+  .fin-nota{ max-width: 810px; margin: 0 auto; padding: 10px 60px 90px; }
+  .volver-abajo{
+    display: inline-flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 700;
+    color: var(--verde); border-bottom: 1px solid var(--verde); padding-bottom: 2px; margin-bottom: 60px;
+  }
+  .siguiente-card{
+    background: var(--negro); border-radius: 20px; padding: 60px 64px; color: var(--crema);
+  }
+  .siguiente-label{ font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--naranja); margin: 0 0 16px; }
+  .siguiente-periodo{ font-family: var(--font-secundaria); font-size: 30px; color: #fff; margin: 0 0 14px; }
+  .siguiente-texto{ font-size: 15.5px; line-height: 1.7; color: #D9D2C4; margin: 0 0 24px; max-width: 560px; }
+  .siguiente-link{ font-size: 15px; font-weight: 700; color: var(--naranja); }
+
+  @media (max-width: 760px){
+    .nota-hero{ padding: 28px 22px 46px; }
+    .hero-inner{ max-width: none; }
+    .volver{ font-size: 13px; margin-bottom: 22px; }
+    .tags{ gap: 8px; margin-bottom: 20px; }
+    .tag{ font-size: 11px; padding: 6px 12px; }
+    .nota-hero h1{ font-size: 28px; margin-bottom: 16px; }
+    .nota-desc{ font-size: 14.5px; margin-bottom: 16px; }
+    .nota-meta{ font-size: 12.5px; }
+
+    .figura{ margin: 26px -2px 0; border-radius: 16px; }
+
+    .articulo-body{ padding: 44px 22px 10px; }
+    .articulo-body :global(p){ font-size: 15.5px; line-height: 1.75; margin-bottom: 22px; }
+    .articulo-body :global(blockquote){
+      font-size: 22px; padding: 12px 0 12px 22px; margin: 48px 0; border-left-width: 5px;
+    }
+    .articulo-body :global(blockquote:last-of-type){
+      font-size: 19px; margin: 42px 0 10px; padding-top: 32px; max-width: none;
+    }
+
+    .fin-nota{ padding: 10px 22px 56px; }
+    .volver-abajo{ font-size: 14px; margin-bottom: 36px; }
+    .siguiente-card{ border-radius: 18px; padding: 40px 32px; }
+    .siguiente-label{ font-size: 11px; margin-bottom: 14px; }
+    .siguiente-periodo{ font-size: 24px; margin-bottom: 12px; }
+    .siguiente-texto{ font-size: 14.5px; margin-bottom: 20px; }
+    .siguiente-link{ font-size: 14.5px; }
+  }
+</style>

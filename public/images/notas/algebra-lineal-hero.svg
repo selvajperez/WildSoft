@@ -1,0 +1,67 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#151612"/>
+
+  <!-- Left side: old spreadsheet grid -->
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <!-- grid lines -->
+    <line x1="120" y1="180" x2="480" y2="180"/>
+    <line x1="120" y1="230" x2="480" y2="230"/>
+    <line x1="120" y1="280" x2="480" y2="280"/>
+    <line x1="120" y1="330" x2="480" y2="330"/>
+    <line x1="120" y1="380" x2="480" y2="380"/>
+    <line x1="120" y1="180" x2="120" y2="380"/>
+    <line x1="210" y1="180" x2="210" y2="380"/>
+    <line x1="300" y1="180" x2="300" y2="380"/>
+    <line x1="390" y1="180" x2="390" y2="380"/>
+    <line x1="480" y1="180" x2="480" y2="380"/>
+  </g>
+
+  <!-- cell values, monospace, faded -->
+  <g font-family="monospace" font-size="16" fill="#8d8879">
+    <text x="150" y="210">A1</text>
+    <text x="240" y="210">B1</text>
+    <text x="330" y="210">C1</text>
+    <text x="150" y="260">12</text>
+    <text x="240" y="260">7</text>
+    <text x="330" y="260">30</text>
+    <text x="150" y="310">4</text>
+    <text x="240" y="310">15</text>
+    <text x="330" y="310">2</text>
+    <text x="150" y="360">9</text>
+    <text x="240" y="360">3</text>
+    <text x="330" y="360">21</text>
+  </g>
+
+  <!-- arrow -->
+  <g stroke="#EC7323" stroke-width="2" fill="none">
+    <line x1="530" y1="280" x2="650" y2="280"/>
+    <polygon points="650,272 665,280 650,288" fill="#EC7323"/>
+  </g>
+
+  <!-- Right side: matrix bracket notation -->
+  <g stroke="#F2EEE3" stroke-width="2.5" fill="none">
+    <path d="M 720 170 L 700 170 L 700 390 L 720 390"/>
+    <path d="M 980 170 L 1000 170 L 1000 390 L 980 390"/>
+  </g>
+
+  <g font-family="Georgia, serif" font-size="22" fill="#F2EEE3">
+    <text x="750" y="220">12</text>
+    <text x="820" y="220">7</text>
+    <text x="890" y="220">30</text>
+    <text x="750" y="285">4</text>
+    <text x="820" y="285">15</text>
+    <text x="890" y="285">2</text>
+    <text x="750" y="350">9</text>
+    <text x="820" y="350">3</text>
+    <text x="890" y="350">21</text>
+  </g>
+
+  <!-- title -->
+  <text x="600" y="500" font-family="Georgia, serif" font-size="30" fill="#F2EEE3" text-anchor="middle" font-style="italic">
+    Álgebra lineal antes de saber que se llamaba así
+  </text>
+
+  <text x="600" y="540" font-family="monospace" font-size="14" fill="#8d8879" text-anchor="middle">
+    Quattro Pro, 1993 — notación matricial, hoy
+  </text>
+</svg>

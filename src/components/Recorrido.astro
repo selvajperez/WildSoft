@@ -31,23 +31,37 @@ const etapas = [
         <p>{e.texto}</p>
       </div>
     ))}
+    <a class="etapa-card nota-card" href="/notas/algebra-lineal-antes-de-saber">
+      <div class="etapa-num">1993 → 2026</div>
+      <h3>Álgebra lineal antes de saber que se llamaba así</h3>
+      <p>De las planillas en Quattro Pro a la notación matricial.</p>
+      <span class="link">Leer la nota →</span>
+    </a>
   </div>
   <p class="cierre">&ldquo;No es un camino lineal ni terminado. Es una construcción permanente sostenida por la experiencia y la curiosidad del primer día.&rdquo;</p>
   <div class="center-btn"><a class="btn btn-secondary" href="#">Conocer mi recorrido</a></div>
 </section>
 
 <style>
-  .etapas-grid{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding: 0; }
+  .etapas-grid{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; padding: 0; }
   .etapa-card{
     background: var(--fondo-claro);
     border-radius: 16px;
-    padding: 30px 24px;
+    padding: 26px 22px;
     text-align: left;
     border-top: 5px solid var(--verde);
+    display: block;
   }
-  .etapa-num{ font-family: var(--font-secundaria); font-size: 34px; color: var(--verde); margin-bottom: 14px; }
-  .etapa-card h3{ font-size: 18px; font-weight: 700; margin: 0 0 10px; }
-  .etapa-card p{ font-size: 14.5px; line-height: 1.6; color: var(--gris); margin: 0; }
+  .etapa-num{ font-family: var(--font-secundaria); font-size: 26px; color: var(--verde); margin-bottom: 12px; }
+  .etapa-card h3{ font-size: 15.5px; font-weight: 700; margin: 0 0 8px; }
+  .etapa-card p{ font-size: 12.5px; line-height: 1.55; color: var(--gris); margin: 0; }
+  .nota-card{
+    background: var(--negro); border-top-color: var(--naranja); color: var(--crema);
+  }
+  .nota-card .etapa-num{ color: var(--naranja); font-size: 20px; }
+  .nota-card h3{ color: #fff; }
+  .nota-card p{ color: #D9D2C4; }
+  .nota-card .link{ display: inline-block; margin-top: 10px; font-size: 12.5px; font-weight: 700; color: var(--naranja); }
   .cierre{
     max-width: 680px;
     margin: 50px auto 0;
@@ -65,6 +79,8 @@ const etapas = [
     .etapa-num{ font-size: 28px; margin-bottom: 10px; }
     .etapa-card h3{ font-size: 17px; margin-bottom: 8px; }
     .etapa-card p{ font-size: 14.5px; }
+    .nota-card .etapa-num{ font-size: 18px; }
+    .nota-card .link{ font-size: 13px; }
     .cierre{ margin-top: 30px; font-size: 17px; }
   }
 </style>

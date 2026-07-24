@@ -36,7 +36,9 @@ npm run preview
 
 ```
 src/
-  layouts/BaseLayout.astro   # <head>, fuentes, favicon
+  layouts/
+    BaseLayout.astro         # <head>, fuentes, favicon
+    NotaLayout.astro         # plantilla de página de nota (hero oscuro, cuerpo, cierre)
   components/
     Header.astro             # logo + navegación (desktop y menú mobile)
     Hero.astro
@@ -46,13 +48,40 @@ src/
     Notas.astro
     Contacto.astro
     Footer.astro
-  pages/index.astro          # ensambla la home
+  content/
+    config.ts                # esquema de la colección "notas"
+    notas/*.md                # una nota por archivo (frontmatter + cuerpo)
+  pages/
+    index.astro               # ensambla la home
+    notas/index.astro          # listado de Notas
+    notas/[slug].astro         # página de una nota (a partir de content/notas)
   styles/global.css          # paleta, tipografías, estilos base
 public/
   images/                    # logo e ilustraciones aprobadas (WildFox)
   fonts/                     # ver README.txt para agregar Glacial Indifference
   favicon.png
 ```
+
+## Cómo agregar una nueva nota
+
+1. Creá un archivo en `src/content/notas/tu-slug.md` con este frontmatter:
+   ```yaml
+   ---
+   title: "Título de la nota"
+   description: "Bajada corta (una frase)."
+   pubDate: 2026-08-01
+   tags: ["Etiqueta uno", "Etiqueta dos", "Etiqueta tres"]
+   heroImage: "/images/notas/tu-imagen.svg"
+   ---
+   ```
+2. Escribí el cuerpo en Markdown normal. Una línea `> así` se muestra como cita
+   destacada (borde naranja); si querés cerrar la nota con una pregunta
+   destacada, hacé que el **último** `>` del archivo sea esa pregunta — el
+   estilo del último blockquote es distinto a propósito (centrado, sin borde).
+3. Poné la imagen principal en `public/images/notas/`.
+4. La nota aparece automáticamente en `/notas` y en `/notas/tu-slug`. Si
+   corresponde, agregá a mano una tarjeta en `src/components/Recorrido.astro`
+   igual a la de "1993 → 2026" para enlazarla desde el Recorrido.
 
 ## Paleta y tipografías
 
