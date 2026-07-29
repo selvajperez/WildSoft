@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Belleza&family=Poppins:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Belleza&family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* Glacial Indifference es la tipografía principal oficial de la marca (Manual de Identidad, punto 4).
    Es una fuente con licencia propia y no se distribuye por este medio: coloca aquí los archivos
@@ -30,6 +30,7 @@
 
   --font-principal: 'Glacial Indifference', 'Poppins', sans-serif;
   --font-secundaria: 'Belleza', serif;
+  --font-mono: 'JetBrains Mono', monospace;
 
   --max-width: 1240px;
 }

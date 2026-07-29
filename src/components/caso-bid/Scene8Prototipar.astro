@@ -1,0 +1,55 @@
+---
+const pasos = ['Ingreso', 'Carga Documental', 'Validación', 'Cálculo', 'Revisión', 'Aprobación', 'Seguimiento'];
+const triada = [
+  { titulo: 'Hacer visible', texto: 'Transformación de reglas a pantallas concretas.' },
+  { titulo: 'Revisar', texto: 'Comprobación de roles, acciones e información requerida.' },
+  { titulo: 'Ajustar', texto: 'Correcciones previas al desarrollo final.' },
+];
+---
+<section class="s8">
+  <div class="wrap">
+    <div class="s8-head">
+      <div class="kicker">Escena 08</div>
+      <p class="quote-lg">&ldquo;Antes de construir la solución completa, había que hacerla visible.&rdquo;</p>
+    </div>
+    <div class="flow7">
+      {pasos.map((p) => <div class="flow7-node">{p}</div>)}
+    </div>
+    <div class="triada">
+      {triada.map((t) => (
+        <div><b>{t.titulo}</b><p>{t.texto}</p></div>
+      ))}
+    </div>
+    <p class="pull">&ldquo;El prototipo convirtió una estructura abstracta en una experiencia que podía ser recorrida y evaluada.&rdquo;</p>
+  </div>
+</section>
+
+<style>
+  .s8{ background: var(--crema); }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 20px; }
+  .quote-lg{ font-family: var(--font-secundaria); font-style: italic; font-size: 30px; line-height: 1.4; color: var(--negro); }
+  .s8-head{ text-align: center; max-width: 780px; margin: 0 auto 60px; }
+  .flow7{ display: flex; flex-wrap: wrap; justify-content: center; gap: 16px 12px; max-width: 1180px; margin: 0 auto 50px; }
+  .flow7-node{ border: 1.5px solid rgba(21,22,18,0.15); border-radius: 20px; padding: 13px 20px; font-size: 13px; font-weight: 600; background: var(--fondo-claro); }
+  .triada{ display: flex; justify-content: center; gap: 60px; margin-bottom: 50px; flex-wrap: wrap; }
+  .triada div{ max-width: 220px; text-align: center; }
+  .triada b{ display: block; font-size: 15px; margin-bottom: 8px; }
+  .triada p{ font-size: 13.5px; color: var(--gris); line-height: 1.6; margin: 0; }
+  .pull{
+    font-family: var(--font-secundaria); font-style: italic; font-size: 26px; line-height: 1.55; color: var(--negro);
+    border-left: 4px solid var(--naranja); padding: 14px 0 14px 32px; max-width: 720px; margin: 0 auto;
+  }
+
+  @media (max-width: 760px){
+    .kicker{ margin-bottom: 16px; }
+    .quote-lg{ font-size: 21px; }
+    .s8-head{ margin-bottom: 36px; }
+    .flow7{ gap: 10px; margin-bottom: 36px; }
+    .flow7-node{ padding: 10px 16px; font-size: 12.5px; }
+    .triada{ flex-direction: column; gap: 22px; margin-bottom: 36px; }
+    .triada div{ max-width: none; }
+    .triada b{ font-size: 14.5px; }
+    .triada p{ font-size: 13px; }
+    .pull{ font-size: 19px; padding: 10px 0 10px 18px; }
+  }
+</style>

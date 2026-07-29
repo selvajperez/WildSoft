@@ -1,0 +1,86 @@
+---
+const pares = [
+  { adm: 'Plazo establecido por normativa', sys: 'Regla temporal y alerta', admTop: 0, sysTop: 40 },
+  { adm: 'Intervención de un organismo', sys: 'Perfil, permiso y acción', admTop: 115, sysTop: 130 },
+  { adm: 'Documentación obligatoria', sys: 'Validación y control de integridad', admTop: 230, sysTop: 250 },
+  { adm: 'Cambio de etapa', sys: 'Estado del expediente', admTop: 345, sysTop: 340 },
+  { adm: 'Excepción prevista', sys: 'Recorrido alternativo', admTop: 460, sysTop: 450 },
+];
+const paths = [
+  'M 300 28 C 500 28, 580 68, 780 68',
+  'M 300 143 C 480 143, 600 100, 780 158',
+  'M 300 258 C 460 258, 620 278, 780 278',
+  'M 300 373 C 480 373, 600 380, 780 368',
+  'M 300 488 C 500 488, 580 470, 780 478',
+];
+---
+<section class="s5">
+  <div class="wrap">
+    <div class="s5-head">
+      <div class="kicker">Escena 05</div>
+      <p class="quote-lg">&ldquo;Comprender el proceso era solo el comienzo. Había que convertirlo en reglas claras para el sistema.&rdquo;</p>
+    </div>
+    <div class="s5-cols-label">
+      <span>Mundo administrativo</span>
+      <span class="center">trabajo de análisis</span>
+      <span>Mundo sistema</span>
+    </div>
+    <div class="translation-diagram">
+      <svg viewBox="0 0 1080 530" width="100%" height="530" class="t-svg" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="#71781A" stroke-width="1.4" fill="none" opacity="0.7">
+          {paths.map((d) => <path d={d} />)}
+        </g>
+      </svg>
+      {pares.map((p) => (
+        <>
+          <div class="t-node adm" style={`top:${p.admTop}px;`}>{p.adm}</div>
+          <div class="t-node sys" style={`top:${p.sysTop}px;`}>{p.sys}</div>
+        </>
+      ))}
+    </div>
+
+    <div class="mobile-pairs">
+      {pares.map((p) => (
+        <div class="t-pair">
+          <div class="t-node-m">{p.adm}</div>
+          <div class="t-arrow-m">↓</div>
+          <div class="t-node-m">{p.sys}</div>
+        </div>
+      ))}
+    </div>
+
+    <p class="pull">&ldquo;Cada requisito funcional debía responder a una condición real del proceso.&rdquo;</p>
+  </div>
+</section>
+
+<style>
+  .s5{ background: var(--crema); }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 20px; }
+  .quote-lg{ font-family: var(--font-secundaria); font-style: italic; font-size: 30px; line-height: 1.4; color: var(--negro); }
+  .s5-head{ text-align: center; max-width: 780px; margin: 0 auto 30px; }
+  .s5-cols-label{ display: flex; justify-content: space-between; max-width: 1000px; margin: 0 auto 20px; font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gris); opacity: 0.6; }
+  .s5-cols-label .center{ font-family: var(--font-secundaria); font-style: italic; text-transform: none; letter-spacing: 0; font-size: 16px; opacity: 1; color: var(--verde); }
+  .translation-diagram{ position: relative; max-width: 1080px; height: 530px; margin: 0 auto 50px; }
+  .t-svg{ position: absolute; inset: 0; }
+  .t-node{ position: absolute; width: 280px; font-size: 14px; padding: 14px 18px; background: var(--fondo-claro); border-radius: 8px; box-shadow: 0 6px 18px rgba(21,22,18,0.07); }
+  .t-node.adm{ left: 0; text-align: right; }
+  .t-node.sys{ right: 0; }
+  .mobile-pairs{ display: none; }
+  .pull{
+    font-family: var(--font-secundaria); font-style: italic; font-size: 26px; line-height: 1.55; color: var(--negro);
+    border-left: 4px solid var(--naranja); padding: 14px 0 14px 32px; max-width: 720px; margin: 20px auto 0;
+  }
+
+  @media (max-width: 760px){
+    .kicker{ margin-bottom: 16px; }
+    .quote-lg{ font-size: 21px; }
+    .s5-head{ margin-bottom: 20px; }
+    .s5-cols-label{ display: none; }
+    .translation-diagram{ display: none; }
+    .mobile-pairs{ display: block; }
+    .t-pair{ display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 18px; }
+    .t-node-m{ width: 100%; font-size: 13px; padding: 13px 16px; background: var(--fondo-claro); border-radius: 8px; text-align: center; }
+    .t-arrow-m{ color: var(--verde); font-size: 14px; }
+    .pull{ font-size: 19px; padding: 10px 0 10px 18px; margin-top: 4px; }
+  }
+</style>

@@ -1,0 +1,78 @@
+---
+const pilares = [
+  { n: '01', titulo: 'Leer la normativa', texto: 'Análisis de decretos, metodologías de cálculo, condiciones, fórmulas, plazos y excepciones.' },
+  { n: '02', titulo: 'Reconstruir el proceso', texto: 'Relevamiento del circuito del expediente, actores, controles y recorridos alternativos.' },
+  { n: '03', titulo: 'Detectar puntos críticos', texto: 'Identificación de información distribuida, falta de seguimiento y problemas de trazabilidad.' },
+];
+---
+<section class="s4">
+  <div class="wrap">
+    <div class="s4-head">
+      <div class="kicker">Escena 04</div>
+      <p class="quote-lg">&ldquo;Antes de diseñar el sistema, había que comprender el proceso completo.&rdquo;</p>
+    </div>
+    <div class="pilares">
+      {pilares.map((p) => (
+        <div class="pilar">
+          <div class="pilar-num">{p.n}</div>
+          <div><h4>{p.titulo}</h4><p>{p.texto}</p></div>
+        </div>
+      ))}
+    </div>
+    <div class="mesa-editorial">
+      <svg viewBox="0 0 1000 360" width="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mesa de investigación editorial esquemática conectando normativa, expedientes y flujos">
+        <g stroke="#71781A" stroke-width="1" fill="none" opacity="0.5">
+          <line x1="120" y1="80" x2="420" y2="150"/>
+          <line x1="420" y1="150" x2="700" y2="90"/>
+          <line x1="420" y1="150" x2="500" y2="280"/>
+          <line x1="700" y1="90" x2="860" y2="220"/>
+          <line x1="500" y1="280" x2="860" y2="220"/>
+        </g>
+        <g stroke="#FBF2E2" stroke-width="1.3" fill="none" opacity="0.85">
+          <rect x="80" y="50" width="90" height="60" rx="3"/>
+          <line x1="95" y1="70" x2="155" y2="70"/><line x1="95" y1="85" x2="140" y2="85"/>
+          <rect x="380" y="120" width="90" height="60" rx="3" transform="rotate(-3 425 150)"/>
+          <rect x="660" y="60" width="90" height="60" rx="3" transform="rotate(4 705 90)"/>
+          <rect x="460" y="250" width="90" height="60" rx="3"/>
+          <rect x="820" y="190" width="90" height="60" rx="3" transform="rotate(-2 865 220)"/>
+        </g>
+        <g font-family="JetBrains Mono, monospace" font-size="9" fill="#8d8879">
+          <text x="80" y="40">DECRETO 1204</text>
+          <text x="380" y="200">EXPEDIENTE A</text>
+          <text x="660" y="50">FLUJO 02</text>
+          <text x="460" y="330">EXPEDIENTE B</text>
+          <text x="820" y="180">CONTROL</text>
+        </g>
+      </svg>
+    </div>
+    <p class="pull">&ldquo;Comprender qué decía la norma no era suficiente. Había que descubrir cómo se aplicaba en cada expediente.&rdquo;</p>
+  </div>
+</section>
+
+<style>
+  .s4-head{ text-align: center; max-width: 780px; margin: 0 auto 70px; }
+  .quote-lg{ font-family: var(--font-secundaria); font-style: italic; font-size: 30px; line-height: 1.4; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 20px; }
+  .pilares{ display: flex; flex-direction: column; gap: 26px; max-width: 640px; margin: 0 auto 80px; }
+  .pilar{ display: flex; gap: 22px; align-items: flex-start; }
+  .pilar-num{ font-family: var(--font-secundaria); font-size: 30px; color: var(--verde); flex: 0 0 46px; }
+  .pilar h4{ font-size: 17px; font-weight: 700; margin: 0 0 6px; }
+  .pilar p{ font-size: 14.5px; line-height: 1.6; color: var(--gris); margin: 0; }
+  .mesa-editorial{ max-width: 1000px; margin: 0 auto 60px; border-radius: 16px; overflow: hidden; background: var(--negro); line-height: 0; }
+  .pull{
+    font-family: var(--font-secundaria); font-style: italic; font-size: 26px; line-height: 1.55; color: var(--negro);
+    border-left: 4px solid var(--naranja); padding: 14px 0 14px 32px; max-width: 720px; margin: 0 auto;
+  }
+
+  @media (max-width: 760px){
+    .s4-head{ margin-bottom: 40px; }
+    .quote-lg{ font-size: 21px; }
+    .kicker{ margin-bottom: 16px; }
+    .pilares{ gap: 24px; margin-bottom: 40px; }
+    .pilar-num{ font-size: 24px; flex: 0 0 36px; }
+    .pilar h4{ font-size: 15.5px; }
+    .pilar p{ font-size: 13.5px; }
+    .mesa-editorial{ margin: 0 -2px 40px; border-radius: 14px; }
+    .pull{ font-size: 19px; padding: 10px 0 10px 18px; }
+  }
+</style>

@@ -1,0 +1,89 @@
+---
+const capacidades = [
+  'Análisis de procesos complejos',
+  'Traducción de normativa a requerimientos funcionales',
+  'Gestión y seguimiento de proyectos',
+  'Articulación entre usuarios, organismos y equipos técnicos',
+  'Documentación técnica y funcional con visión integral',
+];
+---
+<section class="s2" id="vistazo-caso">
+  <div class="wrap">
+    <div class="mini-flow">
+      <span>Proceso manual y fragmentado</span><span class="arrow">→</span>
+      <span>Análisis y diseño funcional</span><span class="arrow">→</span>
+      <span>Sistema digital integrado</span>
+    </div>
+
+    <div class="transform">
+      <div class="transform-block problema">
+        <div class="label">El problema</div>
+        <h3>Normativa compleja, proceso fragmentado</h3>
+        <p>Múltiples actores, documentación dispersa y baja trazabilidad.</p>
+      </div>
+      <div class="thread-line"></div>
+      <div class="thread-badge">
+        <div class="tag">Mi participación</div>
+        <b>Jefe de Desarrollo</b>
+      </div>
+      <div class="thread-line"></div>
+      <div class="transform-block solucion">
+        <div class="label">La solución</div>
+        <h3>Un sistema que organiza y acompaña</h3>
+        <p>Sistematiza datos y acompaña el circuito administrativo.</p>
+      </div>
+    </div>
+    <div class="participacion-detalle" id="mi-participacion">
+      <p>Análisis funcional, requerimientos, seguimiento, documentación para aprobación y articulación técnica: el problema no se resolvió solo — se tradujo, paso a paso, hacia la solución.</p>
+    </div>
+
+    <div class="capacidades-head">Qué demuestra este proyecto</div>
+    <div class="capacidades">
+      {capacidades.map((c) => <span>{c}</span>)}
+    </div>
+  </div>
+</section>
+
+<style>
+  .s2{ background: var(--crema); }
+  .mini-flow{ display: flex; align-items: center; justify-content: center; gap: 16px; font-size: 13.5px; font-weight: 600; color: var(--gris); margin-bottom: 90px; text-align: center; flex-wrap: wrap; }
+  .mini-flow .arrow{ color: var(--verde); }
+
+  .transform{ display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 70px; position: relative; }
+  .transform-block{ flex: 0 0 300px; }
+  .transform-block .label{ font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--gris); opacity: 0.7; margin-bottom: 10px; }
+  .transform-block h3{ font-size: 22px; font-weight: 800; margin: 0 0 12px; }
+  .transform-block p{ font-size: 14.5px; line-height: 1.6; color: var(--gris); margin: 0; }
+  .transform-block.problema{ text-align: right; }
+  .thread-line{ flex: 1; height: 2px; background: linear-gradient(90deg, rgba(48,47,46,0.25), var(--naranja)); min-width: 60px; }
+  .thread-badge{
+    flex: 0 0 auto;
+    background: var(--naranja); color: #fff; border-radius: 50%; width: 132px; height: 132px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    box-shadow: 0 16px 30px rgba(236,115,35,0.35); padding: 10px;
+  }
+  .thread-badge .tag{ font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.85; margin-bottom: 4px; }
+  .thread-badge b{ font-size: 13px; line-height: 1.25; }
+  .participacion-detalle{ max-width: 640px; margin: 0 auto 90px; text-align: center; scroll-margin-top: 40px; }
+  .participacion-detalle p{ font-size: 14.5px; line-height: 1.65; color: var(--gris); margin: 0; }
+
+  .capacidades-head{ text-align: center; font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gris); opacity: 0.7; margin-bottom: 22px; }
+  .capacidades{ display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-width: 980px; margin: 0 auto; }
+  .capacidades span{ font-size: 13.5px; color: var(--gris); padding: 10px 20px; border: 1px solid rgba(21,22,18,0.18); border-radius: 22px; }
+
+  @media (max-width: 760px){
+    .mini-flow{ flex-direction: column; gap: 10px; margin-bottom: 56px; }
+    .mini-flow .arrow{ transform: rotate(90deg); }
+
+    .transform{ flex-direction: column; gap: 0; margin-bottom: 40px; }
+    .transform-block{ flex: none; text-align: center; max-width: 320px; margin: 0 auto; }
+    .transform-block.problema{ text-align: center; }
+    .thread-line{ width: 2px; height: 60px; background: linear-gradient(180deg, rgba(48,47,46,0.25), var(--naranja)); min-width: 0; }
+    .thread-badge{ width: 120px; height: 120px; margin: 14px 0; }
+    .participacion-detalle{ margin-bottom: 46px; }
+    .participacion-detalle p{ font-size: 13.5px; }
+
+    .capacidades-head{ margin-bottom: 18px; }
+    .capacidades span{ font-size: 12.5px; padding: 9px 16px; }
+  }
+</style>

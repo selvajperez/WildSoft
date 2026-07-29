@@ -36,6 +36,14 @@ const areas = [
       <img src="/images/proyectos.png" alt="WildFox trabajando entre dashboards, código y bases de datos" />
     </div>
   </div>
+
+  <a class="caso-destacado wrap" href="/proyectos/redeterminacion-precios">
+    <div class="caso-kicker">Caso de estudio</div>
+    <h3>Modernización del Sistema de Redeterminación de Precios</h3>
+    <p>Transformación de un proceso normativo y administrativo en una solución digital para la gestión de obra pública.</p>
+    <span class="caso-link">Ver el caso completo →</span>
+  </a>
+
   <div class="center-btn"><a class="btn btn-primary" href="#">Explorar proyectos</a></div>
 </section>
 
@@ -53,6 +61,18 @@ const areas = [
   .proyectos-img{ flex: 0 0 420px; }
   .proyectos-img img{ width: 100%; border-radius: 20px; }
 
+  .caso-destacado{
+    display: block; margin-top: 60px; padding: 44px 48px; border-radius: 20px;
+    background: var(--negro); color: var(--crema);
+  }
+  .caso-kicker{
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--verde); margin-bottom: 14px;
+  }
+  .caso-destacado h3{ font-size: 24px; font-weight: 800; color: #fff; margin: 0 0 12px; }
+  .caso-destacado p{ font-size: 15px; line-height: 1.65; color: #D9D2C4; margin: 0 0 20px; max-width: 640px; }
+  .caso-link{ font-size: 14.5px; font-weight: 700; color: var(--naranja); }
+
   @media (max-width: 760px){
     .proyectos-body{ flex-direction: column; gap: 0; }
     .proyectos-grid{ display: flex; flex-direction: column; gap: 16px; width: 100%; }
@@ -60,5 +80,10 @@ const areas = [
     .area-card h3{ font-size: 17.5px; margin-bottom: 8px; }
     .area-card p{ font-size: 14.5px; }
     .proyectos-img{ flex: none; width: 100%; margin-bottom: 30px; }
+
+    .caso-destacado{ margin-top: 30px; padding: 30px 26px; border-radius: 16px; }
+    .caso-destacado h3{ font-size: 19px; margin-bottom: 10px; }
+    .caso-destacado p{ font-size: 14px; margin-bottom: 16px; }
+    .caso-link{ font-size: 14px; }
   }
 </style>
