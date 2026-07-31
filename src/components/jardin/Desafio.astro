@@ -1,0 +1,31 @@
+---
+import { Image } from 'astro:assets';
+import img from '../../assets/jardin/galeria-5.jpg';
+---
+<section class="jsplit-section" id="desafio">
+  <div class="wrap jsplit">
+    <div class="jsplit-img">
+      <Image src={img} alt="Tranquera de madera al final de un camino de pasto, en el jardín" widths={[400, 700, 1000]} sizes="(max-width: 760px) 100vw, 480px" loading="lazy" />
+    </div>
+    <div class="jsplit-text">
+      <div class="kicker">El desafío</div>
+      <p class="parrafo">Proyecto Jardín Estudio contaba con una excelente reputación construida a través de recomendaciones y trabajos realizados. Sin embargo, no disponía de un espacio propio donde mostrar sus proyectos, explicar sus servicios y facilitar el contacto con nuevos clientes.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .jsplit-section{ background: #fff; }
+  .jsplit{ display: flex; align-items: center; gap: 64px; }
+  .jsplit-img{ flex: 0 0 46%; }
+  .jsplit-img :global(img){ width: 100%; height: auto; border-radius: 16px; box-shadow: 0 24px 50px -24px rgba(21,22,18,0.3); }
+  .jsplit-text{ flex: 1; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 20px; }
+  .parrafo{ font-size: 19px; line-height: 1.7; color: var(--gris); margin: 0; max-width: 520px; }
+
+  @media (max-width: 760px){
+    .jsplit{ flex-direction: column; gap: 28px; }
+    .jsplit-img{ flex: none; width: 100%; }
+    .parrafo{ font-size: 16px; max-width: none; }
+  }
+</style>

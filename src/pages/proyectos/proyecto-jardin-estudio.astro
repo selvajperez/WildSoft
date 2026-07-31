@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import Lightbox from '../../components/caso-bid/Lightbox.astro';
+import HeroJardin from '../../components/jardin/HeroJardin.astro';
+import Desafio from '../../components/jardin/Desafio.astro';
+import Solucion from '../../components/jardin/Solucion.astro';
+import Tecnologias from '../../components/jardin/Tecnologias.astro';
+import Resultados from '../../components/jardin/Resultados.astro';
+import Galeria from '../../components/jardin/Galeria.astro';
+import ProximasEtapas from '../../components/jardin/ProximasEtapas.astro';
+import DescargaCTA from '../../components/jardin/DescargaCTA.astro';
+---
+<BaseLayout
+  title="Proyecto Jardín Estudio — Web y presencia digital — WildSoft"
+  description="Caso de estudio: desarrollo de la presencia digital de Proyecto Jardín Estudio, un sitio institucional responsive centrado en fotografías reales y contacto inmediato por WhatsApp."
+>
+  <Header />
+  <HeroJardin />
+  <Desafio />
+  <Solucion />
+  <Tecnologias />
+  <Resultados />
+  <Galeria />
+  <ProximasEtapas />
+  <DescargaCTA />
+  <Footer />
+  <Lightbox />
+</BaseLayout>

@@ -7,6 +7,10 @@ const areas = [
   {
     titulo: 'Web y presencia digital',
     texto: 'Sitios, portfolios y experiencias web pensadas para comunicar con claridad y funcionar en distintos dispositivos.',
+    // Primer caso publicado de esta área; enlaza directo al caso mientras sea el único.
+    // Cuando haya más de un caso, este href debería apuntar a una página índice de la categoría.
+    href: '/proyectos/proyecto-jardin-estudio',
+    caso: 'Proyecto Jardín Estudio',
   },
   {
     titulo: 'E-commerce',
@@ -26,10 +30,18 @@ const areas = [
   <div class="proyectos-body wrap">
     <div class="proyectos-grid">
       {areas.map((a) => (
-        <div class="area-card">
-          <h3>{a.titulo}</h3>
-          <p>{a.texto}</p>
-        </div>
+        a.href ? (
+          <a class="area-card area-card-link" href={a.href}>
+            <h3>{a.titulo}</h3>
+            <p>{a.texto}</p>
+            <span class="area-link">Ver caso: {a.caso} →</span>
+          </a>
+        ) : (
+          <div class="area-card">
+            <h3>{a.titulo}</h3>
+            <p>{a.texto}</p>
+          </div>
+        )
       ))}
     </div>
     <div class="proyectos-img">
@@ -58,6 +70,9 @@ const areas = [
   }
   .area-card h3{ font-size: 19px; font-weight: 700; margin: 0 0 10px; color: var(--negro); }
   .area-card p{ font-size: 15px; line-height: 1.6; color: var(--gris); margin: 0; }
+  .area-card-link{ display: block; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .area-card-link:hover{ transform: translateY(-3px); box-shadow: 0 16px 30px -18px rgba(21,22,18,0.35); }
+  .area-link{ display: block; font-size: 13.5px; font-weight: 700; color: var(--naranja); margin-top: 14px; }
   .proyectos-img{ flex: 0 0 420px; }
   .proyectos-img img{ width: 100%; border-radius: 20px; }
 

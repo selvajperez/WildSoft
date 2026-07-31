@@ -1,0 +1,50 @@
+---
+import { Image, getImage } from 'astro:assets';
+import foto1 from '../../assets/jardin/galeria-1.jpg';
+import foto2 from '../../assets/jardin/galeria-2.jpg';
+import foto3 from '../../assets/jardin/galeria-4.jpg';
+import foto4 from '../../assets/jardin/galeria-6.jpg';
+
+const fotos = [
+  { src: foto1, alt: 'Deck de madera y piscina junto al jardín', big: true },
+  { src: foto2, alt: 'Camino de adoquines bajo los árboles del acceso' },
+  { src: foto3, alt: 'Sendero de piedras sobre el césped' },
+  { src: foto4, alt: 'Estanque con plantas acuáticas en un rincón del jardín' },
+];
+
+const ampliadas = await Promise.all(
+  fotos.map((f) => getImage({ src: f.src, width: 1600 }))
+);
+---
+<section class="jgaleria" id="galeria">
+  <div class="wrap">
+    <div class="kicker">Galería</div>
+    <div class="gal-grid">
+      {fotos.map((f, i) => (
+        <button
+          class={`gal-item ${f.big ? 'gal-big' : ''}`}
+          data-lightbox={ampliadas[i].src}
+          data-lightbox-alt={f.alt}
+          aria-label={`Ampliar: ${f.alt}`}
+        >
+          <Image src={f.src} alt={f.alt} widths={[400, 700, 1000]} sizes="(max-width: 760px) 100vw, 480px" loading="lazy" />
+        </button>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .jgaleria{ background: #fff; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 30px; text-align: center; }
+  .gal-grid{ display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 260px; gap: 16px; max-width: 1120px; margin: 0 auto; }
+  .gal-item{ display: block; padding: 0; border: none; border-radius: 14px; overflow: hidden; cursor: zoom-in; background: none; grid-column: span 1; grid-row: span 1; }
+  .gal-big{ grid-column: span 2; grid-row: span 2; }
+  .gal-item :global(img){ width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
+  .gal-item:hover :global(img){ transform: scale(1.04); }
+
+  @media (max-width: 760px){
+    .gal-grid{ grid-template-columns: 1fr 1fr; grid-auto-rows: 150px; gap: 10px; }
+    .gal-big{ grid-column: span 2; grid-row: span 2; }
+  }
+</style>

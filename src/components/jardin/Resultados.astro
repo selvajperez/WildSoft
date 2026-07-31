@@ -1,0 +1,36 @@
+---
+const resultados = [
+  'Mayor visibilidad.',
+  'Centralización de la información.',
+  'Mejor experiencia para potenciales clientes.',
+  'Base preparada para acciones de marketing digital.',
+];
+---
+<section class="jres" id="resultados">
+  <div class="wrap">
+    <div class="kicker">Resultados</div>
+    <div class="res-grid">
+      {resultados.map((r) => (
+        <div class="res-card">
+          <span class="res-check">✓</span>
+          <p>{r}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .jres{ background: var(--crema); }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 30px; text-align: center; }
+  .res-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 900px; margin: 0 auto; }
+  .res-card{ display: flex; align-items: flex-start; gap: 16px; background: #fff; border-radius: 14px; padding: 26px 24px; border-left: 4px solid var(--naranja); }
+  .res-check{ flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%; background: var(--verde); color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .res-card p{ font-size: 16px; line-height: 1.5; color: var(--negro); margin: 0; font-weight: 600; }
+
+  @media (max-width: 760px){
+    .res-grid{ grid-template-columns: 1fr; gap: 14px; }
+    .res-card{ padding: 20px; border-radius: 12px; }
+    .res-card p{ font-size: 15px; }
+  }
+</style>

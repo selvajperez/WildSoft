@@ -1,0 +1,51 @@
+---
+import { Image } from 'astro:assets';
+import heroImg from '../../assets/jardin/hero.jpg';
+---
+<section class="jhero" id="jardin-hero">
+  <div class="wrap jhero-inner">
+    <div class="jhero-left">
+      <div class="kicker">Caso de estudio · Web y presencia digital</div>
+      <h1>Proyecto Jardín Estudio <span class="version-tag">Versión 1.0</span></h1>
+      <p class="bajada">Transformando un estudio de paisajismo reconocido por la calidad de sus trabajos en una presencia digital preparada para crecer.</p>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="https://proyecto-jardin-moira.vercel.app/" target="_blank" rel="noopener">Ver sitio ↗</a>
+        <a class="btn btn-secondary" href="#descarga">Descargar caso de estudio</a>
+      </div>
+    </div>
+    <div class="jhero-right">
+      <div class="browser-frame">
+        <div class="browser-bar"><span></span><span></span><span></span></div>
+        <Image src={heroImg} alt="Proyecto Jardín Estudio — portada del sitio web, sendero con arco florido" widths={[480, 768, 1100]} sizes="(max-width: 760px) 100vw, 620px" loading="eager" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .jhero{ background: var(--crema); padding-top: 70px; padding-bottom: 90px; }
+  .jhero-inner{ display: flex; align-items: center; gap: 64px; }
+  .jhero-left{ flex: 0 0 44%; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 22px; }
+  .jhero-left h1{ font-size: 40px; font-weight: 800; line-height: 1.16; color: var(--negro); margin: 0 0 20px; }
+  .version-tag{ display: inline-block; vertical-align: middle; font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--verde); background: rgba(113,120,26,0.1); border-radius: 20px; padding: 4px 12px; margin-left: 10px; }
+  .bajada{ font-size: 17px; line-height: 1.65; color: var(--gris); margin: 0 0 34px; max-width: 460px; }
+  .btn-row{ display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+
+  .jhero-right{ flex: 1; }
+  .browser-frame{ background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 30px 60px -20px rgba(21,22,18,0.35); border: 1px solid rgba(21,22,18,0.08); }
+  .browser-bar{ display: flex; gap: 7px; padding: 12px 16px; background: #EDEAE2; }
+  .browser-bar span{ width: 11px; height: 11px; border-radius: 50%; background: rgba(21,22,18,0.18); display: block; }
+  .browser-frame :global(img){ width: 100%; height: auto; display: block; }
+
+  @media (max-width: 760px){
+    .jhero{ padding-top: 40px; padding-bottom: 50px; }
+    .jhero-inner{ flex-direction: column; gap: 34px; }
+    .jhero-left{ flex: none; }
+    .jhero-left h1{ font-size: 27px; line-height: 1.22; margin-bottom: 16px; }
+    .version-tag{ display: block; margin: 10px 0 0; width: fit-content; }
+    .bajada{ font-size: 15px; margin-bottom: 26px; max-width: none; }
+    .btn-row{ flex-direction: column; align-items: stretch; gap: 12px; width: 100%; }
+    .jhero-right{ width: 100%; }
+  }
+</style>

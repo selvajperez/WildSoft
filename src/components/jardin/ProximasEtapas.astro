@@ -1,0 +1,58 @@
+---
+const STATUS = {
+  done: { texto: 'Completado', clase: 'done' },
+  progress: { texto: 'En curso', clase: 'progress' },
+  pending: { texto: 'Pendiente', clase: 'pending' },
+};
+
+const etapas = [
+  { n: 1, titulo: 'Desarrollo', estado: STATUS.done },
+  { n: 2, titulo: 'Dominio propio', estado: STATUS.progress },
+  { n: 3, titulo: 'Instagram', estado: STATUS.pending },
+  { n: 4, titulo: 'SEO', estado: STATUS.pending },
+  { n: 5, titulo: 'Analítica', estado: STATUS.pending },
+];
+---
+<section class="jetapas" id="proximas-etapas">
+  <div class="wrap">
+    <div class="kicker">Próximas etapas</div>
+    <div class="timeline">
+      {etapas.map((e) => (
+        <div class="etapa">
+          <div class={`etapa-dot dot-${e.estado.clase}`}></div>
+          <span class="etapa-n">Etapa {e.n}</span>
+          <h3>{e.titulo}</h3>
+          <span class={`etapa-badge badge-${e.estado.clase}`}>{e.estado.texto}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .jetapas{ background: var(--crema); }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 46px; text-align: center; }
+  .timeline{ display: flex; align-items: flex-start; gap: 0; max-width: 1080px; margin: 0 auto; position: relative; }
+  .timeline::before{ content: ''; position: absolute; top: 7px; left: 6%; right: 6%; height: 2px; background: rgba(21,22,18,0.12); }
+  .etapa{ flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 10px; position: relative; }
+  .etapa-dot{ width: 16px; height: 16px; border-radius: 50%; margin-bottom: 18px; border: 3px solid #fff; box-shadow: 0 0 0 2px rgba(21,22,18,0.1); }
+  .dot-done{ background: var(--verde); }
+  .dot-progress{ background: var(--naranja); }
+  .dot-pending{ background: #9C9689; }
+  .etapa-n{ font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gris); margin-bottom: 6px; }
+  .etapa h3{ font-size: 16px; font-weight: 700; color: var(--negro); margin: 0 0 12px; }
+  .etapa-badge{ font-size: 11.5px; font-weight: 700; padding: 5px 14px; border-radius: 20px; }
+  .badge-done{ background: rgba(113,120,26,0.15); color: var(--verde); }
+  .badge-progress{ background: rgba(236,115,35,0.15); color: var(--naranja); }
+  .badge-pending{ background: rgba(156,150,137,0.18); color: #706A5E; }
+
+  @media (max-width: 760px){
+    .kicker{ margin-bottom: 30px; }
+    .timeline{ flex-direction: column; gap: 22px; align-items: stretch; }
+    .timeline::before{ display: none; }
+    .etapa{ flex-direction: row; text-align: left; align-items: center; gap: 14px; padding: 0; background: #fff; border-radius: 12px; padding: 14px 18px; }
+    .etapa-dot{ margin-bottom: 0; flex: 0 0 16px; }
+    .etapa-n{ display: none; }
+    .etapa h3{ margin: 0; flex: 1; }
+  }
+</style>
