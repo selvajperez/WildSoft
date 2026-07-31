@@ -1,0 +1,109 @@
+---
+const etapas = [
+  { n: '01', titulo: 'Definición del alcance', texto: 'Documento de alcance, involucrados y objetivos del sistema.', fecha: '21/07/2016' },
+  { n: '02', titulo: 'Relevamiento', texto: 'Análisis normativo y de procesos, diagnóstico.', fecha: '30/09/2016' },
+  { n: '03', titulo: 'Análisis funcional', texto: 'Especificación de requerimientos funcionales y no funcionales.', fecha: '30/09/2016' },
+  { n: '04', titulo: 'Diseño', texto: 'Diseño global y de detalle con artefactos UML y casos de uso.', fecha: '30/09/2016' },
+  { n: '05', titulo: 'Prototipo', texto: 'Ambiente de desarrollo y test instalado y operativo.', fecha: '31/10/2016' },
+  { n: '06', titulo: 'Pruebas', texto: 'Plan de pruebas funcionales para evaluar el prototipo.', fecha: '31/10/2016' },
+  { n: '07', titulo: 'Correcciones', texto: 'Resultado de las evaluaciones y cambios funcionales a introducir.', fecha: '31/10/2016' },
+  { n: '08', titulo: 'Diseño definitivo', texto: 'Diseño global y de detalle definitivo de la solución.', fecha: '30/11/2016' },
+];
+
+const cronograma = [
+  { t: 1, e: 'Documento con el alcance del sistema, identificando involucrados, sectores, idea general de solución, efectos de la solución.', f: '21/07/2016' },
+  { t: 2, e: 'Material documental del relevamiento. Documento con el análisis normativo y de procesos, diagnóstico.', f: '30/09/2016' },
+  { t: 3, e: 'Documento con las especificaciones de requerimientos funcionales y no funcionales.', f: '30/09/2016' },
+  { t: 4, e: 'Diseño Global y de Detalle del sistema para su construcción, utilizando los artefactos UML, casos de uso y otros.', f: '30/09/2016' },
+  { t: 5, e: 'Ambiente de Desarrollo y test del prototipo instalado y operativo.', f: '31/10/2016' },
+  { t: 6, e: 'Prototipo desarrollado, probado y listo para ser evaluado.', f: '31/10/2016' },
+  { t: 7, e: 'Documento con el plan de pruebas funcionales para ser evaluado el prototipo.', f: '31/10/2016' },
+  { t: 8, e: 'Documento con el resultado de las evaluaciones, indicando los cambios funcionales a ser introducidos.', f: '31/10/2016' },
+  { t: 9, e: 'Documento con el diseño global y de detalle de los componentes del sistema complementarios al prototipo, para completar el diseño definitivo de la solución final.', f: '30/11/2016' },
+  { t: 10, e: 'Plan de trabajo donde se determinan las actividades para completar el desarrollo y la instalación.', f: '30/11/2016' },
+  { t: 11, e: 'Documento con la identificación y tratamiento de los riesgos.', f: '30/11/2016' },
+];
+---
+<section class="s4">
+  <div class="wrap">
+    <div class="s4-head">
+      <div class="kicker">Escena 04 — Proceso de trabajo</div>
+      <p class="quote-lg">&ldquo;El proyecto avanzó por etapas verificables.&rdquo;</p>
+    </div>
+
+    <div class="timeline">
+      {etapas.map((e) => (
+        <div class="etapa">
+          <div class="etapa-num">{e.n}</div>
+          <h4>{e.titulo}</h4>
+          <p>{e.texto}</p>
+          <span class="etapa-fecha">{e.fecha}</span>
+        </div>
+      ))}
+    </div>
+
+    <button class="evidencia-link" data-lightbox="tpl-cronograma" data-lightbox-type="content">
+      Fuente: Anexo II — Cronograma de Tareas (11 entregables) ↗
+    </button>
+  </div>
+</section>
+
+<template id="tpl-cronograma">
+  <div class="doc-facsimile">
+    <div class="doc-head">
+      <span class="doc-kicker">Documento fuente</span>
+      <h3>Anexo II — Cronograma de Tareas</h3>
+      <p class="doc-meta">11 entregables, orden lógico de ejecución y dependencia con tareas anteriores</p>
+    </div>
+    <table class="doc-table cronograma-table">
+      <tbody>
+        {cronograma.map((c) => (
+          <tr>
+            <td class="t-num">{c.t}</td>
+            <td>{c.e}</td>
+            <td class="t-fecha">{c.f}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</template>
+
+<style>
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 20px; }
+  .quote-lg{ font-family: var(--font-secundaria); font-style: italic; font-size: 30px; line-height: 1.4; }
+  .s4-head{ text-align: center; max-width: 700px; margin: 0 auto 60px; }
+
+  .timeline{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; max-width: 1180px; margin: 0 auto 40px; }
+  .etapa{ background: var(--crema); border-radius: 14px; padding: 24px 20px; border-top: 4px solid var(--verde); }
+  .etapa-num{ font-family: var(--font-secundaria); font-size: 24px; color: var(--verde); margin-bottom: 10px; }
+  .etapa h4{ font-size: 15.5px; font-weight: 700; margin: 0 0 8px; color: var(--negro); }
+  .etapa p{ font-size: 13px; line-height: 1.55; color: var(--gris); margin: 0 0 12px; }
+  .etapa-fecha{ font-family: var(--font-mono); font-size: 11px; color: var(--gris); opacity: 0.7; }
+
+  .evidencia-link{
+    display: block; margin: 0 auto; background: none; border: none; padding: 0; cursor: zoom-in;
+    font-size: 13px; font-weight: 600; color: var(--verde); border-bottom: 1px solid var(--verde);
+    font-family: var(--font-principal); text-align: center; width: fit-content;
+  }
+
+  .doc-facsimile{ background: var(--crema); border-radius: 12px; padding: 34px 38px; text-align: left; }
+  .doc-kicker{ font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--verde); }
+  .doc-facsimile h3{ font-size: 20px; font-weight: 800; color: var(--negro); margin: 8px 0 4px; }
+  .doc-meta{ font-size: 12.5px; color: var(--gris); margin: 0 0 22px; }
+  .cronograma-table{ width: 100%; border-collapse: collapse; font-size: 13px; }
+  .cronograma-table td{ padding: 10px 8px; border-top: 1px solid rgba(21,22,18,0.12); color: var(--gris); vertical-align: top; }
+  .cronograma-table tr:first-child td{ border-top: none; }
+  .t-num{ font-family: var(--font-mono); color: var(--verde); font-weight: 700; width: 26px; }
+  .t-fecha{ white-space: nowrap; text-align: right; color: var(--negro); font-weight: 600; font-size: 12px; }
+
+  @media (max-width: 760px){
+    .s4-head{ margin-bottom: 36px; }
+    .quote-lg{ font-size: 21px; }
+    .timeline{ display: flex; flex-direction: column; gap: 14px; margin-bottom: 30px; }
+    .etapa{ padding: 20px 18px; border-radius: 12px; }
+    .doc-facsimile{ padding: 22px 18px; }
+    .cronograma-table{ font-size: 12px; }
+    .cronograma-table td{ padding: 8px 4px; }
+  }
+</style>

@@ -1,0 +1,70 @@
+---
+const grupos = [
+  {
+    titulo: 'Análisis funcional',
+    items: ['Relevamiento y análisis de procesos', 'Análisis de normativa', 'Identificación de actores y circuitos administrativos', 'Definición de requerimientos funcionales y no funcionales'],
+  },
+  {
+    titulo: 'Diseño de solución',
+    items: ['Diseño del prototipo', 'Definición de pantallas y módulos'],
+  },
+  {
+    titulo: 'Coordinación y validación',
+    items: ['Coordinación del desarrollo', 'Instalación y validación del prototipo', 'Reuniones con usuarios y responsables de las áreas', 'Revisión y corrección del diseño a partir de pruebas'],
+  },
+  {
+    titulo: 'Documentación y modelado',
+    items: ['Modelado de datos', 'Elaboración de documentación técnica', 'Evaluación de alternativas tecnológicas'],
+  },
+];
+---
+<section class="s3" id="mi-rol">
+  <div class="wrap">
+    <div class="s3-head">
+      <div class="kicker">Escena 03 — Mi rol</div>
+      <p class="quote-lg">&ldquo;Conectar procesos, usuarios y tecnología.&rdquo;</p>
+    </div>
+
+    <div class="grupos">
+      {grupos.map((g) => (
+        <div class="grupo-card">
+          <h3>{g.titulo}</h3>
+          <ul>
+            {g.items.map((i) => <li>{i}</li>)}
+          </ul>
+        </div>
+      ))}
+    </div>
+
+    <button class="evidencia-link" data-lightbox="tpl-alcance" data-lightbox-type="content">
+      Fuente: Acta de Alcance del Proyecto — Involucrados del Proyecto ↗
+    </button>
+  </div>
+</section>
+
+<style>
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--naranja); margin-bottom: 20px; }
+  .quote-lg{ font-family: var(--font-secundaria); font-style: italic; font-size: 30px; line-height: 1.4; }
+  .s3-head{ text-align: center; max-width: 700px; margin: 0 auto 60px; }
+
+  .grupos{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; max-width: 980px; margin: 0 auto 30px; }
+  .grupo-card{ background: var(--crema); border-radius: 16px; padding: 28px 30px; border-left: 5px solid var(--naranja); }
+  .grupo-card h3{ font-size: 18px; font-weight: 800; margin: 0 0 14px; color: var(--negro); }
+  .grupo-card ul{ margin: 0; padding-left: 18px; }
+  .grupo-card li{ font-size: 14px; line-height: 1.65; color: var(--gris); margin-bottom: 6px; }
+
+  .evidencia-link{
+    display: block; margin: 0 auto; background: none; border: none; padding: 0; cursor: zoom-in;
+    font-size: 13px; font-weight: 600; color: var(--verde); border-bottom: 1px solid var(--verde);
+    font-family: var(--font-principal); text-align: center; width: fit-content;
+  }
+
+  @media (max-width: 760px){
+    .s3-head{ margin-bottom: 36px; }
+    .quote-lg{ font-size: 21px; }
+    .grupos{ display: flex; flex-direction: column; gap: 16px; margin-bottom: 26px; }
+    .grupo-card{ padding: 22px 22px; border-radius: 14px; }
+    .grupo-card h3{ font-size: 16.5px; }
+    .grupo-card li{ font-size: 13.5px; }
+  }
+</style>

@@ -1,0 +1,132 @@
+---
+const slides = [
+  {
+    src: '/images/caso-bid/proto-01-home.png',
+    titulo: 'Home',
+    texto: 'Portal institucional con acceso a Redeterminación, Obra Pública y Vivienda, video institucional y accesos directos a Normativa y Preguntas Frecuentes.',
+  },
+  {
+    src: '/images/caso-bid/proto-02-ingreso-expedientes.jpg',
+    titulo: 'Ingreso de Expedientes',
+    texto: 'Carga de documentación y datos del expediente para iniciar el trámite de redeterminación.',
+  },
+  {
+    src: '/images/caso-bid/proto-03-consulta-expedientes.jpg',
+    titulo: 'Consulta de Expedientes',
+    texto: 'Búsqueda y seguimiento del estado de los expedientes ya ingresados al sistema.',
+  },
+  {
+    src: '/images/caso-bid/proto-04-normativa.jpg',
+    titulo: 'Normativa',
+    texto: 'Acceso a los decretos y la normativa vigente que regula el proceso de redeterminación.',
+  },
+  {
+    src: '/images/caso-bid/proto-05-indices.jpg',
+    titulo: 'Índices',
+    texto: 'Consulta de los índices oficiales publicados por INDEC, utilizados para el cálculo de la redeterminación.',
+  },
+];
+---
+<section class="s5" id="prototipo">
+  <div class="wrap">
+    <div class="s5-head">
+      <div class="kicker">Escena 05 — De la idea al prototipo</div>
+      <p class="quote-lg">&ldquo;Los requerimientos se transformaron en pantallas y módulos concretos.&rdquo;</p>
+      <p class="nota">Wireframes originales del prototipo (2016). Seleccionamos 5 de las pantallas del Anexo III — Diseño Funcional.</p>
+    </div>
+
+    <div class="carrusel" data-carrusel>
+      <div class="carrusel-track" data-track>
+        {slides.map((s, i) => (
+          <figure class={`slide ${i === 0 ? 'is-active' : ''}`} data-slide aria-hidden={i === 0 ? 'false' : 'true'}>
+            <img src={s.src} alt={`Wireframe original: ${s.titulo}`} loading="lazy" data-lightbox={s.src} data-lightbox-alt={s.titulo} />
+            <figcaption>
+              <h3>{s.titulo}</h3>
+              <p>{s.texto}</p>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+
+      <button class="carrusel-btn prev" data-prev aria-label="Pantalla anterior">&larr;</button>
+      <button class="carrusel-btn next" data-next aria-label="Pantalla siguiente">&rarr;</button>
+
+      <div class="carrusel-dots" data-dots>
+        {slides.map((_, i) => (
+          <button class={`dot ${i === 0 ? 'is-active' : ''}`} data-dot={i} aria-label={`Ir a la pantalla ${i + 1}`}></button>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .s5{ background: var(--crema); }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--naranja); margin-bottom: 20px; }
+  .quote-lg{ font-family: var(--font-secundaria); font-style: italic; font-size: 30px; line-height: 1.4; color: var(--negro); }
+  .s5-head{ text-align: center; max-width: 720px; margin: 0 auto 50px; }
+  .nota{ font-size: 13px; color: var(--gris); opacity: 0.7; margin-top: 16px; }
+
+  .carrusel{ position: relative; max-width: 900px; margin: 0 auto; }
+  .carrusel-track{ position: relative; min-height: 560px; }
+  .slide{ margin: 0; display: none; }
+  .slide.is-active{ display: block; }
+  .slide img{ width: 100%; border-radius: 14px; border: 1px solid rgba(21,22,18,0.1); box-shadow: 0 20px 40px rgba(21,22,18,0.08); margin-bottom: 22px; cursor: zoom-in; }
+  .slide figcaption h3{ font-size: 19px; font-weight: 800; color: var(--negro); margin: 0 0 8px; text-align: center; }
+  .slide figcaption p{ font-size: 14.5px; line-height: 1.6; color: var(--gris); text-align: center; max-width: 560px; margin: 0 auto; }
+
+  .carrusel-btn{
+    position: absolute; top: 220px; transform: translateY(-50%);
+    width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--negro);
+    background: var(--fondo-claro); color: var(--negro); font-size: 18px; cursor: pointer;
+  }
+  .carrusel-btn.prev{ left: -60px; }
+  .carrusel-btn.next{ right: -60px; }
+
+  .carrusel-dots{ display: flex; justify-content: center; gap: 10px; margin-top: 26px; }
+  .dot{ width: 9px; height: 9px; border-radius: 50%; border: none; background: rgba(21,22,18,0.2); padding: 0; cursor: pointer; }
+  .dot.is-active{ background: var(--naranja); }
+
+  @media (max-width: 760px){
+    .s5-head{ margin-bottom: 30px; }
+    .quote-lg{ font-size: 21px; }
+    .carrusel-track{ min-height: 460px; }
+    .slide figcaption h3{ font-size: 17px; }
+    .slide figcaption p{ font-size: 13.5px; }
+    .carrusel-btn{ top: auto; bottom: -50px; transform: none; width: 40px; height: 40px; }
+    .carrusel-btn.prev{ left: calc(50% - 56px); }
+    .carrusel-btn.next{ right: calc(50% - 56px); }
+    .carrusel{ padding-bottom: 60px; }
+    .carrusel-dots{ margin-top: 0; }
+  }
+</style>
+
+<script>
+  function initCarrusel(root) {
+    const slides = Array.from(root.querySelectorAll('[data-slide]'));
+    const dots = Array.from(root.querySelectorAll('[data-dot]'));
+    let current = 0;
+
+    function render() {
+      slides.forEach((s, i) => {
+        s.classList.toggle('is-active', i === current);
+        s.setAttribute('aria-hidden', i === current ? 'false' : 'true');
+      });
+      dots.forEach((d, i) => d.classList.toggle('is-active', i === current));
+    }
+
+    root.querySelector('[data-prev]').addEventListener('click', () => {
+      current = (current - 1 + slides.length) % slides.length;
+      render();
+    });
+    root.querySelector('[data-next]').addEventListener('click', () => {
+      current = (current + 1) % slides.length;
+      render();
+    });
+    dots.forEach((d, i) => d.addEventListener('click', () => { current = i; render(); }));
+
+    render();
+  }
+
+  document.querySelectorAll('[data-carrusel]').forEach(initCarrusel);
+</script>

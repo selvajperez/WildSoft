@@ -1,0 +1,87 @@
+---
+const resultados = [
+  'Documentación de alcance y requerimientos',
+  'Diseño funcional',
+  'Modelo de datos',
+  'Casos de uso',
+  'Evaluación tecnológica',
+  'Selección de Alfresco',
+  'Ambiente de desarrollo',
+  'Prototipo instalado y operativo',
+  'Definición de arquitectura',
+  'Perfiles y permisos',
+  'Circuito administrativo digital',
+  'Reglas de cálculo',
+  'Diseño definitivo corregido a partir de pruebas',
+];
+const valor = [
+  'Comprender procesos administrativos complejos',
+  'Traducir normativa en reglas de negocio',
+  'Relevar necesidades de usuarios',
+  'Diseñar soluciones funcionales',
+  'Modelar datos y procesos',
+  'Evaluar tecnologías',
+  'Coordinar desarrollo',
+  'Documentar decisiones',
+  'Validar prototipos',
+  'Integrar gestión documental y automatización',
+];
+---
+<section class="s8">
+  <div class="wrap">
+    <div class="s8-head">
+      <div class="kicker">Escena 09 — Resultados y valor profesional</div>
+      <p class="quote-lg">&ldquo;El proyecto llegó a un prototipo instalado, validado y corregido.&rdquo;</p>
+    </div>
+
+    <div class="resultados">
+      {resultados.map((r) => <span>{r}</span>)}
+    </div>
+
+    <div class="cierre">
+      <h3>Qué demuestra este proyecto</h3>
+      <div class="valor-grid">
+        {valor.map((v) => <div class="valor-item">{v}</div>)}
+      </div>
+    </div>
+
+    <p class="cierre-final">&ldquo;El proyecto no consistió únicamente en desarrollar una aplicación. Implicó analizar y rediseñar un proceso completo, integrar normativa, datos, documentos, usuarios y tecnología, y transformar ese análisis en una solución funcional, escalable y validada por las áreas involucradas.&rdquo;</p>
+
+    <div class="center-btn"><a class="btn btn-secondary" href="/#proyectos">Volver a proyectos</a></div>
+  </div>
+</section>
+
+<style>
+  .s8{ background: var(--negro); color: var(--crema); }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 20px; }
+  .quote-lg{ font-family: var(--font-secundaria); font-style: italic; font-size: 32px; line-height: 1.4; color: #fff; }
+  .s8-head{ text-align: center; max-width: 780px; margin: 0 auto 50px; }
+
+  .resultados{ display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 980px; margin: 0 auto 60px; }
+  .resultados span{ font-size: 12.5px; color: #D9D2C4; padding: 9px 16px; border: 1px solid rgba(251,242,226,0.18); border-radius: 20px; }
+
+  .cierre{ max-width: 980px; margin: 0 auto 50px; }
+  .cierre h3{ text-align: center; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--naranja); margin: 0 0 24px; }
+  .valor-grid{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 30px; }
+  .valor-item{ font-size: 14.5px; color: #D9D2C4; padding-left: 18px; position: relative; }
+  .valor-item::before{ content: '—'; position: absolute; left: 0; color: var(--naranja); }
+
+  .cierre-final{
+    font-family: var(--font-secundaria); font-style: italic; font-size: 20px; line-height: 1.6; color: var(--crema);
+    text-align: center; max-width: 780px; margin: 0 auto 50px;
+  }
+
+  .center-btn{ text-align: center; }
+  .btn-secondary{ border: 1.5px solid rgba(251,242,226,0.4); color: var(--crema); }
+
+  @media (max-width: 760px){
+    .s8-head{ margin-bottom: 36px; }
+    .quote-lg{ font-size: 22px; }
+    .resultados{ gap: 8px; margin-bottom: 40px; }
+    .resultados span{ font-size: 12px; padding: 8px 14px; }
+    .cierre{ margin-bottom: 36px; }
+    .valor-grid{ grid-template-columns: 1fr; gap: 12px; }
+    .valor-item{ font-size: 14px; }
+    .cierre-final{ font-size: 17px; margin-bottom: 36px; }
+  }
+</style>

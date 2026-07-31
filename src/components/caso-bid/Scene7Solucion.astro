@@ -1,0 +1,78 @@
+---
+const bloques = [
+  {
+    titulo: 'Gestión documental',
+    items: ['Expedientes', 'Obras', 'Redeterminaciones', 'Documentos', 'Certificados', 'Actas', 'Memos'],
+  },
+  {
+    titulo: 'Flujo administrativo',
+    items: ['Estados', 'Perfiles', 'Permisos', 'Alertas', 'Firmas', 'Tratamiento FIFO'],
+  },
+  {
+    titulo: 'Cálculo',
+    items: ['Índices', 'Factores', 'Ponderaciones', 'Normativa', 'Generación de resultados'],
+  },
+];
+---
+<section class="s6">
+  <div class="wrap">
+    <div class="s6-head">
+      <div class="kicker">Escena 07 — La solución ampliada</div>
+      <p class="quote-lg">&ldquo;La solución integró gestión documental, circuito administrativo y cálculo.&rdquo;</p>
+    </div>
+
+    <div class="bloques">
+      {bloques.map((b, i) => (
+        <>
+          <div class="bloque">
+            <h3>{b.titulo}</h3>
+            <ul>{b.items.map((it) => <li>{it}</li>)}</ul>
+          </div>
+          {i < bloques.length - 1 && <div class="bloque-arrow">→</div>}
+        </>
+      ))}
+    </div>
+    <p class="modelo-conceptual">Expedientes → Obras → Redeterminaciones — un expediente puede contener varias obras, y cada obra, múltiples redeterminaciones.</p>
+
+    <div class="evidencias-visuales">
+      <button class="ev-card" data-lightbox="/images/caso-bid/evidencia-diagrama-er.png" data-lightbox-alt="Diagrama Entidad-Relación de la base de datos">
+        <img src="/images/caso-bid/evidencia-diagrama-er.png" alt="Diagrama Entidad-Relación de la base de datos" loading="lazy" />
+        <span class="ev-label">Diagrama Entidad–Relación (Anexo IV) — ampliar ↗</span>
+      </button>
+      <button class="ev-card" data-lightbox="/images/caso-bid/evidencia-flujo-uml.jpg" data-lightbox-alt="Flujo UML del circuito de expedientes">
+        <img src="/images/caso-bid/evidencia-flujo-uml.jpg" alt="Flujo UML del circuito de expedientes" loading="lazy" />
+        <span class="ev-label">Flujo UML — Casos de uso (Anexo V) — ampliar ↗</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 20px; }
+  .quote-lg{ font-family: var(--font-secundaria); font-style: italic; font-size: 30px; line-height: 1.4; }
+  .s6-head{ text-align: center; max-width: 780px; margin: 0 auto 60px; }
+
+  .bloques{ display: flex; align-items: stretch; justify-content: center; gap: 0; max-width: 1100px; margin: 0 auto 20px; }
+  .bloque{ flex: 1; background: var(--crema); border-radius: 16px; padding: 26px 24px; border-top: 5px solid var(--verde); }
+  .bloque h3{ font-size: 17px; font-weight: 800; margin: 0 0 14px; color: var(--negro); }
+  .bloque ul{ margin: 0; padding-left: 18px; }
+  .bloque li{ font-size: 13.5px; line-height: 1.65; color: var(--gris); }
+  .bloque-arrow{ flex: 0 0 auto; display: flex; align-items: center; color: var(--naranja); font-size: 22px; padding: 0 14px; }
+
+  .modelo-conceptual{ text-align: center; font-size: 14px; color: var(--gris); max-width: 700px; margin: 0 auto 60px; font-style: italic; }
+
+  .evidencias-visuales{ display: flex; gap: 24px; max-width: 1100px; margin: 0 auto; }
+  .ev-card{ flex: 1; background: var(--fondo-claro); border: 1px solid rgba(21,22,18,0.1); border-radius: 14px; padding: 20px; cursor: zoom-in; text-align: left; }
+  .ev-card img{ width: 100%; border-radius: 8px; margin-bottom: 14px; background: #fff; }
+  .ev-label{ font-size: 13px; font-weight: 700; color: var(--verde); }
+
+  @media (max-width: 760px){
+    .s6-head{ margin-bottom: 36px; }
+    .quote-lg{ font-size: 21px; }
+    .bloques{ flex-direction: column; gap: 16px; margin-bottom: 16px; }
+    .bloque-arrow{ transform: rotate(90deg); padding: 4px 0; justify-content: center; }
+    .modelo-conceptual{ margin-bottom: 36px; font-size: 13.5px; }
+    .evidencias-visuales{ flex-direction: column; gap: 16px; }
+    .ev-card{ padding: 16px; }
+  }
+</style>

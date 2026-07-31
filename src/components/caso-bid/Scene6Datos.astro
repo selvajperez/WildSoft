@@ -1,0 +1,147 @@
+---
+const pasos = [
+  'Publicaciones mensuales del INDEC (PDF)',
+  'Conversión y estructuración en Excel',
+  'Normalización y controles',
+  'Construcción de la base histórica',
+  'Preparación para carga en SQL',
+];
+
+const archivosPreview = [
+  { n: '2014.01.pdf', f: '17/8/2016 09:06', t: 'PDF', s: '119 KB' },
+  { n: '2014.01.xlsx', f: '17/8/2016 09:06', t: 'XLSX', s: '251 KB' },
+  { n: '2014.02.pdf', f: '17/8/2016 09:09', t: 'PDF', s: '184 KB' },
+  { n: '2014.02.xlsx', f: '17/8/2016 09:09', t: 'XLSX', s: '249 KB' },
+];
+
+const archivosCompletos = [
+  ...archivosPreview,
+  { n: '2014.03.pdf', f: '17/8/2016 09:13', t: 'PDF', s: '116 KB' },
+  { n: '2014.03.xlsx', f: '17/8/2016 09:13', t: 'XLSX', s: '247 KB' },
+  { n: '2014.04.pdf', f: '17/8/2016 09:14', t: 'PDF', s: '116 KB' },
+  { n: '2014.04.xlsx', f: '17/8/2016 09:14', t: 'XLSX', s: '277 KB' },
+  { n: '2014.05.pdf', f: '17/8/2016 09:17', t: 'PDF', s: '217 KB' },
+  { n: '2014.05.xlsx', f: '17/8/2016 09:18', t: 'XLSX', s: '267 KB' },
+  { n: '2014.06.pdf', f: '17/8/2016 09:19', t: 'PDF', s: '248 KB' },
+  { n: '2014.06.xlsx', f: '17/8/2016 09:19', t: 'XLSX', s: '285 KB' },
+  { n: '2014.07.pdf', f: '17/8/2016 09:20', t: 'PDF', s: '215 KB' },
+  { n: '2014.07.xlsx', f: '17/8/2016 09:20', t: 'XLSX', s: '286 KB' },
+  { n: '2014.08.pdf', f: '17/8/2016 09:21', t: 'PDF', s: '213 KB' },
+  { n: '2014.08.xlsx', f: '17/8/2016 09:21', t: 'XLSX', s: '274 KB' },
+  { n: '2014.09.pdf', f: '17/8/2016 09:21', t: 'PDF', s: '213 KB' },
+  { n: '2014.09.xlsx', f: '17/8/2016 09:22', t: 'XLSX', s: '274 KB' },
+  { n: '2014.10.pdf', f: '17/8/2016 09:22', t: 'PDF', s: '206 KB' },
+  { n: '2014.10.xlsx', f: '17/8/2016 09:23', t: 'XLSX', s: '269 KB' },
+  { n: '2014.11.pdf', f: '17/8/2016 09:23', t: 'PDF', s: '197 KB' },
+  { n: '2014.11.xlsx', f: '17/8/2016 09:24', t: 'XLSX', s: '247 KB' },
+  { n: '2014.12.pdf', f: '17/8/2016 09:24', t: 'PDF', s: '212 KB' },
+  { n: '2014.12.xlsx', f: '17/8/2016 09:24', t: 'XLSX', s: '255 KB' },
+];
+---
+<section class="s6">
+  <div class="wrap">
+    <div class="s6-head">
+      <div class="kicker">Escena 06 — Los datos también fueron parte del diseño</div>
+      <p class="quote-lg">&ldquo;Antes de calcular, había que construir los datos.&rdquo;</p>
+    </div>
+
+    <div class="mini-flow">
+      {pasos.map((p) => <span>{p}</span>)}
+      <span class="prevista">Actualización automática desde la web del INDEC <b>· prevista en el diseño</b></span>
+    </div>
+
+    <button class="ev-card ev-card-wide" data-lightbox="/images/caso-bid/evidencia-planilla-redeterminaciones.png" data-lightbox-alt="Planilla de cálculo de redeterminaciones: expedientes, montos y estados">
+      <img src="/images/caso-bid/evidencia-planilla-redeterminaciones.png" alt="Planilla de cálculo de redeterminaciones, con expedientes, montos y estados (Activos / Aprobados / Observados)" loading="lazy" />
+      <span class="ev-label">Planilla de cálculo de redeterminaciones — expedientes, montos y estados — ampliar ↗</span>
+    </button>
+
+    <button class="carpeta-card" data-lightbox="tpl-carpeta-indec" data-lightbox-type="content">
+      <div class="carpeta-bar"><span></span><span></span><span></span></div>
+      <table class="carpeta-table">
+        <thead><tr><th>Nombre</th><th>Fecha de modificación</th><th>Tipo</th><th>Tamaño</th></tr></thead>
+        <tbody>
+          {archivosPreview.map((a) => (
+            <tr>
+              <td><span class={`tag ${a.t.toLowerCase()}`}>{a.t}</span>{a.n}</td>
+              <td>{a.f}</td>
+              <td>{a.t === 'PDF' ? 'Documento Adobe...' : 'Hoja de cálculo d...'}</td>
+              <td>{a.s}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <span class="ev-label">Carpeta Indec / 2014 — 24 archivos (12 meses × PDF + Excel) — ver completa ↗</span>
+    </button>
+  </div>
+</section>
+
+<template id="tpl-carpeta-indec">
+  <div class="doc-facsimile">
+    <div class="doc-head">
+      <span class="doc-kicker">Documento fuente</span>
+      <h3>Trabajos Adicionales / Indec / 2014</h3>
+      <p class="doc-meta">Publicaciones mensuales del INDEC descargadas en PDF y convertidas a Excel — 24 archivos</p>
+    </div>
+    <table class="carpeta-table">
+      <thead><tr><th>Nombre</th><th>Fecha de modificación</th><th>Tipo</th><th>Tamaño</th></tr></thead>
+      <tbody>
+        {archivosCompletos.map((a) => (
+          <tr>
+            <td><span class={`tag ${a.t.toLowerCase()}`}>{a.t}</span>{a.n}</td>
+            <td>{a.f}</td>
+            <td>{a.t === 'PDF' ? 'Documento Adobe Acrobat' : 'Hoja de cálculo de Microsoft Excel'}</td>
+            <td>{a.s}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</template>
+
+<style>
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 20px; }
+  .quote-lg{ font-family: var(--font-secundaria); font-style: italic; font-size: 30px; line-height: 1.4; }
+  .s6-head{ text-align: center; max-width: 780px; margin: 0 auto 46px; }
+
+  .mini-flow{ display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 1000px; margin: 0 auto 50px; }
+  .mini-flow span{ font-size: 13px; color: var(--gris); padding: 9px 18px; border: 1px solid rgba(21,22,18,0.15); border-radius: 20px; background: var(--crema); }
+  .mini-flow .prevista{ border-color: var(--naranja); background: rgba(236,115,35,0.06); color: var(--gris); }
+  .mini-flow .prevista b{ color: var(--naranja); font-weight: 700; }
+
+  .ev-card{ display: block; width: 100%; background: var(--crema); border: 1px solid rgba(21,22,18,0.1); border-radius: 14px; padding: 22px; cursor: zoom-in; text-align: left; max-width: 1000px; margin: 0 auto 26px; }
+  .ev-card img{ width: 100%; border-radius: 8px; margin-bottom: 16px; background: #fff; border: 1px solid rgba(21,22,18,0.08); }
+  .ev-label{ font-size: 13px; font-weight: 700; color: var(--verde); }
+
+  .carpeta-card{ display: block; width: 100%; max-width: 640px; margin: 0 auto; background: #fff; border: 1px solid rgba(21,22,18,0.12); border-radius: 10px; padding: 0; cursor: zoom-in; text-align: left; overflow: hidden; }
+  .carpeta-bar{ display: flex; gap: 6px; padding: 10px 14px; background: #EDEAE2; }
+  .carpeta-bar span{ width: 10px; height: 10px; border-radius: 50%; background: rgba(21,22,18,0.2); display: block; }
+  .carpeta-table{ width: 100%; border-collapse: collapse; font-size: 12px; }
+  .carpeta-table th{ text-align: left; font-size: 11px; font-weight: 700; color: var(--gris); padding: 8px 10px; border-bottom: 1px solid rgba(21,22,18,0.1); background: #F7F4EC; }
+  .carpeta-table td{ padding: 7px 10px; color: var(--gris); border-bottom: 1px solid rgba(21,22,18,0.06); white-space: nowrap; }
+  .tag{ display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: 3px; margin-right: 6px; color: #fff; }
+  .tag.pdf{ background: #C0392B; }
+  .tag.xlsx{ background: var(--verde); }
+  .carpeta-card .ev-label{ display: block; padding: 12px 14px; border-top: 1px solid rgba(21,22,18,0.1); }
+
+  .doc-facsimile{ background: var(--crema); border-radius: 12px; padding: 34px 38px; text-align: left; }
+  .doc-kicker{ font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--verde); }
+  .doc-facsimile h3{ font-size: 20px; font-weight: 800; color: var(--negro); margin: 8px 0 4px; }
+  .doc-meta{ font-size: 12.5px; color: var(--gris); margin: 0 0 22px; }
+  .doc-facsimile .carpeta-table{ background: #fff; border-radius: 8px; overflow: hidden; }
+
+  @media (max-width: 760px){
+    .s6-head{ margin-bottom: 32px; }
+    .quote-lg{ font-size: 21px; }
+    .mini-flow{ gap: 8px; margin-bottom: 36px; }
+    .mini-flow span{ font-size: 12px; padding: 8px 14px; }
+    .ev-card{ padding: 16px; margin-bottom: 20px; }
+    .carpeta-table{ font-size: 11px; table-layout: fixed; width: 100%; }
+    .carpeta-table th, .carpeta-table td{ padding: 6px 5px; white-space: normal; word-break: break-word; }
+    .carpeta-table th:nth-child(3), .carpeta-table td:nth-child(3){ display: none; }
+    .carpeta-table th:nth-child(1), .carpeta-table td:nth-child(1){ width: 42%; }
+    .carpeta-table th:nth-child(2), .carpeta-table td:nth-child(2){ width: 38%; }
+    .carpeta-table th:nth-child(4), .carpeta-table td:nth-child(4){ width: 20%; white-space: nowrap; }
+    .doc-facsimile{ padding: 22px 16px; }
+    .doc-facsimile .carpeta-table{ font-size: 10.5px; }
+  }
+</style>
