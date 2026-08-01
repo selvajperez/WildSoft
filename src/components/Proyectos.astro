@@ -15,6 +15,11 @@ const areas = [
   {
     titulo: 'E-commerce',
     texto: 'Tiendas online, catálogos y soluciones orientadas a organizar productos y facilitar la experiencia de compra.',
+    // Primer caso publicado de esta área; enlaza directo al caso mientras sea el único.
+    // Cuando haya más de un caso, este href debería apuntar a una página índice de la categoría.
+    href: '/proyectos/bissu-cosmeticos',
+    caso: 'Bissú Cosméticos',
+    cta: 'Ver caso de estudio',
   },
   {
     titulo: 'Sistemas y automatización',
@@ -34,7 +39,7 @@ const areas = [
           <a class="area-card area-card-link" href={a.href}>
             <h3>{a.titulo}</h3>
             <p>{a.texto}</p>
-            <span class="area-link">Ver caso: {a.caso} →</span>
+            <span class="area-link">{a.cta || `Ver caso: ${a.caso} →`}</span>
           </a>
         ) : (
           <div class="area-card">

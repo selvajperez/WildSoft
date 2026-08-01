@@ -1,0 +1,49 @@
+---
+const stack = [
+  { nombre: 'Joomla', rol: 'Gestor del sitio institucional', color: 'naranja' },
+  { nombre: 'PrestaShop', rol: 'Plataforma de la tienda online', color: 'verde' },
+  { nombre: 'HTML', rol: 'Estructura y personalización', color: 'negro' },
+  { nombre: 'CSS', rol: 'Adaptación visual de interfaces', color: 'naranja' },
+  { nombre: 'JavaScript', rol: 'Funcionalidades e interacciones', color: 'verde' },
+  { nombre: 'YouTube', rol: 'Publicación de contenidos audiovisuales', color: 'negro' },
+  { nombre: 'SEO', rol: 'Optimización para buscadores', color: 'naranja' },
+  { nombre: 'Analítica web', rol: 'Medición de tráfico y comportamiento', color: 'verde' },
+  { nombre: 'Adobe InDesign', rol: 'Maquetas visuales de sitio y tienda', color: 'negro' },
+];
+---
+<section class="jtec" id="tecnologias">
+  <div class="wrap">
+    <div class="kicker">Tecnologías utilizadas</div>
+    <div class="tec-grid">
+      {stack.map((t) => (
+        <div class="tec-card">
+          <span class={`tec-dot dot-${t.color}`}></span>
+          <div>
+            <h3>{t.nombre}</h3>
+            <p>{t.rol}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .jtec{ background: var(--crema); }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 30px; text-align: center; }
+  .tec-grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1000px; margin: 0 auto; }
+  .tec-card{ display: flex; align-items: center; gap: 16px; padding: 22px; border: 1px solid rgba(21,22,18,0.1); border-radius: 14px; background: #fff; }
+  .tec-dot{ flex: 0 0 14px; width: 14px; height: 14px; border-radius: 50%; }
+  .dot-naranja{ background: var(--naranja); }
+  .dot-verde{ background: var(--verde); }
+  .dot-negro{ background: var(--negro); }
+  .tec-card h3{ font-size: 16px; font-weight: 700; color: var(--negro); margin: 0 0 3px; }
+  .tec-card p{ font-size: 12.5px; color: var(--gris); margin: 0; }
+
+  @media (max-width: 760px){
+    .tec-grid{ grid-template-columns: 1fr 1fr; gap: 14px; }
+    .tec-card{ padding: 16px; gap: 12px; border-radius: 12px; }
+    .tec-card h3{ font-size: 14.5px; }
+    .tec-card p{ font-size: 11.5px; }
+  }
+</style>

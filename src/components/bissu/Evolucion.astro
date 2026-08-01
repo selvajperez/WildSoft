@@ -1,0 +1,48 @@
+---
+const etapas = [
+  { n: 1, titulo: 'Relevamiento y estrategia digital' },
+  { n: 2, titulo: 'Sitio institucional en Joomla' },
+  { n: 3, titulo: 'Tienda online en PrestaShop' },
+  { n: 4, titulo: 'Canal de YouTube' },
+  { n: 5, titulo: 'Integración de campañas y productos' },
+  { n: 6, titulo: 'SEO y analítica web' },
+  { n: 7, titulo: 'Actualización continua' },
+];
+---
+<section class="bevol" id="evolucion">
+  <div class="wrap">
+    <div class="kicker">Evolución del proyecto · 2010–2015</div>
+    <div class="timeline">
+      {etapas.map((e) => (
+        <div class="etapa">
+          <div class="etapa-dot"></div>
+          <span class="etapa-n">Etapa {e.n}</span>
+          <h3>{e.titulo}</h3>
+        </div>
+      ))}
+    </div>
+    <p class="nota">El proyecto evolucionó de manera progresiva durante el período 2010–2015, incorporando nuevos canales, contenidos y funcionalidades de acuerdo con las necesidades comerciales y de comunicación de la marca.</p>
+  </div>
+</section>
+
+<style>
+  .bevol{ background: var(--crema); }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 46px; text-align: center; }
+  .timeline{ display: flex; align-items: flex-start; gap: 0; max-width: 1080px; margin: 0 auto 40px; position: relative; }
+  .timeline::before{ content: ''; position: absolute; top: 7px; left: 4%; right: 4%; height: 2px; background: rgba(21,22,18,0.12); }
+  .etapa{ flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 8px; position: relative; }
+  .etapa-dot{ width: 16px; height: 16px; border-radius: 50%; margin-bottom: 16px; border: 3px solid #fff; box-shadow: 0 0 0 2px rgba(21,22,18,0.1); background: var(--verde); }
+  .etapa-n{ font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gris); margin-bottom: 6px; }
+  .etapa h3{ font-size: 14.5px; font-weight: 700; color: var(--negro); margin: 0; line-height: 1.3; }
+  .nota{ font-size: 14px; color: var(--gris); text-align: center; max-width: 640px; margin: 0 auto; }
+
+  @media (max-width: 900px){
+    .kicker{ margin-bottom: 30px; }
+    .timeline{ flex-direction: column; gap: 16px; align-items: stretch; margin-bottom: 30px; }
+    .timeline::before{ display: none; }
+    .etapa{ flex-direction: row; text-align: left; align-items: center; gap: 14px; padding: 14px 18px; background: #fff; border-radius: 12px; }
+    .etapa-dot{ margin-bottom: 0; flex: 0 0 16px; }
+    .etapa-n{ display: none; }
+    .nota{ font-size: 13.5px; }
+  }
+</style>

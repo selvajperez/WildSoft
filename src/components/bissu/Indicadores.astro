@@ -1,0 +1,44 @@
+---
+const indicadores = [
+  { n: 'Sitio institucional en Joomla', e: 'Implementado', c: 'done' },
+  { n: 'Tienda online en PrestaShop', e: 'Implementada', c: 'done' },
+  { n: 'Canal de YouTube', e: 'Implementado', c: 'done' },
+  { n: 'Integración entre contenidos y productos', e: 'Implementada', c: 'done' },
+  { n: 'Personalización visual de sitio y tienda', e: 'Implementada', c: 'done' },
+  { n: 'Optimización SEO', e: 'Implementada', c: 'done' },
+  { n: 'Analítica web', e: 'Implementada', c: 'done' },
+  { n: 'Actualización periódica de campañas', e: 'Operativa', c: 'progress' },
+  { n: 'Venta directa al consumidor final', e: 'Habilitada', c: 'done' },
+  { n: 'Integración con el modelo de venta por catálogo', e: 'Implementada', c: 'done' },
+];
+---
+<section class="bind" id="indicadores">
+  <div class="wrap">
+    <div class="kicker">Indicadores del proyecto</div>
+    <div class="ind-table">
+      {indicadores.map((i) => (
+        <div class="ind-row">
+          <span class="ind-nombre">{i.n}</span>
+          <span class={`ind-badge badge-${i.c}`}>{i.e}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .bind{ background: #fff; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 30px; text-align: center; }
+  .ind-table{ max-width: 760px; margin: 0 auto; }
+  .ind-row{ display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 14px 4px; border-top: 1px solid rgba(21,22,18,0.1); }
+  .ind-row:first-child{ border-top: none; }
+  .ind-nombre{ font-size: 15px; color: var(--negro); font-weight: 600; }
+  .ind-badge{ flex: none; font-size: 11.5px; font-weight: 700; padding: 5px 14px; border-radius: 20px; white-space: nowrap; }
+  .badge-done{ background: rgba(113,120,26,0.15); color: var(--verde); }
+  .badge-progress{ background: rgba(236,115,35,0.15); color: var(--naranja); }
+
+  @media (max-width: 760px){
+    .ind-row{ flex-direction: column; align-items: flex-start; gap: 8px; padding: 14px 0; }
+    .ind-nombre{ font-size: 14px; }
+  }
+</style>

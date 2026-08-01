@@ -1,0 +1,33 @@
+---
+const decisiones = [
+  'Complementar el modelo de venta por catálogo con canales digitales propios.',
+  'Desarrollar de manera diferenciada el sitio institucional en Joomla y la tienda online en PrestaShop.',
+  'Mantener la identidad visual de Bissú, trasladando al entorno web el impacto gráfico de sus catálogos y campañas.',
+  'Maquetar las interfaces previamente en Adobe InDesign y luego personalizarlas mediante HTML y CSS.',
+  'Incorporar YouTube como canal para mostrar usos de productos, tendencias y propuestas de maquillaje.',
+  'Aplicar criterios SEO desde la estructura del sitio y la redacción de contenidos.',
+  'Priorizar una estructura que permitiera actualizar con frecuencia productos, campañas y contenidos.',
+  'Orientar la propuesta tanto a la red tradicional de revendedoras como al consumidor final.',
+];
+---
+<section class="bdec" id="decisiones">
+  <div class="wrap">
+    <div class="kicker">Principales decisiones</div>
+    <div class="dec-grid">
+      {decisiones.map((d) => <div class="dec-item">{d}</div>)}
+    </div>
+  </div>
+</section>
+
+<style>
+  .bdec{ background: var(--negro); color: var(--crema); }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 30px; text-align: center; }
+  .dec-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px 30px; max-width: 980px; margin: 0 auto; }
+  .dec-item{ font-size: 15px; line-height: 1.55; color: #D9D2C4; padding-left: 20px; position: relative; }
+  .dec-item::before{ content: '—'; position: absolute; left: 0; color: var(--naranja); }
+
+  @media (max-width: 760px){
+    .dec-grid{ grid-template-columns: 1fr; gap: 14px; }
+    .dec-item{ font-size: 14px; }
+  }
+</style>

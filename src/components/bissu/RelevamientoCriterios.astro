@@ -1,0 +1,54 @@
+---
+const relevamiento = [
+  'La estructura y frecuencia de las campañas comerciales.',
+  'El catálogo de productos y sus categorías.',
+  'El perfil de clientes, revendedoras y consumidoras finales.',
+  'La identidad visual de la marca.',
+  'Los contenidos disponibles: fotografías, videos, tutoriales y material promocional.',
+  'La forma de vincular cada campaña con los productos ofrecidos.',
+];
+const criterios = [
+  'Mantener la identidad visual reconocida de Bissú.',
+  'Trasladar al entorno digital la fuerza visual del catálogo impreso.',
+  'Dar protagonismo a los productos, colores, colecciones y tendencias de maquillaje.',
+  'Organizar la navegación de manera clara y sencilla.',
+  'Integrar contenidos audiovisuales de YouTube dentro de la experiencia digital.',
+  'Aplicar criterios de posicionamiento SEO e incorporar analítica web.',
+];
+---
+<section class="bsection" id="relevamiento">
+  <div class="wrap two-col">
+    <div class="col">
+      <div class="kicker">Relevamiento</div>
+      <p class="intro">Se analizó el modelo comercial de Bissú, basado principalmente en la venta por catálogo, y la forma en que la marca presentaba sus productos y se relacionaba con sus clientes.</p>
+      <ul class="lista">
+        {relevamiento.map((r) => <li>{r}</li>)}
+      </ul>
+    </div>
+    <div class="col">
+      <div class="kicker">Criterios de diseño</div>
+      <p class="intro">A partir del relevamiento se definió una estructura digital capaz de presentar la marca, exhibir productos, publicar contenidos audiovisuales y facilitar la compra online dentro de una experiencia integrada.</p>
+      <ul class="lista">
+        {criterios.map((c) => <li>{c}</li>)}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .bsection{ background: #fff; }
+  .two-col{ display: flex; gap: 60px; }
+  .col{ flex: 1; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 18px; }
+  .intro{ font-size: 15px; line-height: 1.65; color: var(--gris); margin: 0 0 22px; }
+  .lista{ margin: 0; padding: 0; list-style: none; }
+  .lista li{ font-size: 14.5px; line-height: 1.6; color: var(--negro); padding: 10px 0 10px 20px; border-top: 1px solid rgba(21,22,18,0.1); position: relative; }
+  .lista li:first-child{ border-top: none; }
+  .lista li::before{ content: '—'; position: absolute; left: 0; color: var(--naranja); }
+
+  @media (max-width: 760px){
+    .two-col{ flex-direction: column; gap: 36px; }
+    .intro{ font-size: 14px; margin-bottom: 16px; }
+    .lista li{ font-size: 13.5px; }
+  }
+</style>

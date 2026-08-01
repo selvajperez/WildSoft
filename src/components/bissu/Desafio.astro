@@ -1,0 +1,35 @@
+---
+const objetivos = [
+  'Desarrollar un sitio web institucional para centralizar la información de la marca.',
+  'Incorporar una tienda online como nuevo canal de comercialización.',
+  'Presentar productos, novedades y campañas de manera atractiva.',
+  'Crear contenidos audiovisuales para YouTube vinculados con maquillaje y productos.',
+  'Integrar los distintos canales digitales dentro de una estrategia común.',
+  'Mantener actualizados los contenidos de acuerdo con las campañas comerciales.',
+];
+---
+<section class="bsection bsection-crema" id="desafio">
+  <div class="wrap">
+    <div class="kicker">El desafío</div>
+    <p class="parrafo-central">El principal desafío consistía en acompañar la transformación de un modelo de venta basado principalmente en catálogos impresos hacia una presencia digital integrada. La marca necesitaba trasladar al entorno online la experiencia visual y comercial del catálogo, sin perder la identidad que ya reconocían sus clientes y revendedoras.</p>
+    <div class="obj-grid">
+      {objetivos.map((o) => (
+        <div class="obj-item">{o}</div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .bsection-crema{ background: var(--crema); }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 22px; text-align: center; }
+  .parrafo-central{ font-size: 17.5px; line-height: 1.75; color: var(--gris); max-width: 760px; margin: 0 auto 46px; text-align: center; }
+  .obj-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 900px; margin: 0 auto; }
+  .obj-item{ background: #fff; border-radius: 12px; padding: 20px 22px; font-size: 14.5px; line-height: 1.55; color: var(--negro); font-weight: 600; border-left: 4px solid var(--naranja); }
+
+  @media (max-width: 760px){
+    .parrafo-central{ font-size: 15px; margin-bottom: 30px; }
+    .obj-grid{ grid-template-columns: 1fr; gap: 10px; }
+    .obj-item{ padding: 16px 18px; font-size: 14px; }
+  }
+</style>
