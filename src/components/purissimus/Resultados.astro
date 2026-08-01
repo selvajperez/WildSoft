@@ -1,0 +1,46 @@
+---
+const resultados = [
+  'Se mantuvo la continuidad operativa de los sistemas que daban soporte al proceso de producción de hemoderivados.',
+  'Se garantizó la trazabilidad de los lotes mediante la integración entre el sistema informático, las balanzas industriales y los lectores de código de barras.',
+  'Se facilitó el diagnóstico y la resolución de incidencias en la automatización industrial y la instrumentación de planta.',
+  'Se fortaleció el cumplimiento de los procedimientos técnicos requeridos por las auditorías internas y externas.',
+  'Se consolidó una metodología de trabajo basada en la documentación técnica, la trazabilidad y el trabajo interdisciplinario.',
+];
+---
+<section class="jres" id="resultados">
+  <div class="wrap">
+    <div class="kicker">Resultados</div>
+    <div class="res-grid">
+      {resultados.map((r) => (
+        <div class="res-card">
+          <span class="res-check">✓</span>
+          <p>{r}</p>
+        </div>
+      ))}
+    </div>
+    <div class="aprendizajes">
+      <h3>Aprendizajes</h3>
+      <p>Este proyecto consolidó mi experiencia en la integración entre infraestructura informática y automatización industrial, permitiéndome comprender la importancia de la trazabilidad, la documentación técnica y el trabajo coordinado en entornos productivos altamente regulados.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .jres{ background: var(--crema); }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 30px; text-align: center; }
+  .res-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 980px; margin: 0 auto 40px; }
+  .res-card{ display: flex; align-items: flex-start; gap: 16px; background: #fff; border-radius: 14px; padding: 24px 22px; border-left: 4px solid var(--naranja); }
+  .res-check{ flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%; background: var(--verde); color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .res-card p{ font-size: 14.5px; line-height: 1.55; color: var(--negro); margin: 0; font-weight: 600; }
+
+  .aprendizajes{ max-width: 700px; margin: 0 auto; text-align: center; }
+  .aprendizajes h3{ font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--naranja); margin: 0 0 12px; }
+  .aprendizajes p{ font-size: 15px; line-height: 1.65; color: var(--gris); margin: 0; }
+
+  @media (max-width: 760px){
+    .res-grid{ grid-template-columns: 1fr; gap: 14px; margin-bottom: 30px; }
+    .res-card{ padding: 18px; border-radius: 12px; }
+    .res-card p{ font-size: 14px; }
+    .aprendizajes p{ font-size: 14px; }
+  }
+</style>

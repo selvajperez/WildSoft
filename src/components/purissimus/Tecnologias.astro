@@ -1,0 +1,58 @@
+---
+const categorias = [
+  {
+    nombre: 'Infraestructura IT',
+    items: ['Windows NT / 2000 / XP', 'Redes Microsoft', 'Microsoft Access', 'Hardware PC y estaciones de trabajo', 'Comunicaciones RS-232'],
+  },
+  {
+    nombre: 'Automatización industrial',
+    items: ['PLC Siemens S7-300', 'WinCC (HMI)', 'Modbus RTU', 'RS-485', 'Variadores de frecuencia (VFD)'],
+  },
+  {
+    nombre: 'Instrumentación',
+    items: ['Sensores PT100', 'Transmisores 4–20 mA', 'Sensores de nivel', 'Válvulas neumáticas', 'Bombas y agitadores industriales'],
+  },
+  {
+    nombre: 'Trazabilidad',
+    items: ['Lectores de código de barras', 'Balanza industrial RS-232', 'Registro de lotes', 'Sistema Access para trazabilidad'],
+  },
+  {
+    nombre: 'Gestión y calidad',
+    items: ['Procedimientos documentados', 'Auditorías internas y externas', 'Cumplimiento regulatorio', 'Documentación técnica'],
+  },
+];
+---
+<section class="jtec" id="tecnologias">
+  <div class="wrap">
+    <div class="kicker">Tecnologías utilizadas</div>
+    <div class="cat-grid">
+      {categorias.map((c) => (
+        <div class="cat-card">
+          <h3>{c.nombre}</h3>
+          <ul>
+            {c.items.map((it) => <li>{it}</li>)}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .jtec{ background: var(--crema); }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 30px; text-align: center; }
+  .cat-grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1080px; margin: 0 auto; }
+  .cat-card{ background: #fff; border-radius: 14px; padding: 24px; border: 1px solid rgba(21,22,18,0.08); }
+  .cat-card h3{ font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--naranja); margin: 0 0 14px; }
+  .cat-card ul{ margin: 0; padding: 0; list-style: none; }
+  .cat-card li{ font-size: 13.5px; line-height: 1.55; color: var(--negro); padding: 7px 0 7px 16px; position: relative; }
+  .cat-card li::before{ content: '·'; position: absolute; left: 0; color: var(--verde); font-weight: 700; }
+
+  @media (max-width: 760px){
+    .cat-grid{ grid-template-columns: 1fr; gap: 14px; }
+    .cat-card{ padding: 18px 20px; }
+  }
+  @media (min-width: 761px) and (max-width: 1000px){
+    .cat-grid{ grid-template-columns: 1fr 1fr; }
+  }
+</style>

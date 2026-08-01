@@ -1,0 +1,69 @@
+---
+const solucion = [
+  'PLC Siemens S7-300 para el control del proceso batch.',
+  'Sensores PT100 y transmisores industriales de 4–20 mA.',
+  'Comunicaciones RS-485 mediante protocolo Modbus RTU.',
+  'Variadores de frecuencia para bombas y agitadores.',
+  'Sistema HMI WinCC para supervisión y alarmas.',
+  'Sistema de trazabilidad desarrollado sobre Access, integrado con balanzas RS-232 y lectores de código de barras.',
+  'Integración entre las áreas de Producción, Dirección Técnica, Asuntos Regulatorios y Sistemas.',
+];
+---
+<section class="bsection bsection-crema" id="arquitectura">
+  <div class="wrap">
+    <div class="kicker">Arquitectura de la solución</div>
+    <p class="parrafo-central">La solución tecnológica integraba sistemas de automatización industrial, instrumentación de campo y trazabilidad informática para dar soporte al proceso de producción de hemoderivados. La arquitectura permitió supervisar variables críticas del proceso, registrar la trazabilidad de cada lote y facilitar la operación mediante la integración entre los sistemas de planta (OT) y los sistemas informáticos (IT).</p>
+
+    <div class="diagrama">
+      <svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagrama general de integración entre IT, OT y campo">
+        <g stroke="#151612" stroke-width="1.2" fill="none" opacity="0.65">
+          <rect x="20" y="20" width="660" height="60" rx="6" />
+          <rect x="20" y="100" width="660" height="60" rx="6" />
+          <rect x="20" y="180" width="660" height="60" rx="6" />
+        </g>
+        <g font-family="JetBrains Mono, monospace" font-size="11" fill="#302F2E" opacity="0.7">
+          <text x="34" y="45">NIVEL IT</text>
+          <text x="34" y="125">NIVEL OT</text>
+          <text x="34" y="205">NIVEL DE CAMPO</text>
+        </g>
+        <g font-family="var(--font-principal)" font-size="12.5" fill="#151612">
+          <text x="150" y="55">Access · Trazabilidad · Balanzas RS-232 · Códigos de barras</text>
+          <text x="150" y="135">PLC Siemens S7-300 · HMI WinCC · RS-485 / Modbus RTU</text>
+          <text x="150" y="215">Sensores PT100 · Transmisores 4–20 mA · Variadores de frecuencia</text>
+        </g>
+        <g stroke="#EC7323" stroke-width="1.6" fill="none">
+          <line x1="120" y1="80" x2="120" y2="100" />
+          <line x1="120" y1="160" x2="120" y2="180" />
+        </g>
+      </svg>
+      <p class="ilustracion-nota">Diagrama general de integración — ilustración técnica de reconstrucción explicativa.</p>
+    </div>
+
+    <p class="subhead">La solución incluyó:</p>
+    <div class="sol-list">
+      {solucion.map((s) => <div class="sol-item">{s}</div>)}
+    </div>
+  </div>
+</section>
+
+<style>
+  .bsection-crema{ background: var(--crema); }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 22px; text-align: center; }
+  .parrafo-central{ font-size: 16.5px; line-height: 1.7; color: var(--gris); max-width: 780px; margin: 0 auto 40px; text-align: center; }
+
+  .diagrama{ max-width: 760px; margin: 0 auto 44px; background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 20px 40px -26px rgba(21,22,18,0.3); }
+  .diagrama svg{ width: 100%; display: block; }
+  .ilustracion-nota{ font-size: 11.5px; color: var(--gris); opacity: 0.65; text-align: center; margin: 12px 0 0; font-style: italic; }
+
+  .subhead{ font-size: 14px; font-weight: 700; color: var(--negro); text-align: center; margin: 0 0 18px; }
+  .sol-list{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 900px; margin: 0 auto; }
+  .sol-item{ background: #fff; border-radius: 10px; padding: 16px 18px; font-size: 14px; line-height: 1.55; color: var(--negro); border-left: 3px solid var(--naranja); }
+
+  @media (max-width: 760px){
+    .parrafo-central{ font-size: 14.5px; margin-bottom: 28px; }
+    .diagrama{ padding: 16px; margin-bottom: 30px; }
+    .diagrama svg text{ font-size: 8px; }
+    .sol-list{ grid-template-columns: 1fr; gap: 10px; }
+    .sol-item{ font-size: 13.5px; padding: 14px 16px; }
+  }
+</style>

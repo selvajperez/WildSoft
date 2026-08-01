@@ -1,0 +1,32 @@
+---
+const criterios = [
+  'Alta disponibilidad de los sistemas de automatización.',
+  'Trazabilidad completa de los lotes de plasma durante el proceso productivo.',
+  'Integración entre los sistemas IT y OT.',
+  'Monitoreo continuo de variables críticas (temperatura, nivel y estado de equipos).',
+  'Modularidad para facilitar el mantenimiento y el reemplazo de componentes.',
+  'Confiabilidad de las comunicaciones industriales.',
+  'Cumplimiento de los procedimientos de calidad y los requerimientos regulatorios.',
+  'Intervenciones con mínimo impacto sobre la continuidad de la producción.',
+];
+---
+<section class="bsection" id="criterios">
+  <div class="wrap">
+    <div class="kicker">Criterios de diseño</div>
+    <div class="crit-grid">
+      {criterios.map((c) => <div class="crit-item">{c}</div>)}
+    </div>
+  </div>
+</section>
+
+<style>
+  .bsection{ background: #fff; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 30px; text-align: center; }
+  .crit-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 940px; margin: 0 auto; }
+  .crit-item{ background: var(--crema); border-radius: 12px; padding: 20px 22px; font-size: 14.5px; line-height: 1.55; color: var(--negro); font-weight: 600; border-left: 4px solid var(--verde); }
+
+  @media (max-width: 760px){
+    .crit-grid{ grid-template-columns: 1fr; gap: 10px; }
+    .crit-item{ padding: 16px 18px; font-size: 14px; }
+  }
+</style>
