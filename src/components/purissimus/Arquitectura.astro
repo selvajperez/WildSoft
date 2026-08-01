@@ -8,6 +8,8 @@ const solucion = [
   'Sistema de trazabilidad desarrollado sobre Access, integrado con balanzas RS-232 y lectores de código de barras.',
   'Integración entre las áreas de Producción, Dirección Técnica, Asuntos Regulatorios y Sistemas.',
 ];
+const arquitecturaItems = ['Diagrama general de integración', 'PLC Siemens S7-300', 'Nivel IT / OT', 'Sensores e instrumentación'];
+const flujo = ['Recepción', 'Código de barras', 'Balanza RS-232', 'Access', 'Pool de plasma', 'Producción'];
 ---
 <section class="bsection bsection-crema" id="arquitectura">
   <div class="wrap">
@@ -37,11 +39,26 @@ const solucion = [
         </g>
       </svg>
       <p class="ilustracion-nota">Diagrama general de integración — ilustración técnica de reconstrucción explicativa.</p>
+      <div class="lista-compacta">
+        {arquitecturaItems.map((i) => <span>{i}</span>)}
+      </div>
     </div>
 
     <p class="subhead">La solución incluyó:</p>
     <div class="sol-list">
       {solucion.map((s) => <div class="sol-item">{s}</div>)}
+    </div>
+
+    <div class="flujo-block">
+      <p class="subhead">Flujo de trazabilidad del plasma</p>
+      <div class="flujo-diagrama">
+        {flujo.map((paso, i) => (
+          <>
+            <div class="flujo-nodo">{paso}</div>
+            {i < flujo.length - 1 && <div class="flujo-flecha">↓</div>}
+          </>
+        ))}
+      </div>
     </div>
   </div>
 </section>
@@ -54,10 +71,17 @@ const solucion = [
   .diagrama{ max-width: 760px; margin: 0 auto 44px; background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 20px 40px -26px rgba(21,22,18,0.3); }
   .diagrama svg{ width: 100%; display: block; }
   .ilustracion-nota{ font-size: 11.5px; color: var(--gris); opacity: 0.65; text-align: center; margin: 12px 0 0; font-style: italic; }
+  .lista-compacta{ margin: 16px 0 0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .lista-compacta span{ font-size: 12px; color: var(--gris); padding: 6px 14px; border: 1px solid rgba(21,22,18,0.15); border-radius: 20px; background: var(--crema); }
 
   .subhead{ font-size: 14px; font-weight: 700; color: var(--negro); text-align: center; margin: 0 0 18px; }
   .sol-list{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 900px; margin: 0 auto; }
   .sol-item{ background: #fff; border-radius: 10px; padding: 16px 18px; font-size: 14px; line-height: 1.55; color: var(--negro); border-left: 3px solid var(--naranja); }
+
+  .flujo-block{ max-width: 480px; margin: 44px auto 0; }
+  .flujo-diagrama{ display: flex; flex-direction: column; align-items: center; background: #fff; border-radius: 14px; padding: 26px 20px; box-shadow: 0 20px 40px -26px rgba(21,22,18,0.3); }
+  .flujo-nodo{ font-size: 14px; font-weight: 700; color: var(--negro); background: var(--crema); border: 1px solid rgba(21,22,18,0.12); border-radius: 20px; padding: 10px 26px; }
+  .flujo-flecha{ color: var(--naranja); font-size: 18px; padding: 4px 0; }
 
   @media (max-width: 760px){
     .parrafo-central{ font-size: 14.5px; margin-bottom: 28px; }
@@ -65,5 +89,7 @@ const solucion = [
     .diagrama svg text{ font-size: 8px; }
     .sol-list{ grid-template-columns: 1fr; gap: 10px; }
     .sol-item{ font-size: 13.5px; padding: 14px 16px; }
+    .flujo-block{ margin-top: 32px; }
+    .flujo-diagrama{ padding: 20px 14px; }
   }
 </style>

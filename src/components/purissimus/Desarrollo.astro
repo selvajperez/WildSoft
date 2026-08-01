@@ -18,6 +18,11 @@ const intervenciones = [
   'Resolución de incidencias reportadas por Producción.',
 ];
 const areas = ['Producción', 'Hemoderivados', 'Dirección Técnica', 'Asuntos Regulatorios', 'Control de Calidad', 'Área de Sistemas'];
+const plantas = [
+  { nivel: 'Planta Baja', items: ['Administración', 'Expedición'] },
+  { nivel: 'Primer Subsuelo', items: ['Producción Farma', 'Depósito', 'Control Calidad', 'Microbiología', 'HPLC', 'Empaque'] },
+  { nivel: 'Segundo Subsuelo', items: ['Dirección Técnica', 'Asuntos Regulatorios', 'Hemoderivados', 'Kolpak'] },
+];
 ---
 <section class="bsection" id="desarrollo">
   <div class="wrap">
@@ -62,6 +67,21 @@ const areas = ['Producción', 'Hemoderivados', 'Dirección Técnica', 'Asuntos R
       </div>
     </div>
 
+    <div class="bloque">
+      <h3>Organización de la planta</h3>
+      <p class="parrafo-chica">Distribución de las áreas con las que se coordinaba técnicamente, por nivel de planta:</p>
+      <div class="planta-diagrama">
+        {plantas.map((p) => (
+          <div class="planta-nivel">
+            <h4>{p.nivel}</h4>
+            <ul>
+              {p.items.map((it) => <li>{it}</li>)}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+
     <div class="bloque resultado-op">
       <h3>Resultado operativo</h3>
       <p class="parrafo-chica">La metodología de trabajo permitió mantener la disponibilidad de la infraestructura tecnológica que soportaba el proceso de producción, contribuyendo a la continuidad operativa, la trazabilidad del plasma y el cumplimiento de los procedimientos exigidos por las auditorías.</p>
@@ -101,11 +121,19 @@ const areas = ['Producción', 'Hemoderivados', 'Dirección Técnica', 'Asuntos R
   .resultado-op h3{ margin-bottom: 12px; }
   .resultado-op p{ margin: 0; }
 
+  .planta-diagrama{ display: flex; flex-direction: column; gap: 2px; background: var(--crema); border-radius: 14px; overflow: hidden; max-width: 700px; margin: 0 auto; }
+  .planta-nivel{ padding: 18px 24px; border-top: 1px solid rgba(21,22,18,0.08); background: #fff; }
+  .planta-nivel:first-child{ border-top: none; }
+  .planta-nivel h4{ font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--naranja); margin: 0 0 10px; }
+  .planta-nivel ul{ margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+  .planta-nivel li{ font-size: 12.5px; color: var(--negro); background: var(--crema); border-radius: 16px; padding: 6px 14px; }
+
   @media (max-width: 760px){
     .parrafo-central{ font-size: 14.5px; margin-bottom: 36px; }
     .bloque{ margin-bottom: 36px; }
     .niveles-grid{ grid-template-columns: 1fr; gap: 12px; }
     .two-col{ flex-direction: column; gap: 30px; }
     .resultado-op{ padding: 22px 20px; }
+    .planta-nivel{ padding: 14px 16px; }
   }
 </style>

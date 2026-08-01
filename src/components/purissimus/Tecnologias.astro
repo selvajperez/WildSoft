@@ -21,6 +21,17 @@ const categorias = [
     items: ['Procedimientos documentados', 'Auditorías internas y externas', 'Cumplimiento regulatorio', 'Documentación técnica'],
   },
 ];
+
+const tablaReferencia = [
+  { cat: 'PLC', tec: 'Siemens S7-300' },
+  { cat: 'HMI', tec: 'WinCC' },
+  { cat: 'Base de datos', tec: 'Access' },
+  { cat: 'Comunicación', tec: 'RS-232' },
+  { cat: 'Comunicación', tec: 'RS-485' },
+  { cat: 'Protocolo', tec: 'Modbus RTU' },
+  { cat: 'Sensores', tec: 'PT100' },
+  { cat: 'Instrumentación', tec: '4-20 mA' },
+];
 ---
 <section class="jtec" id="tecnologias">
   <div class="wrap">
@@ -35,6 +46,16 @@ const categorias = [
         </div>
       ))}
     </div>
+
+    <div class="tabla-ref">
+      <p class="tabla-titulo">Cuadro de referencia rápida</p>
+      <div class="tabla">
+        <div class="tabla-head"><span>Categoría</span><span>Tecnología</span></div>
+        {tablaReferencia.map((t) => (
+          <div class="tabla-row"><span>{t.cat}</span><span>{t.tec}</span></div>
+        ))}
+      </div>
+    </div>
   </div>
 </section>
 
@@ -48,9 +69,19 @@ const categorias = [
   .cat-card li{ font-size: 13.5px; line-height: 1.55; color: var(--negro); padding: 7px 0 7px 16px; position: relative; }
   .cat-card li::before{ content: '·'; position: absolute; left: 0; color: var(--verde); font-weight: 700; }
 
+  .tabla-ref{ max-width: 500px; margin: 40px auto 0; }
+  .tabla-titulo{ text-align: center; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--gris); opacity: 0.75; margin: 0 0 14px; }
+  .tabla{ background: #fff; border-radius: 12px; overflow: hidden; }
+  .tabla-head, .tabla-row{ display: flex; padding: 11px 20px; }
+  .tabla-head{ background: var(--negro); color: var(--crema); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .tabla-row{ border-top: 1px solid rgba(21,22,18,0.08); font-size: 13.5px; color: var(--negro); }
+  .tabla-head span, .tabla-row span{ flex: 1; }
+
   @media (max-width: 760px){
     .cat-grid{ grid-template-columns: 1fr; gap: 14px; }
     .cat-card{ padding: 18px 20px; }
+    .tabla-ref{ margin-top: 30px; }
+    .tabla-head, .tabla-row{ padding: 10px 14px; font-size: 12.5px; }
   }
   @media (min-width: 761px) and (max-width: 1000px){
     .cat-grid{ grid-template-columns: 1fr 1fr; }
