@@ -1,0 +1,58 @@
+---
+const flujo = ['Recepción', 'Código de barras', 'Balanza RS-232', 'Access', 'Pool de plasma', 'Producción'];
+const plantas = [
+  { nivel: 'Planta Baja', items: ['Administración', 'Expedición'] },
+  { nivel: 'Primer Subsuelo', items: ['Producción Farma', 'Depósito', 'Control Calidad', 'Microbiología', 'HPLC', 'Empaque'] },
+  { nivel: 'Segundo Subsuelo', items: ['Dirección Técnica', 'Asuntos Regulatorios', 'Hemoderivados', 'Kolpak'] },
+];
+---
+<section class="v2sec v2sec-crema" id="procesos">
+  <div class="wrap two-col">
+    <div class="col">
+      <p class="col-titulo">Flujo de trazabilidad del plasma</p>
+      <div class="flujo-diagrama">
+        {flujo.map((paso, i) => (
+          <>
+            <div class="flujo-nodo">{paso}</div>
+            {i < flujo.length - 1 && <div class="flujo-flecha">↓</div>}
+          </>
+        ))}
+      </div>
+    </div>
+    <div class="col">
+      <p class="col-titulo">Organización de la planta</p>
+      <div class="planta-diagrama">
+        {plantas.map((p) => (
+          <div class="planta-nivel">
+            <h4>{p.nivel}</h4>
+            <div class="planta-items">
+              {p.items.map((it) => <span>{it}</span>)}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .v2sec-crema{ background: var(--crema); }
+  .two-col{ display: flex; gap: 40px; align-items: flex-start; }
+  .col{ flex: 1; }
+  .col-titulo{ text-align: center; font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--verde); margin: 0 0 20px; }
+
+  .flujo-diagrama{ display: flex; flex-direction: column; align-items: center; background: #fff; border-radius: 14px; padding: 26px 20px; }
+  .flujo-nodo{ font-size: 13.5px; font-weight: 700; color: var(--negro); background: var(--fondo-claro); border: 1px solid rgba(21,22,18,0.12); border-radius: 20px; padding: 9px 22px; }
+  .flujo-flecha{ color: var(--naranja); font-size: 16px; padding: 3px 0; }
+
+  .planta-diagrama{ display: flex; flex-direction: column; gap: 2px; background: #fff; border-radius: 14px; overflow: hidden; }
+  .planta-nivel{ padding: 16px 20px; border-top: 1px solid rgba(21,22,18,0.08); }
+  .planta-nivel:first-child{ border-top: none; }
+  .planta-nivel h4{ font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--naranja); margin: 0 0 8px; }
+  .planta-items{ display: flex; flex-wrap: wrap; gap: 6px; }
+  .planta-items span{ font-size: 11.5px; color: var(--negro); background: var(--fondo-claro); border-radius: 14px; padding: 5px 12px; }
+
+  @media (max-width: 900px){
+    .two-col{ flex-direction: column; gap: 40px; }
+  }
+</style>

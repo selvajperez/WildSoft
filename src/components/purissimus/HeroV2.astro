@@ -1,0 +1,95 @@
+---
+const ficha = [
+  { label: 'Cliente', valor: 'Laboratorios Purissimus S.A.' },
+  { label: 'Industria', valor: 'Producción farmacéutica y hemoderivados' },
+  { label: 'Servicios', valor: 'Automatización industrial · Integración IT/OT · Trazabilidad' },
+  { label: 'Estado', valor: 'Implementado y operativo' },
+  { label: 'Período del proyecto', valor: '2001 – 2004' },
+];
+---
+<section class="v2hero" id="overview">
+  <div class="wrap">
+    <div class="hero-block">
+      <div class="kicker">Caso de estudio · Automatización industrial</div>
+      <h1>Purissimus S.A.</h1>
+      <p class="bajada">Comprendé el proyecto de un vistazo: arquitectura, procesos y resultados representados visualmente. El detalle completo está siempre disponible en el PDF.</p>
+
+      <div class="ficha-grid">
+        {ficha.map((f) => (
+          <div class="ficha-item">
+            <span class="ficha-label">{f.label}</span>
+            <span class="ficha-valor">{f.valor}</span>
+          </div>
+        ))}
+      </div>
+
+      <div class="btn-row">
+        <a class="btn btn-primary btn-pdf" href="/downloads/Caso-de-Estudio-Purissimus.pdf" download>
+          Descargar caso de estudio completo (PDF)
+        </a>
+        <a class="btn btn-secondary" href="#profundizar">Ver el texto completo</a>
+      </div>
+
+      <button class="resumen-trigger" data-lightbox="tpl-resumen-visual" data-lightbox-type="content">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="16" rx="2"/>
+          <circle cx="9" cy="10" r="1.6"/>
+          <path d="M4.5 17l4.5-5 3.5 4 2.5-3 4.5 5.5"/>
+        </svg>
+        Ver resumen visual
+      </button>
+    </div>
+  </div>
+</section>
+
+<template id="tpl-resumen-visual">
+  <div class="resumen-modal">
+    <img class="resumen-img" src="/images/purissimus/resumen-visual.jpg" alt="Resumen visual del caso de estudio Purissimus S.A.: el desafío, la solución, la arquitectura IT/OT/campo, las tecnologías y el resultado" />
+    <a class="btn btn-primary" href="/downloads/Caso-de-Estudio-Purissimus.pdf" download>Descargar caso de estudio completo (PDF)</a>
+  </div>
+</template>
+
+<style>
+  .v2hero{ background: var(--crema); padding: 60px 0 70px; text-align: center; }
+  .hero-block{ background: #fff; border: 1px solid #E4D6BC; border-radius: 20px; padding: 50px 60px 44px; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 16px; }
+  .v2hero h1{ font-size: 44px; font-weight: 800; line-height: 1.1; color: var(--negro); margin: 0 0 16px; }
+  .bajada{ font-size: 17px; line-height: 1.6; color: var(--gris); max-width: 620px; margin: 0 auto 40px; }
+
+  .ficha-grid{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; max-width: 1080px; margin: 0 auto 40px; background: rgba(21,22,18,0.08); border-radius: 14px; overflow: hidden; }
+  .ficha-item{ background: #fff; padding: 20px 16px; display: flex; flex-direction: column; gap: 8px; text-align: left; }
+  .ficha-label{ font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--naranja); }
+  .ficha-valor{ font-size: 13.5px; font-weight: 700; color: var(--negro); line-height: 1.4; }
+
+  .btn-row{ display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; margin-bottom: 18px; }
+  .btn-pdf{ box-shadow: 0 14px 30px -12px rgba(236,115,35,0.55); }
+
+  .resumen-trigger{
+    display: inline-flex; align-items: center; gap: 9px; margin: 0 auto; padding: 12px 22px;
+    background: none; border: 1.5px solid var(--verde); border-radius: 8px; color: var(--verde);
+    font-family: var(--font-principal); font-size: 14.5px; font-weight: 700; cursor: zoom-in;
+  }
+  .resumen-trigger svg{ width: 18px; height: 18px; flex: none; }
+
+  @media (max-width: 900px){
+    .ficha-grid{ grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 760px){
+    .v2hero{ padding: 44px 0 50px; }
+    .hero-block{ padding: 32px 22px 28px; border-radius: 16px; }
+    .v2hero h1{ font-size: 28px; }
+    .bajada{ font-size: 15px; margin-bottom: 30px; }
+    .ficha-grid{ grid-template-columns: 1fr 1fr; margin-bottom: 30px; }
+    .ficha-item{ padding: 16px 14px; }
+    .btn-row{ flex-direction: column; align-items: stretch; width: 100%; }
+    .resumen-trigger{ width: 100%; justify-content: center; }
+  }
+
+  .resumen-modal{ text-align: center; }
+  .resumen-img{ max-height: 70vh !important; border-radius: 10px; }
+  .resumen-modal .btn{ margin-top: 22px; }
+
+  @media (max-width: 760px){
+    .resumen-img{ max-height: 55vh !important; }
+  }
+</style>

@@ -1,0 +1,215 @@
+---
+const icons: Record<string, string> = {
+  contexto: '<path d="M4 21V9l8-5 8 5v12"/><path d="M9 21v-6h6v6"/>',
+  desafio: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  objetivos: '<path d="M5 21V4"/><path d="M5 4h13l-3 4 3 4H5"/>',
+  relevamiento: '<circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="20.5" y2="20.5"/>',
+  criterios: '<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/><path d="M4 6l1.5 1.5L8 5"/>',
+  desarrollo: '<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2 2M16.4 16.4l2 2M5.6 18.4l2-2M16.4 7.6l2-2"/>',
+  decisiones: '<path d="M12 3v10"/><path d="M6 13l6-10 6 10"/><path d="M3 13a3 3 0 006 0"/><path d="M15 13a3 3 0 006 0"/>',
+  resultados: '<path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M4 20h16"/>',
+  lecciones: '<path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 00-3 11c.6.5 1 1.2 1 2h4c0-.8.4-1.5 1-2a6 6 0 00-3-11z"/>',
+  evidencias: '<path d="M6 3h9l3 3v15H6z"/><line x1="15" y1="3" x2="15" y2="6"/><line x1="18" y1="6" x2="15" y2="6"/><line x1="8.5" y1="11" x2="15.5" y2="11"/><line x1="8.5" y1="15" x2="15.5" y2="15"/>',
+};
+---
+<section class="v2sec v2sec-crema" id="profundizar">
+  <div class="wrap texto-block">
+    <div class="kicker">Profundizar</div>
+    <p class="intro">El texto completo del caso de estudio, tal como fue aprobado, sección por sección.</p>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.contexto} /></span><span class="titulo">Contexto</span><span class="signo">+</span></summary>
+      <div class="body">
+        <p>Entre 2001 y 2004 participé en el soporte tecnológico del área de hemoderivados de Laboratorios Purissimus S.A., una planta dedicada a la producción farmacéutica y al procesamiento de derivados del plasma humano.</p>
+        <p>El área operaba bajo estrictos requisitos de calidad, trazabilidad y cumplimiento regulatorio. La continuidad de los procesos dependía de la correcta integración entre los sistemas informáticos, la automatización industrial y la instrumentación de planta.</p>
+        <p>Mi participación se centró en brindar soporte a los sistemas de automatización utilizados durante la producción, interviniendo en tareas de diagnóstico, integración y mantenimiento de los componentes tecnológicos que daban soporte al proceso productivo.</p>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.desafio} /></span><span class="titulo">El desafío</span><span class="signo">+</span></summary>
+      <div class="body">
+        <p>El área de hemoderivados requería garantizar la continuidad operativa de un proceso productivo altamente regulado, donde la automatización, la instrumentación y la trazabilidad debían funcionar de manera confiable para asegurar la calidad del producto y el cumplimiento de los procedimientos establecidos.</p>
+        <p class="subhead">Se identificaron varios objetivos:</p>
+        <ul>
+          <li>Garantizar la continuidad operativa del proceso de producción.</li>
+          <li>Asegurar la confiabilidad de la automatización industrial mediante PLC Siemens S7-300.</li>
+          <li>Integrar los sistemas de trazabilidad con el proceso productivo.</li>
+          <li>Supervisar variables críticas como temperatura, nivel y estado de los equipos.</li>
+          <li>Reducir los tiempos de respuesta ante fallas en sensores, comunicaciones o instrumentación.</li>
+          <li>Mantener el cumplimiento de los estándares de calidad y los requerimientos regulatorios.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.objetivos} /></span><span class="titulo">Objetivos</span><span class="signo">+</span></summary>
+      <div class="body">
+        <p class="subhead">Objetivo general</p>
+        <p>Garantizar la continuidad operativa y la confiabilidad de los sistemas de automatización y trazabilidad del área de hemoderivados, asegurando el correcto funcionamiento de los procesos productivos y el cumplimiento de los estándares de calidad y los requisitos regulatorios.</p>
+        <p class="subhead">Objetivos específicos</p>
+        <ul>
+          <li>Brindar soporte al sistema de automatización basado en PLC Siemens S7-300.</li>
+          <li>Supervisar el correcto funcionamiento de sensores, instrumentación y comunicaciones industriales.</li>
+          <li>Mantener la integración entre el sistema de trazabilidad y el proceso productivo.</li>
+          <li>Diagnosticar y resolver incidencias que afectaran la continuidad de la producción.</li>
+          <li>Colaborar con Producción, Dirección Técnica y Asuntos Regulatorios en la resolución de incidencias técnicas.</li>
+          <li>Contribuir al cumplimiento de los procedimientos exigidos por auditorías internas y externas.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.relevamiento} /></span><span class="titulo">Relevamiento</span><span class="signo">+</span></summary>
+      <div class="body">
+        <p>Durante esta etapa se analizó la arquitectura tecnológica que soportaba el proceso de producción de hemoderivados, identificando los componentes críticos involucrados en la automatización, la instrumentación y la trazabilidad.</p>
+        <p class="subhead">Se relevaron:</p>
+        <ul>
+          <li>Arquitectura de automatización basada en PLC Siemens S7-300.</li>
+          <li>Instrumentación de campo (PT100, sensores 4–20 mA y válvulas neumáticas).</li>
+          <li>Comunicaciones industriales mediante RS-485 / Modbus RTU.</li>
+          <li>Sistema de supervisión HMI (WinCC).</li>
+          <li>Sistema de trazabilidad basado en Access, balanzas RS-232 y códigos de barras.</li>
+          <li>Interacción entre Producción, Dirección Técnica, Asuntos Regulatorios y el área de Sistemas.</li>
+          <li>Procedimientos operativos y requerimientos derivados de auditorías y normas de calidad.</li>
+        </ul>
+        <p>Como resultado, se identificó la necesidad de mantener una infraestructura tecnológica confiable que permitiera asegurar la continuidad del proceso productivo, la trazabilidad completa del plasma y el cumplimiento de los estándares regulatorios.</p>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.criterios} /></span><span class="titulo">Criterios de diseño</span><span class="signo">+</span></summary>
+      <div class="body">
+        <ul>
+          <li>Alta disponibilidad de los sistemas de automatización.</li>
+          <li>Trazabilidad completa de los lotes de plasma durante el proceso productivo.</li>
+          <li>Integración entre los sistemas IT y OT.</li>
+          <li>Monitoreo continuo de variables críticas (temperatura, nivel y estado de equipos).</li>
+          <li>Modularidad para facilitar el mantenimiento y el reemplazo de componentes.</li>
+          <li>Confiabilidad de las comunicaciones industriales.</li>
+          <li>Cumplimiento de los procedimientos de calidad y los requerimientos regulatorios.</li>
+          <li>Intervenciones con mínimo impacto sobre la continuidad de la producción.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.desarrollo} /></span><span class="titulo">Desarrollo</span><span class="signo">+</span></summary>
+      <div class="body">
+        <p>La participación en el área de hemoderivados requirió comprender la interacción entre los sistemas de automatización, la instrumentación de campo y los procesos productivos, brindando soporte técnico para mantener la continuidad operativa de una planta sometida a estrictos estándares de calidad y auditoría.</p>
+        <p class="subhead">Metodología de trabajo</p>
+        <ul>
+          <li>Relevamiento de incidencias reportadas por Producción y Hemoderivados.</li>
+          <li>Diagnóstico de hardware, software, PLC e instrumentación.</li>
+          <li>Análisis conjunto con Dirección Técnica y Asuntos Regulatorios cuando la incidencia afectaba procesos críticos.</li>
+          <li>Validación de las intervenciones antes de restablecer la operación.</li>
+        </ul>
+        <p class="subhead">Arquitectura funcional</p>
+        <p>La solución integraba tres niveles tecnológicos:</p>
+        <ul>
+          <li><b>Nivel IT:</b> sistema de trazabilidad basado en Access, balanzas RS-232 y códigos de barras.</li>
+          <li><b>Nivel OT:</b> PLC Siemens S7-300, HMI WinCC y comunicaciones industriales.</li>
+          <li><b>Nivel de campo:</b> sensores, transmisores, válvulas neumáticas, variadores y equipos de proceso.</li>
+        </ul>
+        <p class="subhead">Intervenciones técnicas</p>
+        <ul>
+          <li>Diagnóstico de sensores e instrumentación.</li>
+          <li>Soporte a PLC Siemens S7-300.</li>
+          <li>Verificación de comunicaciones RS-485 / Modbus RTU.</li>
+          <li>Integración entre el sistema de trazabilidad y la automatización.</li>
+          <li>Resolución de incidencias reportadas por Producción.</li>
+        </ul>
+        <p class="subhead">Trabajo interdisciplinario</p>
+        <p>Las intervenciones se realizaban en coordinación con: Producción, Hemoderivados, Dirección Técnica, Asuntos Regulatorios, Control de Calidad, Área de Sistemas.</p>
+        <p class="subhead">Resultado operativo</p>
+        <p>La metodología de trabajo permitió mantener la disponibilidad de la infraestructura tecnológica que soportaba el proceso de producción, contribuyendo a la continuidad operativa, la trazabilidad del plasma y el cumplimiento de los procedimientos exigidos por las auditorías.</p>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.decisiones} /></span><span class="titulo">Principales decisiones</span><span class="signo">+</span></summary>
+      <div class="body">
+        <ul>
+          <li>Priorizar las incidencias que comprometieran la continuidad de la producción.</li>
+          <li>Validar cada intervención antes de restablecer la operación.</li>
+          <li>Registrar las actuaciones técnicas conforme a los procedimientos internos.</li>
+          <li>Trabajar en coordinación con las áreas técnicas y regulatorias.</li>
+          <li>Mantener la trazabilidad de las intervenciones sobre los sistemas críticos.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.resultados} /></span><span class="titulo">Resultados</span><span class="signo">+</span></summary>
+      <div class="body">
+        <ul>
+          <li>Se mantuvo la continuidad operativa de los sistemas que daban soporte al proceso de producción de hemoderivados.</li>
+          <li>Se garantizó la trazabilidad de los lotes mediante la integración entre el sistema informático, las balanzas industriales y los lectores de código de barras.</li>
+          <li>Se facilitó el diagnóstico y la resolución de incidencias en la automatización industrial y la instrumentación de planta.</li>
+          <li>Se fortaleció el cumplimiento de los procedimientos técnicos requeridos por las auditorías internas y externas.</li>
+          <li>Se consolidó una metodología de trabajo basada en la documentación técnica, la trazabilidad y el trabajo interdisciplinario.</li>
+        </ul>
+        <p class="subhead">Aprendizajes</p>
+        <p>Este proyecto consolidó mi experiencia en la integración entre infraestructura informática y automatización industrial, permitiéndome comprender la importancia de la trazabilidad, la documentación técnica y el trabajo coordinado en entornos productivos altamente regulados.</p>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.lecciones} /></span><span class="titulo">Lecciones aprendidas</span><span class="signo">+</span></summary>
+      <div class="body">
+        <p>Este proyecto marcó mi formación profesional al permitirme comprender la importancia de la documentación técnica, la trazabilidad de los procesos y el trabajo interdisciplinario en una industria altamente regulada.</p>
+        <p>La experiencia me enseñó que la tecnología solo genera valor cuando acompaña procesos confiables, correctamente documentados y alineados con los requisitos de calidad.</p>
+        <p>Asimismo, consolidó una forma de trabajo basada en el análisis de problemas, la colaboración entre distintas áreas y la búsqueda de soluciones que prioricen la continuidad operativa sin comprometer la calidad del proceso.</p>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.evidencias} /></span><span class="titulo">Evidencias</span><span class="signo">+</span></summary>
+      <div class="body">
+        <p>La reconstrucción del caso de estudio se basó en documentación técnica, experiencia profesional y la validación de la arquitectura tecnológica utilizada durante el período del proyecto.</p>
+        <p class="subhead">Se consideran como evidencias:</p>
+        <ul>
+          <li>Diagramas de arquitectura IT/OT reconstruidos a partir de la solución implementada.</li>
+          <li>Diagramas funcionales del sistema de automatización.</li>
+          <li>Reconstrucción del flujo de trazabilidad del plasma.</li>
+          <li>Ilustraciones técnicas utilizadas para representar el entorno industrial.</li>
+          <li>Descripción de la arquitectura tecnológica y de los componentes utilizados.</li>
+          <li>Reconstrucción del proceso validada a partir de la experiencia profesional desarrollada entre 2001 y 2004.</li>
+        </ul>
+        <p class="subhead">Nota metodológica</p>
+        <p class="nota">Debido al tiempo transcurrido y a la confidencialidad propia de la industria farmacéutica, este caso de estudio fue reconstruido a partir de la experiencia profesional, complementado con diagramas e ilustraciones elaborados con fines exclusivamente explicativos. La información presentada busca reflejar fielmente la arquitectura, los procesos y las responsabilidades desempeñadas durante el proyecto, sin reproducir documentación confidencial de la organización.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<style>
+  .v2sec-crema{ background: var(--crema); }
+  .texto-block{ max-width: 760px; margin: 0 auto; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 14px; text-align: center; }
+  .intro{ font-size: 14.5px; color: var(--gris); text-align: center; margin: 0 0 30px; }
+
+  .acordeon{ background: #fff; border: 1px solid rgba(21,22,18,0.1); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+  .acordeon summary{ list-style: none; cursor: pointer; display: flex; align-items: center; gap: 14px; padding: 16px 20px; font-weight: 700; color: var(--negro); }
+  .acordeon summary::-webkit-details-marker{ display: none; }
+  .ico{ flex: 0 0 30px; width: 30px; height: 30px; border-radius: 50%; background: var(--fondo-claro); color: var(--naranja); display: flex; align-items: center; justify-content: center; }
+  .ico svg{ width: 17px; height: 17px; }
+  .titulo{ flex: 1; font-size: 15px; }
+  .signo{ font-size: 18px; color: var(--naranja); transition: transform 0.2s ease; }
+  .acordeon[open] .signo{ transform: rotate(45deg); }
+  .body{ padding: 4px 22px 24px 64px; }
+  .body p{ font-size: 14.5px; line-height: 1.65; color: var(--gris); margin: 0 0 14px; }
+  .body p:last-child{ margin-bottom: 0; }
+  .body .subhead{ font-size: 12.5px; font-weight: 700; color: var(--negro); text-transform: uppercase; letter-spacing: 0.03em; margin: 18px 0 10px; }
+  .body .subhead:first-child{ margin-top: 0; }
+  .body ul{ margin: 0 0 14px; padding: 0; list-style: none; }
+  .body li{ font-size: 14px; line-height: 1.55; color: var(--negro); padding: 8px 0 8px 16px; border-top: 1px solid rgba(21,22,18,0.08); position: relative; }
+  .body li:first-child{ border-top: none; }
+  .body li::before{ content: '—'; position: absolute; left: 0; color: var(--naranja); }
+  .body .nota{ font-style: italic; opacity: 0.85; }
+
+  @media (max-width: 760px){
+    .body{ padding: 4px 18px 20px 20px; }
+    .titulo{ font-size: 14px; }
+  }
+</style>

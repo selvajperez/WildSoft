@@ -1,0 +1,44 @@
+---
+const indicadores = [
+  { n: 'PLC Siemens S7-300', e: 'En operación' },
+  { n: 'HMI WinCC', e: 'En operación' },
+  { n: 'Sistema de trazabilidad', e: 'En operación' },
+  { n: 'Balanza industrial', e: 'Integrada' },
+  { n: 'Lectores de código de barras', e: 'Operativos' },
+  { n: 'Sensores PT100', e: 'Operativos' },
+  { n: 'Instrumentación 4–20 mA', e: 'Operativa' },
+  { n: 'Comunicaciones Modbus RTU', e: 'Operativas' },
+];
+---
+<section class="v2sec" id="indicadores">
+  <div class="wrap">
+    <div class="kicker">Indicadores del proyecto — Arquitectura implementada</div>
+    <div class="dash-grid">
+      {indicadores.map((i) => (
+        <div class="dash-card">
+          <span class="dash-dot"></span>
+          <span class="dash-nombre">{i.n}</span>
+          <span class="dash-estado">{i.e}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .v2sec{ background: #fff; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 30px; text-align: center; }
+  .dash-grid{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; max-width: 1080px; margin: 0 auto; }
+  .dash-card{ background: var(--crema); border-radius: 12px; padding: 18px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .dash-dot{ width: 10px; height: 10px; border-radius: 50%; background: var(--verde); }
+  .dash-nombre{ font-size: 13px; font-weight: 700; color: var(--negro); line-height: 1.35; }
+  .dash-estado{ font-size: 11px; font-weight: 700; color: var(--verde); text-transform: uppercase; letter-spacing: 0.03em; }
+
+  @media (max-width: 1000px){
+    .dash-grid{ grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 760px){
+    .dash-grid{ grid-template-columns: 1fr 1fr; gap: 10px; }
+    .dash-card{ padding: 14px 12px; }
+  }
+</style>
