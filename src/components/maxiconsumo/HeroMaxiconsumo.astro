@@ -1,0 +1,60 @@
+---
+const ficha = [
+  { label: 'Cliente', valor: 'Maxiconsumo' },
+  { label: 'Industria', valor: 'Retail / Consumo masivo' },
+  { label: 'Servicios', valor: 'Análisis de datos · Power BI · Python · Insights' },
+  { label: 'Estado', valor: 'Implementado y operativo' },
+  { label: 'Año', valor: '2026' },
+];
+---
+<section class="v2hero" id="overview">
+  <div class="wrap">
+    <div class="hero-block">
+      <div class="kicker">Caso de estudio · Datos y análisis</div>
+      <h1>Maxiconsumo</h1>
+      <p class="bajada">De datos dispersos de ventas, productos, clientes y métodos de pago a un dashboard comercial interactivo en Power BI, listo para decisiones de negocio.</p>
+
+      <div class="ficha-grid">
+        {ficha.map((f) => (
+          <div class="ficha-item">
+            <span class="ficha-label">{f.label}</span>
+            <span class="ficha-valor">{f.valor}</span>
+          </div>
+        ))}
+      </div>
+
+      <div class="btn-row">
+        <a class="btn btn-secondary" href="#dashboard">Ver el dashboard</a>
+        <a class="btn btn-secondary" href="#profundizar">Ver el texto completo</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .v2hero{ background: var(--crema); padding: 60px 0 70px; text-align: center; }
+  .hero-block{ background: #fff; border: 1px solid #E4D6BC; border-radius: 20px; padding: 50px 60px 44px; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 16px; }
+  .v2hero h1{ font-size: 44px; font-weight: 800; line-height: 1.1; color: var(--negro); margin: 0 0 16px; }
+  .bajada{ font-size: 17px; line-height: 1.6; color: var(--gris); max-width: 640px; margin: 0 auto 40px; }
+
+  .ficha-grid{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; max-width: 1080px; margin: 0 auto 40px; background: rgba(21,22,18,0.08); border-radius: 14px; overflow: hidden; }
+  .ficha-item{ background: #fff; padding: 20px 16px; display: flex; flex-direction: column; gap: 8px; text-align: left; }
+  .ficha-label{ font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--naranja); }
+  .ficha-valor{ font-size: 13.5px; font-weight: 700; color: var(--negro); line-height: 1.4; }
+
+  .btn-row{ display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; }
+
+  @media (max-width: 900px){
+    .ficha-grid{ grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 760px){
+    .v2hero{ padding: 44px 0 50px; }
+    .hero-block{ padding: 32px 22px 28px; border-radius: 16px; }
+    .v2hero h1{ font-size: 28px; }
+    .bajada{ font-size: 15px; margin-bottom: 30px; }
+    .ficha-grid{ grid-template-columns: 1fr 1fr; margin-bottom: 30px; }
+    .ficha-item{ padding: 16px 14px; }
+    .btn-row{ flex-direction: column; align-items: stretch; width: 100%; }
+  }
+</style>

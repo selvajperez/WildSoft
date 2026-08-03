@@ -1,0 +1,73 @@
+---
+const icons: Record<string, string> = {
+  ticket: '<path d="M4 4h16v16l-2-1.5L16 20l-2-1.5L12 20l-2-1.5L8 20l-2-1.5L4 20V4z"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/>',
+  pareto: '<rect x="3" y="3" width="18" height="18" rx="2"/><rect x="6.5" y="13" width="2.6" height="5"/><rect x="10.7" y="9" width="2.6" height="9"/><rect x="14.9" y="6" width="2.6" height="12"/>',
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>',
+  pin: '<path d="M12 21s-7-6.2-7-11.5A7 7 0 0119 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.4"/>',
+  box: '<path d="M12 2.5l10 17.5H2z"/><line x1="12" y1="9.5" x2="12" y2="14.5"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/>',
+};
+
+const stats = [
+  { valor: '$34,37', label: 'Ticket promedio', icon: 'ticket' },
+  { valor: '39,60 %', label: 'De las ventas concentradas en los 10 principales clientes', icon: 'pareto' },
+  { valor: '274', label: 'Clientes necesarios para alcanzar el 80 % acumulado de ventas', icon: 'target' },
+  { valor: 'Buenos Aires', label: 'Región con mayor volumen de unidades vendidas', icon: 'pin' },
+  { valor: 'Productos con mayor presión', label: 'Hamburguesas congeladas, arroz y pizza congelada: mayor presión relativa sobre el stock', icon: 'box' },
+];
+
+const otros = [
+  'Se integraron las distintas fuentes en un modelo único y consistente.',
+  'Carnicería presentó el mayor ingreso promedio por unidad.',
+  'Los métodos de pago mostraron diferencias claras según la región.',
+];
+---
+<section class="jres" id="resultados">
+  <div class="wrap">
+    <div class="kicker">Principales resultados</div>
+    <div class="stats-grid">
+      {stats.map((s) => (
+        <div class="stat-card">
+          <div class="stat-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons[s.icon]} /></div>
+          <span class="stat-valor">{s.valor}</span>
+          <p class="stat-label">{s.label}</p>
+        </div>
+      ))}
+    </div>
+
+    <div class="otros-grid">
+      {otros.map((o) => (
+        <div class="otro-item">
+          <span class="otro-check">✓</span>
+          <p>{o}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .jres{ background: #fff; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 30px; text-align: center; }
+
+  .stats-grid{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; max-width: 1160px; margin: 0 auto 40px; }
+  .stat-card{ background: var(--crema); border-radius: 16px; padding: 24px 18px; text-align: center; border-top: 4px solid var(--naranja); }
+  .stat-icono{ width: 42px; height: 42px; border-radius: 50%; background: #fff; color: var(--naranja); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+  .stat-icono svg{ width: 22px; height: 22px; }
+  .stat-valor{ display: block; font-size: 24px; font-weight: 800; color: var(--negro); margin-bottom: 8px; line-height: 1.15; }
+  .stat-label{ font-size: 12.5px; color: var(--gris); line-height: 1.5; margin: 0; }
+
+  .otros-grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 980px; margin: 0 auto; }
+  .otro-item{ display: flex; align-items: flex-start; gap: 12px; background: var(--crema); border-radius: 12px; padding: 16px 18px; }
+  .otro-check{ flex: 0 0 22px; width: 22px; height: 22px; border-radius: 50%; background: var(--verde); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .otro-item p{ font-size: 13.5px; line-height: 1.5; color: var(--negro); margin: 0; font-weight: 600; }
+
+  @media (max-width: 1000px){
+    .stats-grid{ grid-template-columns: 1fr 1fr; }
+    .otros-grid{ grid-template-columns: 1fr; }
+  }
+  @media (max-width: 760px){
+    .stats-grid{ grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 30px; }
+    .stat-card{ padding: 18px 14px; border-radius: 12px; }
+    .stat-valor{ font-size: 19px; }
+  }
+</style>

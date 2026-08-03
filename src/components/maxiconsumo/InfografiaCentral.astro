@@ -1,0 +1,92 @@
+---
+const icons: Record<string, string> = {
+  cart: '<circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M2 3h2l2.2 11.4a2 2 0 002 1.6h8a2 2 0 002-1.6L20 8H6"/>',
+  box: '<path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>',
+  people: '<circle cx="9" cy="8" r="3"/><path d="M3.5 20c0-3.2 2.5-5.8 5.5-5.8s5.5 2.6 5.5 5.8"/><circle cx="17.5" cy="9" r="2.2"/><path d="M15.2 20c.3-2.4 1.9-4.3 3.8-4.8"/>',
+  card: '<rect x="2" y="6" width="20" height="13" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="5.5" y1="15" x2="9.5" y2="15"/>',
+  notebook: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 9l-2 2 2 2"/><path d="M15 9l2 2-2 2"/><line x1="12" y1="8" x2="12" y2="14"/>',
+  tablas: '<rect x="2" y="3" width="7" height="6" rx="1"/><rect x="15" y="3" width="7" height="6" rx="1"/><rect x="8.5" y="14" width="7" height="6" rx="1"/><path d="M9 6h6M5.5 9v2.5a1 1 0 001 1H8M18.5 9v2.5a1 1 0 01-1 1H16"/>',
+  chart: '<rect x="3" y="3" width="18" height="18" rx="2"/><rect x="6.5" y="12" width="2.6" height="6"/><rect x="10.7" y="8" width="2.6" height="10"/><rect x="14.9" y="14" width="2.6" height="4"/>',
+  dashboard: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M6 13l3-4 2 2 3-5 4 7"/><line x1="8" y1="20" x2="16" y2="20"/><line x1="12" y1="16" x2="12" y2="20"/>',
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>',
+};
+
+const etapas = [
+  { n: '01', titulo: 'Fuentes de datos', cluster: ['cart', 'box', 'people', 'card'], captions: ['Ventas', 'Productos', 'Clientes', 'Métodos de pago'] },
+  { n: '02', titulo: 'Limpieza y análisis', icon: 'notebook', texto: 'Python' },
+  { n: '03', titulo: 'Integración y modelo', icon: 'tablas', texto: 'Datos relacionados' },
+  { n: '04', titulo: 'Medidas e indicadores', icon: 'chart', texto: 'Power BI · DAX' },
+  { n: '05', titulo: 'Dashboard comercial', icon: 'dashboard', texto: '3 vistas interactivas' },
+  { n: '06', titulo: 'Decisiones de negocio', icon: 'target', texto: 'Ventas · Clientes · Stock' },
+];
+---
+<section class="infografia" id="ecosistema">
+  <div class="wrap">
+    <span class="mapa-kicker">Ecosistema de datos de Maxiconsumo</span>
+    <div class="poster">
+      {etapas.map((e, i) => (
+        <>
+          <div class="poster-col">
+            <span class="col-n">{e.n}</span>
+            {e.cluster ? (
+              <div class="cluster-grid">
+                {e.cluster.map((ic, ci) => (
+                  <div class="cluster-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons[ic]} />
+                    <span>{e.captions[ci]}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div class="est-icono">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" set:html={icons[e.icon]} />
+              </div>
+            )}
+            <h3 class="est-titulo">{e.titulo}</h3>
+            {e.texto && <p class="est-texto">{e.texto}</p>}
+          </div>
+          {i < etapas.length - 1 && (
+            <div class="poster-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"/><path d="M13 6l6 6-6 6"/></svg>
+            </div>
+          )}
+        </>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .infografia{ background: var(--negro); padding: 54px 0; }
+  .mapa-kicker{ display: block; text-align: center; font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--naranja); margin-bottom: 30px; }
+
+  .poster{
+    display: flex; flex-wrap: wrap; align-items: stretch; justify-content: center;
+    max-width: 1200px; margin: 0 auto; background: #1C1D18; border-radius: 20px; padding: 34px 24px; gap: 0;
+  }
+  .poster-col{ flex: 1 1 150px; min-width: 130px; max-width: 190px; text-align: center; padding: 0 10px; }
+  .col-n{ font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--naranja); opacity: 0.75; display: block; margin-bottom: 14px; }
+
+  .est-icono{ width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; background: #fff; color: var(--naranja); box-shadow: 0 14px 26px -16px rgba(21,22,18,0.5); }
+  .est-icono svg{ width: 36px; height: 36px; }
+
+  .cluster-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .cluster-item{ display: flex; flex-direction: column; align-items: center; gap: 5px; background: #fff; border-radius: 10px; padding: 10px 6px; color: var(--verde); }
+  .cluster-item svg{ width: 20px; height: 20px; }
+  .cluster-item span{ font-size: 9.5px; font-weight: 700; color: var(--negro); line-height: 1.2; }
+
+  .est-titulo{ font-size: 14.5px; font-weight: 800; color: #fff; margin: 0 0 4px; }
+  .est-texto{ font-size: 11.5px; color: #B9B2A0; margin: 0; }
+
+  .poster-arrow{ display: flex; align-items: center; justify-content: center; color: var(--naranja); opacity: 0.45; flex: 0 0 auto; padding: 0 2px; }
+  .poster-arrow svg{ width: 20px; height: 20px; }
+
+  @media (max-width: 1000px){
+    .poster{ padding: 28px 18px; }
+    .poster-col{ flex: 1 1 40%; max-width: 220px; margin-bottom: 24px; }
+    .poster-arrow{ display: none; }
+  }
+  @media (max-width: 600px){
+    .poster-col{ flex: 1 1 100%; max-width: none; }
+  }
+</style>

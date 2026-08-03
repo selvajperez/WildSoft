@@ -1,0 +1,346 @@
+---
+const icons: Record<string, string> = {
+  contexto: '<path d="M4 21V9l8-5 8 5v12"/><path d="M9 21v-6h6v6"/>',
+  desafio: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  objetivos: '<path d="M5 21V4"/><path d="M5 4h13l-3 4 3 4H5"/>',
+  relevamiento: '<circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="20.5" y2="20.5"/>',
+  criterios: '<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/><path d="M4 6l1.5 1.5L8 5"/>',
+  solucion: '<circle cx="7" cy="12" r="4"/><circle cx="17" cy="12" r="4"/><path d="M10.6 12h2.8"/>',
+  desarrollo: '<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2 2M16.4 16.4l2 2M5.6 18.4l2-2M16.4 7.6l2-2"/>',
+  tecnologias: '<rect x="5" y="5" width="14" height="14" rx="1.5"/><line x1="8" y1="9" x2="14" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/>',
+  decisiones: '<path d="M12 3v10"/><path d="M6 13l6-10 6 10"/><path d="M3 13a3 3 0 006 0"/><path d="M15 13a3 3 0 006 0"/>',
+  resultados: '<path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M4 20h16"/>',
+  indicadores: '<rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="15" x2="14" y2="15"/>',
+  evolucion: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
+  lecciones: '<path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 00-3 11c.6.5 1 1.2 1 2h4c0-.8.4-1.5 1-2a6 6 0 00-3-11z"/>',
+  evidencias: '<path d="M6 3h9l3 3v15H6z"/><line x1="15" y1="3" x2="15" y2="6"/><line x1="18" y1="6" x2="15" y2="6"/><line x1="8.5" y1="11" x2="15.5" y2="11"/><line x1="8.5" y1="15" x2="15.5" y2="15"/>',
+  anexos: '<rect x="2" y="3" width="7" height="6" rx="1"/><rect x="15" y="3" width="7" height="6" rx="1"/><rect x="8.5" y="14" width="7" height="6" rx="1"/><path d="M9 6h6M5.5 9v2.5a1 1 0 001 1H8M18.5 9v2.5a1 1 0 01-1 1H16"/>',
+};
+
+const indicadores = [
+  ['Integración de fuentes de datos', 'Implementada'],
+  ['Limpieza y validación de datos', 'Completada'],
+  ['Análisis exploratorio con Python', 'Completado'],
+  ['Modelo relacional en Power BI', 'Implementado'],
+  ['Dashboard de panorama general', 'Implementado'],
+  ['Dashboard de rendimiento comercial', 'Implementado'],
+  ['Dashboard de inventario y clientes', 'Implementado'],
+  ['Medidas DAX e indicadores comerciales', 'Implementadas'],
+  ['Análisis de concentración de clientes', 'Implementado'],
+  ['Análisis de presión sobre el stock', 'Implementado'],
+  ['Filtros interactivos', 'Operativos'],
+  ['Identidad visual WildSoft', 'Aplicada'],
+];
+
+const cronologia = [
+  ['Relevamiento inicial', 'Revisión de las fuentes y comprensión del modelo de datos'],
+  ['Preparación de datos', 'Limpieza, validación y normalización de campos'],
+  ['Análisis exploratorio', 'Desarrollo del notebook con Python y Pandas'],
+  ['Integración', 'Relación entre ventas, productos, clientes y métodos de pago'],
+  ['Modelado', 'Construcción del modelo relacional en Power BI'],
+  ['Indicadores', 'Creación de medidas y cálculos con DAX'],
+  ['Visualización', 'Desarrollo de las tres vistas del dashboard'],
+  ['Validación', 'Corrección de agregaciones, formatos e insights'],
+  ['Cierre', 'Preparación del caso para el portfolio WildSoft'],
+];
+---
+<section class="v2sec-crema bsection" id="profundizar">
+  <div class="wrap texto-block">
+    <div class="kicker">Profundizar</div>
+    <p class="intro">El texto completo del caso de estudio, tal como fue aprobado, sección por sección.</p>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.contexto} /></span><span class="titulo">Contexto</span><span class="signo">+</span></summary>
+      <div class="body">
+        <p>El caso parte de un conjunto de datos de una empresa de retail de consumo masivo, compuesto por información de ventas, productos, clientes, regiones y métodos de pago.</p>
+        <p>Los datos estaban distribuidos en distintas tablas y requerían ser integrados para construir una visión general del negocio. El análisis se desarrolló con Python para la exploración inicial y con Power BI para el modelado, la creación de indicadores y la visualización de resultados.</p>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.desafio} /></span><span class="titulo">El desafío</span><span class="signo">+</span></summary>
+      <div class="body">
+        <p>El principal desafío consistió en transformar datos dispersos en información útil para la toma de decisiones comerciales.</p>
+        <p class="subhead">Se identificaron varios objetivos:</p>
+        <ul>
+          <li>Analizar el volumen de ventas por categoría y región.</li>
+          <li>Comparar el ingreso promedio por unidad vendida.</li>
+          <li>Detectar diferencias regionales en los métodos de pago.</li>
+          <li>Evaluar la concentración de ventas entre los principales clientes.</li>
+          <li>Identificar productos con mayor presión relativa sobre el stock.</li>
+          <li>Presentar los resultados en un dashboard claro, interactivo y orientado al negocio.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.objetivos} /></span><span class="titulo">Objetivos</span><span class="signo">+</span></summary>
+      <div class="body">
+        <p class="subhead">Objetivo general</p>
+        <p>Transformar datos de ventas, clientes, productos e inventario en información clara y accionable para apoyar la toma de decisiones comerciales.</p>
+        <p class="subhead">Objetivos específicos</p>
+        <ul>
+          <li>Integrar y relacionar las distintas fuentes de datos.</li>
+          <li>Analizar ventas por categoría, región y método de pago.</li>
+          <li>Calcular indicadores comerciales relevantes.</li>
+          <li>Evaluar la concentración de ventas por cliente.</li>
+          <li>Detectar productos con mayor presión sobre el stock.</li>
+          <li>Construir un dashboard interactivo en Power BI.</li>
+          <li>Comunicar los principales hallazgos de forma visual y comprensible.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.relevamiento} /></span><span class="titulo">Relevamiento</span><span class="signo">+</span></summary>
+      <div class="body">
+        <p>Durante esta etapa se analizaron las fuentes disponibles y la estructura de los datos.</p>
+        <p class="subhead">Se relevaron:</p>
+        <ul>
+          <li>Registros de ventas y cantidades comercializadas.</li>
+          <li>Catálogo de productos, categorías, precios y stock.</li>
+          <li>Información de clientes y regiones.</li>
+          <li>Métodos de pago utilizados.</li>
+          <li>Relaciones entre las distintas tablas.</li>
+          <li>Calidad, formato y consistencia de los campos.</li>
+        </ul>
+        <p>Como resultado, se definió un modelo integrado que permitió analizar el desempeño comercial, la concentración de clientes y la presión de las ventas sobre el inventario.</p>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.criterios} /></span><span class="titulo">Criterios de diseño</span><span class="signo">+</span></summary>
+      <div class="body">
+        <ul>
+          <li>Organización de la información en tres vistas: panorama general, rendimiento comercial e inventario y clientes.</li>
+          <li>Uso de indicadores simples y gráficos comparables para facilitar la lectura.</li>
+          <li>Navegación mediante filtros por categoría, cliente y método de pago.</li>
+          <li>Jerarquía visual clara, priorizando los datos más relevantes.</li>
+          <li>Aplicación de la identidad visual de WildSoft, con predominio del naranja y fondos claros.</li>
+          <li>Inclusión de insights breves para traducir los resultados en conclusiones de negocio.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.solucion} /></span><span class="titulo">Solución propuesta</span><span class="signo">+</span></summary>
+      <div class="body">
+        <p>Se propuso desarrollar una solución de análisis de datos que integrara la información comercial en un modelo único y permitiera explorar los resultados de forma visual e interactiva.</p>
+        <p class="subhead">La solución incluyó:</p>
+        <ul>
+          <li>Integración de las tablas de ventas, productos, clientes y métodos de pago.</li>
+          <li>Limpieza y análisis exploratorio de los datos con Python.</li>
+          <li>Construcción del modelo de datos en Power BI.</li>
+          <li>Creación de indicadores para ventas, ticket promedio, concentración de clientes y presión sobre el stock.</li>
+          <li>Desarrollo de tres vistas: panorama general, rendimiento comercial e inventario y clientes.</li>
+          <li>Incorporación de filtros e insights para facilitar la interpretación de los resultados.</li>
+          <li>Aplicación de la identidad visual de WildSoft al dashboard.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.desarrollo} /></span><span class="titulo">Desarrollo</span><span class="signo">+</span></summary>
+      <div class="body">
+        <p>El proyecto se desarrolló de manera progresiva, desde la exploración inicial de los datos hasta la construcción de un dashboard interactivo orientado a la toma de decisiones.</p>
+        <p class="subhead">Metodología de trabajo</p>
+        <ul>
+          <li>Revisión de las fuentes disponibles y comprensión de la estructura de los datos.</li>
+          <li>Limpieza, validación y análisis exploratorio con Python.</li>
+          <li>Integración de las tablas de ventas, productos, clientes y métodos de pago.</li>
+          <li>Definición de indicadores comerciales y de inventario.</li>
+          <li>Construcción y validación de las visualizaciones en Power BI.</li>
+        </ul>
+        <p class="subhead">Preparación y análisis de datos</p>
+        <p>Se revisaron tipos de datos, valores inconsistentes, campos identificadores y relaciones entre tablas. Con Python se realizaron agrupaciones, cruces y cálculos para analizar ventas, clientes, regiones, medios de pago e inventario.</p>
+        <p class="subhead">Modelado</p>
+        <p>Se creó un modelo relacional en Power BI conectando las tablas principales mediante los identificadores de producto, cliente y método de pago. También se desarrollaron medidas para calcular:</p>
+        <ul>
+          <li>Ticket promedio.</li>
+          <li>Ingreso promedio por unidad.</li>
+          <li>Participación de los principales clientes.</li>
+          <li>Cantidad de clientes necesaria para alcanzar el 80 % de las ventas.</li>
+          <li>Presión relativa de las ventas sobre el stock.</li>
+        </ul>
+        <p class="subhead">Diseño del dashboard</p>
+        <p>El tablero se organizó en tres vistas: Panorama general (ventas por categoría y región), Rendimiento comercial (ingreso por unidad y métodos de pago) e Inventario y clientes (concentración de ventas y presión sobre el stock).</p>
+        <p class="subhead">Validación y ajustes</p>
+        <p>Se revisaron los cálculos, las agregaciones y la correspondencia entre cada gráfico y su insight. También se ajustaron títulos, formatos monetarios, etiquetas y textos explicativos. Como resultado, se obtuvo un dashboard consistente, interactivo y preparado para comunicar hallazgos comerciales de forma clara.</p>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.tecnologias} /></span><span class="titulo">Tecnologías utilizadas</span><span class="signo">+</span></summary>
+      <div class="body">
+        <p class="subhead">Análisis y preparación de datos</p>
+        <ul>
+          <li>Python: análisis exploratorio, limpieza, agrupaciones y validación de los datos.</li>
+          <li>Pandas: transformación e integración de las tablas de ventas, productos y clientes.</li>
+          <li>Jupyter Notebook / Google Colab: desarrollo y documentación del análisis.</li>
+        </ul>
+        <p class="subhead">Modelado y visualización</p>
+        <ul>
+          <li>Power BI: modelado de datos, construcción de indicadores y desarrollo del dashboard interactivo.</li>
+          <li>DAX: creación de medidas para ticket promedio, concentración de clientes y presión sobre el stock.</li>
+          <li>Power Query: revisión de tipos de datos y preparación de las fuentes.</li>
+        </ul>
+        <p class="subhead">Diseño y personalización</p>
+        <ul>
+          <li>Identidad visual WildSoft: aplicación de logo, tipografías y paleta institucional.</li>
+          <li>Google Sheets / CSV: almacenamiento e intercambio de las fuentes de datos.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.decisiones} /></span><span class="titulo">Principales decisiones</span><span class="signo">+</span></summary>
+      <div class="body">
+        <ul>
+          <li>Integrar las distintas tablas en un único modelo de datos.</li>
+          <li>Separar el dashboard en tres vistas para evitar sobrecargar la información.</li>
+          <li>Utilizar la suma de cantidades para representar correctamente las unidades vendidas.</li>
+          <li>Calcular el ticket promedio mediante una medida específica en DAX.</li>
+          <li>Incorporar indicadores de concentración de clientes y análisis Pareto.</li>
+          <li>Definir la presión sobre el stock como relación entre unidades vendidas y stock disponible.</li>
+          <li>Priorizar gráficos simples, comparables y acompañados por conclusiones de negocio.</li>
+          <li>Mantener la identidad visual de WildSoft en todas las pantallas.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.resultados} /></span><span class="titulo">Resultados</span><span class="signo">+</span></summary>
+      <div class="body">
+        <ul>
+          <li>Se integraron las distintas fuentes en un modelo único y consistente.</li>
+          <li>Se construyó un dashboard interactivo con tres vistas complementarias.</li>
+          <li>Se identificó a Buenos Aires como la región con mayor volumen de unidades vendidas.</li>
+          <li>Carnicería presentó el mayor ingreso promedio por unidad.</li>
+          <li>Los métodos de pago mostraron diferencias claras según la región.</li>
+          <li>Los 10 principales clientes concentraron el 39,60 % de las ventas.</li>
+          <li>Se necesitaron 274 clientes para alcanzar el 80 % acumulado.</li>
+          <li>Hamburguesas congeladas, arroz y pizza congelada registraron la mayor presión relativa sobre el stock.</li>
+          <li>La solución permitió transformar datos dispersos en indicadores visuales útiles para decisiones comerciales y de inventario.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.indicadores} /></span><span class="titulo">Indicadores del proyecto</span><span class="signo">+</span></summary>
+      <div class="body">
+        <div class="tabla">
+          {indicadores.map(([n, e]) => (
+            <div class="tabla-row"><span>{n}</span><span class="tabla-estado">{e}</span></div>
+          ))}
+        </div>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.evolucion} /></span><span class="titulo">Evolución del proyecto</span><span class="signo">+</span></summary>
+      <div class="body">
+        <ul>
+          <li><b>Etapa 1:</b> Relevamiento de fuentes y comprensión del modelo de datos.</li>
+          <li><b>Etapa 2:</b> Limpieza, validación y análisis exploratorio con Python.</li>
+          <li><b>Etapa 3:</b> Integración de las tablas y definición del modelo relacional.</li>
+          <li><b>Etapa 4:</b> Construcción de medidas e indicadores con DAX.</li>
+          <li><b>Etapa 5:</b> Desarrollo de las tres vistas del dashboard en Power BI.</li>
+          <li><b>Etapa 6:</b> Validación de cálculos, agregaciones e insights.</li>
+          <li><b>Etapa 7:</b> Ajustes visuales y preparación del caso para portfolio.</li>
+        </ul>
+        <p>El proyecto avanzó desde la exploración inicial de datos dispersos hasta una solución visual integrada, capaz de mostrar patrones comerciales, concentración de clientes y presión sobre el inventario.</p>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.lecciones} /></span><span class="titulo">Lecciones aprendidas</span><span class="signo">+</span></summary>
+      <div class="body">
+        <p>El proyecto confirmó que un dashboard útil no depende solo de construir gráficos, sino de comprender correctamente qué representa cada campo y cómo debe calcularse.</p>
+        <p>La revisión permitió detectar y corregir agregaciones incorrectas, validar las medidas y asegurar que cada visualización estuviera acompañada por una conclusión coherente.</p>
+        <p class="subhead">También reforzó la importancia de:</p>
+        <ul>
+          <li>Integrar y revisar las fuentes antes de visualizar.</li>
+          <li>Diferenciar recuentos, sumas, promedios y medidas calculadas.</li>
+          <li>Validar los indicadores con los datos originales.</li>
+          <li>Diseñar cada pantalla alrededor de una pregunta de negocio.</li>
+          <li>Traducir los resultados técnicos en insights claros y accionables.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.evidencias} /></span><span class="titulo">Evidencias</span><span class="signo">+</span></summary>
+      <div class="body">
+        <p>Las evidencias respaldan las decisiones analíticas, funcionales y visuales tomadas durante el desarrollo.</p>
+        <p class="subhead">Se consideran como evidencias:</p>
+        <ul>
+          <li>Notebook de análisis exploratorio desarrollado con Python.</li>
+          <li>Fuentes de datos de ventas, productos y clientes.</li>
+          <li>Modelo relacional construido en Power BI.</li>
+          <li>Medidas DAX utilizadas para los indicadores.</li>
+          <li>Captura de la vista Panorama general.</li>
+          <li>Captura de la vista Rendimiento comercial.</li>
+          <li>Captura de la vista Inventario y clientes.</li>
+          <li>Tablas de detalle de stock, ventas y presión por producto.</li>
+          <li>Indicadores de concentración de clientes y análisis Pareto.</li>
+          <li>Archivo final del dashboard en formato .pbix.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acordeon">
+      <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons.anexos} /></span><span class="titulo">Anexos</span><span class="signo">+</span></summary>
+      <div class="body">
+        <p class="subhead">Anexo A — Cronología</p>
+        <div class="tabla">
+          {cronologia.map(([f, h]) => (
+            <div class="tabla-row"><span>{f}</span><span>{h}</span></div>
+          ))}
+        </div>
+        <p class="subhead">Otros anexos del documento</p>
+        <ul>
+          <li>Anexo B — Análisis exploratorio con Python: capturas del notebook, agrupaciones y cruces, análisis por día, distribución por región y método de pago, análisis Pareto de clientes, cálculo de presión sobre el stock.</li>
+          <li>Anexo C, D y E — Capturas finales de las vistas Panorama general, Rendimiento comercial e Inventario y clientes (incorporadas en la sección "Las tres vistas del dashboard").</li>
+          <li>Anexo F — Modelo e indicadores: captura del modelo relacional de Power BI, medidas DAX principales, relaciones entre tablas, definición de los indicadores utilizados.</li>
+          <li>Anexo G — Archivos del proyecto: notebook .ipynb, dashboard .pbix, fuentes de datos, capturas finales utilizadas en el portfolio.</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+</section>
+
+<style>
+  .v2sec-crema{ background: var(--crema); }
+  .texto-block{ max-width: 760px; margin: 0 auto; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 14px; text-align: center; }
+  .intro{ font-size: 14.5px; color: var(--gris); text-align: center; margin: 0 0 30px; }
+
+  .acordeon{ background: #fff; border: 1px solid rgba(21,22,18,0.1); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+  .acordeon summary{ list-style: none; cursor: pointer; display: flex; align-items: center; gap: 14px; padding: 16px 20px; font-weight: 700; color: var(--negro); }
+  .acordeon summary::-webkit-details-marker{ display: none; }
+  .ico{ flex: 0 0 30px; width: 30px; height: 30px; border-radius: 50%; background: var(--fondo-claro); color: var(--naranja); display: flex; align-items: center; justify-content: center; }
+  .ico svg{ width: 17px; height: 17px; }
+  .titulo{ flex: 1; font-size: 15px; }
+  .signo{ font-size: 18px; color: var(--naranja); transition: transform 0.2s ease; }
+  .acordeon[open] .signo{ transform: rotate(45deg); }
+  .body{ padding: 4px 22px 24px 64px; }
+  .body p{ font-size: 14.5px; line-height: 1.65; color: var(--gris); margin: 0 0 14px; }
+  .body p:last-child{ margin-bottom: 0; }
+  .body .subhead{ font-size: 12.5px; font-weight: 700; color: var(--negro); text-transform: uppercase; letter-spacing: 0.03em; margin: 18px 0 10px; }
+  .body .subhead:first-child{ margin-top: 0; }
+  .body ul{ margin: 0 0 14px; padding: 0; list-style: none; }
+  .body li{ font-size: 14px; line-height: 1.55; color: var(--negro); padding: 8px 0 8px 16px; border-top: 1px solid rgba(21,22,18,0.08); position: relative; }
+  .body li:first-child{ border-top: none; }
+  .body li::before{ content: '—'; position: absolute; left: 0; color: var(--naranja); }
+
+  .tabla{ margin: 0 0 16px; }
+  .tabla-row{ display: flex; justify-content: space-between; gap: 16px; font-size: 13.5px; padding: 9px 0; border-top: 1px solid rgba(21,22,18,0.08); color: var(--negro); }
+  .tabla-row:first-child{ border-top: none; }
+  .tabla-estado{ flex: none; font-weight: 700; color: var(--verde); }
+
+  @media (max-width: 760px){
+    .body{ padding: 4px 18px 20px 20px; }
+    .titulo{ font-size: 14px; }
+    .tabla-row{ flex-direction: column; gap: 2px; }
+  }
+</style>

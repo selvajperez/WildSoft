@@ -1,0 +1,32 @@
+---
+const puntos = [
+  'Integrar y revisar las fuentes antes de visualizar.',
+  'Diferenciar recuentos, sumas, promedios y medidas calculadas.',
+  'Validar los indicadores con los datos originales.',
+  'Diseñar cada pantalla alrededor de una pregunta de negocio.',
+  'Traducir los resultados técnicos en insights claros y accionables.',
+];
+---
+<section class="bles">
+  <div class="wrap">
+    <div class="kicker">Lecciones aprendidas</div>
+    <p class="quote-lg">&ldquo;Un dashboard útil no depende solo de construir gráficos, sino de comprender correctamente qué representa cada campo y cómo debe calcularse.&rdquo;</p>
+    <div class="puntos-grid">
+      {puntos.map((p) => <div class="punto-item">{p}</div>)}
+    </div>
+  </div>
+</section>
+
+<style>
+  .bles{ background: var(--negro); color: var(--crema); text-align: center; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 24px; }
+  .quote-lg{ font-family: var(--font-secundaria); font-style: italic; font-size: 26px; line-height: 1.45; color: #fff; max-width: 800px; margin: 0 auto 36px; }
+  .puntos-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px 30px; max-width: 900px; margin: 0 auto; text-align: left; }
+  .punto-item{ font-size: 14.5px; line-height: 1.55; color: #D9D2C4; padding-left: 20px; position: relative; }
+  .punto-item::before{ content: '—'; position: absolute; left: 0; color: var(--naranja); }
+
+  @media (max-width: 760px){
+    .quote-lg{ font-size: 19px; margin-bottom: 26px; }
+    .puntos-grid{ grid-template-columns: 1fr; gap: 12px; }
+  }
+</style>
