@@ -57,7 +57,7 @@
     padding-bottom: 2px;
   }
   .hero-img{ flex: 1; display: flex; justify-content: center; }
-  .hero-img img{ width: 100%; max-width: 640px; }
+  .hero-img img{ width: 100%; max-width: 800px; }
   .hero-illus-mobile{ display: none; }
 
   @media (max-width: 760px){
@@ -69,9 +69,9 @@
     .hero-img{ display: none; }
     .hero-illus-mobile{
       display: block;
-      width: 100%;
-      max-width: 340px;
-      margin: 0 auto 22px;
+      width: calc(100% + 48px);
+      max-width: 480px;
+      margin: 0 -24px 22px;
     }
     .hero-text{ flex: none; }
     .hero-text h1{ font-size: 38px; margin-bottom: 16px; }
