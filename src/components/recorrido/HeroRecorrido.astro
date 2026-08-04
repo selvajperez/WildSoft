@@ -1,0 +1,40 @@
+---
+import { Image } from 'astro:assets';
+import universitario from '../../assets/recorrido/wildfox-universitario.png';
+---
+<section class="rhero">
+  <div class="wrap rhero-inner">
+    <div class="rhero-texto">
+      <div class="kicker">Selva J. Pérez</div>
+      <h1>Recorrido</h1>
+      <p class="bajada">Experiencia, formación y curiosidad en movimiento</p>
+      <p class="cuerpo">Un camino construido entre tecnología, gestión, docencia y aprendizaje continuo. Distintas etapas que hoy se integran en una misma forma de comprender problemas, acompañar procesos y construir soluciones.</p>
+    </div>
+    <div class="rhero-img">
+      <Image src={universitario} alt="WildFox en su etapa de formación y aprendizaje continuo, rodeado de libros, gráficos y herramientas de análisis" widths={[400, 700, 900]} sizes="(max-width: 760px) 90vw, 460px" loading="eager" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .rhero{ background: var(--crema); padding: 70px 0 80px; }
+  .rhero-inner{ display: flex; align-items: center; gap: 64px; }
+  .rhero-texto{ flex: 0 0 46%; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 18px; }
+  .rhero-texto h1{ font-size: 56px; font-weight: 800; line-height: 1; color: var(--negro); margin: 0 0 16px; }
+  .bajada{ font-family: var(--font-secundaria); font-style: italic; font-size: 22px; color: var(--gris); margin: 0 0 22px; }
+  .cuerpo{ font-size: 16.5px; line-height: 1.7; color: var(--gris); max-width: 480px; margin: 0; }
+
+  .rhero-img{ flex: 1; text-align: center; }
+  .rhero-img :global(img){ width: 100%; max-width: 460px; height: auto; border-radius: 24px; }
+
+  @media (max-width: 760px){
+    .rhero{ padding: 44px 0 50px; }
+    .rhero-inner{ flex-direction: column-reverse; gap: 32px; }
+    .rhero-texto{ flex: none; text-align: center; }
+    .rhero-texto h1{ font-size: 36px; }
+    .bajada{ font-size: 18px; }
+    .cuerpo{ font-size: 15px; margin: 0 auto; }
+    .rhero-img :global(img){ max-width: 320px; }
+  }
+</style>
