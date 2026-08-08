@@ -1,0 +1,132 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import Lightbox from '../../components/caso-bid/Lightbox.astro';
+---
+<BaseLayout
+  title="Hospital Analytics — Datos y análisis — WildSoft"
+  description="Caso de estudio: análisis de datos hospitalarios — revenue, mix de pacientes y señales operativas — desarrollado como proyecto de portfolio con Python (Google Colab) y Power BI."
+>
+  <Header />
+
+  <section class="hhero">
+    <div class="wrap">
+      <div class="kicker">Caso de estudio · Datos y análisis</div>
+      <h1>Hospital Analytics</h1>
+      <p class="bajada">Análisis de datos hospitalarios — revenue, mix de pacientes y señales operativas — desarrollado como proyecto de portfolio.</p>
+    </div>
+  </section>
+
+  <section class="hevidencias">
+    <div class="wrap">
+      <button class="img-frame" data-lightbox="/images/hospital-analytics/revenue-risk-insights.jpg" data-lightbox-alt="Hospital Revenue & Risk Insights — cinco hallazgos críticos sobre revenue, operación y calidad de datos">
+        <img src="/images/hospital-analytics/revenue-risk-insights.jpg" alt="Hospital Revenue & Risk Insights — cinco hallazgos críticos sobre revenue, operación y calidad de datos" loading="lazy" />
+      </button>
+      <button class="img-frame" data-lightbox="/images/hospital-analytics/overview-dashboard.jpg" data-lightbox-alt="Hospital Overview Dashboard — revenue, mix de casos y señales operativas">
+        <img src="/images/hospital-analytics/overview-dashboard.jpg" alt="Hospital Overview Dashboard — revenue, mix de casos y señales operativas" loading="lazy" />
+      </button>
+
+      <details class="acordeon">
+        <summary>
+          <span class="ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l3 3v15H6z"/><line x1="15" y1="3" x2="15" y2="6"/><line x1="18" y1="6" x2="15" y2="6"/><line x1="8.5" y1="11" x2="15.5" y2="11"/><line x1="8.5" y1="15" x2="15.5" y2="15"/></svg>
+          </span>
+          <span class="titulo">Evidencias del análisis</span>
+          <span class="signo">+</span>
+        </summary>
+        <div class="body">
+          <p class="ev-intro">Estas evidencias muestran el proceso real del caso: exploración y hallazgos en Python/Colab, visualización y dashboard en Power BI, y posterior síntesis visual para portfolio.</p>
+
+          <div class="ev-item">
+            <span class="ev-tag">01 · Dashboard general</span>
+            <button class="ev-img" data-lightbox="/images/hospital-analytics/dashboard-general.jpg" data-lightbox-alt="Dashboard general del caso Hospital Analytics en Power BI: KPIs principales, revenue por tipo de caso, especialidad, asegurador y tendencia mensual">
+              <img src="/images/hospital-analytics/dashboard-general.jpg" alt="Dashboard general del caso Hospital Analytics en Power BI: KPIs principales, revenue por tipo de caso, especialidad, asegurador y tendencia mensual" loading="lazy" />
+            </button>
+          </div>
+
+          <div class="ev-item">
+            <span class="ev-tag">02 · Concentración por asegurador</span>
+            <button class="ev-img" data-lightbox="/images/hospital-analytics/concentracion-por-asegurador.jpg" data-lightbox-alt="Gráfico de concentración del revenue por asegurador, con curva de porcentaje acumulado y umbral del 80%">
+              <img src="/images/hospital-analytics/concentracion-por-asegurador.jpg" alt="Gráfico de concentración del revenue por asegurador, con curva de porcentaje acumulado y umbral del 80%" loading="lazy" />
+            </button>
+          </div>
+
+          <div class="ev-item">
+            <span class="ev-tag">03 · Ranking de hallazgos</span>
+            <button class="ev-img" data-lightbox="/images/hospital-analytics/ranking-hallazgos.jpg" data-lightbox-alt="Tabla de ranking de hallazgos del análisis exploratorio, con fuerza, score y nivel de cada relación entre variables">
+              <img src="/images/hospital-analytics/ranking-hallazgos.jpg" alt="Tabla de ranking de hallazgos del análisis exploratorio, con fuerza, score y nivel de cada relación entre variables" loading="lazy" />
+            </button>
+          </div>
+
+          <div class="ev-item">
+            <span class="ev-tag">04 · Correlación y Portfolio Score</span>
+            <div class="ev-par">
+              <button class="ev-img" data-lightbox="/images/hospital-analytics/portfolio-score.jpg" data-lightbox-alt="Resultado del Portfolio Score del proyecto: 9/10, muy apto para portfolio, con los criterios evaluados">
+                <img src="/images/hospital-analytics/portfolio-score.jpg" alt="Resultado del Portfolio Score del proyecto: 9/10, muy apto para portfolio, con los criterios evaluados" loading="lazy" />
+              </button>
+              <button class="ev-img" data-lightbox="/images/hospital-analytics/correlation-matrix.png" data-lightbox-alt="Matriz de correlación entre severity, LOS, revenue y cmi_value">
+                <img src="/images/hospital-analytics/correlation-matrix.png" alt="Matriz de correlación entre severity, LOS, revenue y cmi_value" loading="lazy" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <p class="proceso">Proceso: exploración y preparación de datos en Python (Google Colab); visualización y tablero final en Power BI.</p>
+    </div>
+
+    <div class="center-btn"><a class="btn btn-secondary" href="/proyectos/datos-y-analisis">Volver a Datos y análisis</a></div>
+  </section>
+
+  <Footer />
+  <Lightbox />
+</BaseLayout>
+
+<style>
+  .hhero{ background: var(--crema); padding: 60px 0 50px; text-align: center; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 16px; }
+  .hhero h1{ font-size: 44px; font-weight: 800; line-height: 1.1; color: var(--negro); margin: 0 0 16px; }
+  .bajada{ font-size: 17px; line-height: 1.6; color: var(--gris); max-width: 640px; margin: 0 auto; }
+
+  .hevidencias{ background: #fff; padding: 60px 0 20px; }
+  .img-frame{
+    display: block; width: 100%; padding: 0; border: 1px solid rgba(21,22,18,0.08); background: none;
+    border-radius: 18px; overflow: hidden; box-shadow: 0 24px 48px -30px rgba(21,22,18,0.35);
+    cursor: zoom-in; margin: 0 0 32px;
+  }
+  .img-frame img{ width: 100%; height: auto; display: block; }
+  .proceso{ font-size: 14.5px; color: var(--gris); text-align: center; max-width: 640px; margin: 0 auto; line-height: 1.6; }
+
+  .acordeon{ background: var(--crema); border: 1px solid rgba(21,22,18,0.1); border-radius: 16px; margin: 0 0 32px; overflow: hidden; text-align: left; }
+  .acordeon summary{ list-style: none; cursor: pointer; display: flex; align-items: center; gap: 14px; padding: 20px 26px; font-weight: 700; color: var(--negro); }
+  .acordeon summary::-webkit-details-marker{ display: none; }
+  .acordeon .ico{ flex: 0 0 32px; width: 32px; height: 32px; border-radius: 50%; background: #fff; color: var(--naranja); display: flex; align-items: center; justify-content: center; }
+  .acordeon .ico svg{ width: 17px; height: 17px; }
+  .acordeon .titulo{ flex: 1; font-size: 16px; }
+  .acordeon .signo{ font-size: 19px; color: var(--naranja); transition: transform 0.2s ease; }
+  .acordeon[open] .signo{ transform: rotate(45deg); }
+  .acordeon .body{ padding: 6px 26px 30px; }
+  .ev-intro{ font-size: 14.5px; line-height: 1.65; color: var(--gris); margin: 0 0 28px; }
+  .ev-item{ margin-bottom: 32px; }
+  .ev-item:last-child{ margin-bottom: 0; }
+  .ev-tag{ display: block; font-family: var(--font-mono); font-size: 11.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--naranja); margin-bottom: 12px; }
+  .ev-img{ display: block; width: 100%; padding: 0; border: 1px solid rgba(21,22,18,0.08); background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 16px 32px -24px rgba(21,22,18,0.3); cursor: zoom-in; }
+  .ev-img img{ width: 100%; height: auto; display: block; }
+  .ev-par{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  @media (max-width: 760px){
+    .hhero{ padding: 44px 0 36px; }
+    .hhero h1{ font-size: 28px; }
+    .bajada{ font-size: 15px; }
+    .acordeon{ border-radius: 14px; margin-bottom: 24px; }
+    .acordeon summary{ padding: 16px 18px; }
+    .acordeon .titulo{ font-size: 14.5px; }
+    .acordeon .body{ padding: 4px 18px 22px; }
+    .ev-item{ margin-bottom: 26px; }
+    .ev-par{ grid-template-columns: 1fr; gap: 14px; }
+    .hevidencias{ padding: 40px 0 10px; }
+    .img-frame{ border-radius: 14px; margin-bottom: 22px; }
+    .proceso{ font-size: 14px; }
+  }
+</style>

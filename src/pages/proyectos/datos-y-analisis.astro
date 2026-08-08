@@ -1,0 +1,73 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+
+const casos = [
+  {
+    titulo: 'Hospital Analytics',
+    texto: 'Análisis de datos hospitalarios — revenue, mix de pacientes y señales operativas — desarrollado como proyecto de portfolio con Python y Power BI.',
+    href: '/proyectos/hospital-analytics',
+  },
+];
+---
+<BaseLayout
+  title="Datos y análisis — WildSoft"
+  description="Dashboards, visualizaciones e indicadores que transforman información en decisiones claras. Casos de estudio de análisis de datos, como Hospital Analytics."
+>
+  <Header />
+
+  <section class="dhero" id="datos-y-analisis">
+    <div class="wrap">
+      <div class="kicker">Categoría · Proyectos</div>
+      <h1>Datos y análisis</h1>
+      <p class="bajada">Dashboards, visualizaciones e indicadores que transforman información en decisiones claras.</p>
+    </div>
+  </section>
+
+  <section class="dcasos">
+    <div class={`casos-grid wrap ${casos.length === 1 ? 'single' : ''}`}>
+      {casos.map((c) => (
+        <a class="caso-card" href={c.href}>
+          <div class="caso-tag">Caso de estudio</div>
+          <h2>{c.titulo}</h2>
+          <p>{c.texto}</p>
+          <span class="caso-link">Ver el caso →</span>
+        </a>
+      ))}
+    </div>
+    <div class="center-btn"><a class="btn btn-secondary" href="/#proyectos">Volver a proyectos</a></div>
+  </section>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .dhero{ background: var(--crema); padding: 60px 0 50px; text-align: center; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 16px; }
+  .dhero h1{ font-size: 44px; font-weight: 800; line-height: 1.1; color: var(--negro); margin: 0 0 16px; }
+  .bajada{ font-size: 17px; line-height: 1.6; color: var(--gris); max-width: 620px; margin: 0 auto; }
+
+  .dcasos{ background: #fff; padding: 60px 0 20px; }
+  .casos-grid{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .casos-grid.single{ grid-template-columns: 1fr; max-width: 620px; }
+  .caso-card{
+    display: block; background: var(--fondo-claro); border-radius: 16px; padding: 32px 30px;
+    border-left: 5px solid var(--naranja);
+  }
+  .caso-tag{ font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--naranja); margin-bottom: 14px; }
+  .caso-card h2{ font-size: 21px; font-weight: 800; margin: 0 0 10px; color: var(--negro); }
+  .caso-card p{ font-size: 15px; line-height: 1.6; color: var(--gris); margin: 0 0 16px; }
+  .caso-link{ font-size: 14.5px; font-weight: 700; color: var(--naranja); }
+
+  @media (max-width: 760px){
+    .dhero{ padding: 44px 0 36px; }
+    .dhero h1{ font-size: 28px; }
+    .bajada{ font-size: 15px; }
+    .dcasos{ padding: 40px 0 10px; }
+    .casos-grid{ display: flex; flex-direction: column; gap: 16px; }
+    .caso-card{ padding: 26px 22px; border-radius: 14px; }
+    .caso-card h2{ font-size: 19px; }
+    .caso-card p{ font-size: 14.5px; }
+  }
+</style>

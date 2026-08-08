@@ -3,11 +3,10 @@ const areas = [
   {
     titulo: 'Datos y análisis',
     texto: 'Dashboards, visualizaciones e indicadores que transforman información en decisiones claras.',
-    // Primer caso publicado de esta área; enlaza directo al caso mientras sea el único.
-    // Cuando haya más de un caso, este href debería apuntar a una página índice de la categoría.
-    href: '/proyectos/maxiconsumo',
+    // Categoría con más de un caso publicado (Maxiconsumo, Hospital Analytics): enlaza a la página índice.
+    href: '/proyectos/datos-y-analisis',
     caso: 'Maxiconsumo',
-    cta: 'Ver caso de estudio',
+    cta: 'Ver casos de estudio',
   },
   {
     titulo: 'Web y presencia digital',
@@ -34,6 +33,23 @@ const areas = [
     href: '/proyectos/purissimus',
     caso: 'Purissimus S.A.',
     cta: 'Ver caso de estudio',
+  },
+];
+
+const destacados = [
+  {
+    href: '/proyectos/maxiconsumo',
+    kicker: 'Caso de estudio · Datos y Business Intelligence',
+    titulo: 'Maxiconsumo: de datos dispersos a un dashboard comercial en Power BI',
+    texto: 'Ventas, productos, clientes y métodos de pago consolidados en un dashboard interactivo, con análisis exploratorio en Python.',
+    link: 'Ver el caso completo →',
+  },
+  {
+    href: '/proyectos/redeterminacion-precios',
+    kicker: 'Caso de estudio',
+    titulo: 'Modernización del Sistema de Redeterminación de Precios',
+    texto: 'Transformación de un proceso normativo y administrativo en una solución digital para la gestión de obra pública.',
+    link: 'Ver el caso completo →',
   },
 ];
 ---
@@ -64,12 +80,14 @@ const areas = [
     </div>
   </div>
 
-  <a class="caso-destacado wrap" href="/proyectos/redeterminacion-precios">
-    <div class="caso-kicker">Caso de estudio</div>
-    <h3>Modernización del Sistema de Redeterminación de Precios</h3>
-    <p>Transformación de un proceso normativo y administrativo en una solución digital para la gestión de obra pública.</p>
-    <span class="caso-link">Ver el caso completo →</span>
-  </a>
+  {destacados.map((d) => (
+    <a class="caso-destacado wrap" href={d.href}>
+      <div class="caso-kicker">{d.kicker}</div>
+      <h3>{d.titulo}</h3>
+      <p>{d.texto}</p>
+      <span class="caso-link">{d.link}</span>
+    </a>
+  ))}
 
   <div class="center-btn"><a class="btn btn-primary" href="#">Explorar proyectos</a></div>
 </section>
