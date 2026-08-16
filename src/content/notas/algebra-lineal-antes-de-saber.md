@@ -4,6 +4,11 @@ description: "Veinte años usando matrices sin llamarlas por su nombre."
 pubDate: 2026-07-24
 tags: ["Matemática", "Trayecto", "Ciencia de datos"]
 heroImage: "/images/notas/algebra-lineal-hero.svg"
+siguienteLabel: "También en tu Recorrido"
+siguientePeriodo: "1993 → 2026"
+siguienteTexto: "De las planillas en Quattro Pro a la notación matricial. Esta nota conecta la etapa laboral con la etapa universitaria de tu Recorrido."
+siguienteHref: "/#recorrido"
+siguienteLinkTexto: "Ver en mi Recorrido →"
 ---
 
 Antes de cursar Álgebra Lineal, ya trabajaba con matrices todos los días.

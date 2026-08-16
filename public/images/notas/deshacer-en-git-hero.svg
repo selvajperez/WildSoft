@@ -1,0 +1,57 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#151612"/>
+
+  <!-- LEFT: el gesto de siempre (Ctrl+Z) -->
+  <g>
+    <!-- undo arrow, curling counter-clockwise above the keys -->
+    <path d="M 300 150 A 46 46 0 1 1 240 122" stroke="#6b6a63" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <polygon points="240,122 261,116 251,138" fill="#6b6a63"/>
+  </g>
+
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="90" y="235" width="150" height="92" rx="12"/>
+    <rect x="258" y="235" width="92" height="92" rx="12"/>
+  </g>
+  <g font-family="monospace" font-size="26" fill="#D9D2C4" text-anchor="middle">
+    <text x="165" y="290">Ctrl</text>
+    <text x="304" y="290">Z</text>
+  </g>
+
+  <text x="220" y="385" font-family="monospace" font-size="14" fill="#8d8879" text-anchor="middle">el gesto de siempre</text>
+
+  <!-- bridge arrow -->
+  <g stroke="#EC7323" stroke-width="2" fill="none">
+    <line x1="410" y1="280" x2="560" y2="280"/>
+    <polygon points="560,272 575,280 560,288" fill="#EC7323"/>
+  </g>
+
+  <!-- RIGHT: la historia que se puede recorrer (git graph) -->
+  <g stroke="#4a4944" stroke-width="2" fill="none">
+    <line x1="630" y1="280" x2="1080" y2="280"/>
+  </g>
+
+  <!-- branch that opens and merges back -->
+  <path d="M 760 280 C 810 280, 830 195, 890 195 C 950 195, 970 280, 1010 280"
+        stroke="#8a9430" stroke-width="2" fill="none"/>
+
+  <!-- commits on main line -->
+  <g>
+    <circle cx="700" cy="280" r="9" fill="#151612" stroke="#D9D2C4" stroke-width="2.5"/>
+    <circle cx="760" cy="280" r="9" fill="#151612" stroke="#D9D2C4" stroke-width="2.5"/>
+    <circle cx="890" cy="195" r="8" fill="#151612" stroke="#B9C05A" stroke-width="2.5"/>
+    <circle cx="1010" cy="280" r="10" fill="#EC7323" stroke="#EC7323" stroke-width="2.5"/>
+  </g>
+
+  <g font-family="monospace" font-size="13" fill="#8d8879">
+    <text x="670" y="315">commit</text>
+    <text x="858" y="172">branch</text>
+    <text x="988" y="252" fill="#EC7323" font-weight="bold">HEAD</text>
+  </g>
+
+  <text x="855" y="385" font-family="monospace" font-size="14" fill="#8d8879" text-anchor="middle">la historia que se puede recorrer</text>
+
+  <!-- caption -->
+  <text x="600" y="486" font-family="Georgia, serif" font-size="27" fill="#F2EEE3" text-anchor="middle" font-style="italic">El botón Deshacer existe.</text>
+  <text x="600" y="522" font-family="Georgia, serif" font-size="27" fill="#F2EEE3" text-anchor="middle" font-style="italic">El problema es que Git tiene otros planes.</text>
+  <text x="600" y="560" font-family="monospace" font-size="14" fill="#8d8879" text-anchor="middle">Ctrl+Z, siempre — git log --graph, ahora</text>
+</svg>

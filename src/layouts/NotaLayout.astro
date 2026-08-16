@@ -9,9 +9,22 @@ export interface Props {
   pubDate: Date;
   tags: string[];
   heroImage: string;
+  readingTime: number;
+  siguienteLabel?: string;
+  siguientePeriodo?: string;
+  siguienteTexto?: string;
+  siguienteHref?: string;
+  siguienteLinkTexto?: string;
 }
 
-const { title, description, pubDate, tags, heroImage } = Astro.props;
+const {
+  title, description, pubDate, tags, heroImage, readingTime,
+  siguienteLabel = 'Seguir leyendo',
+  siguientePeriodo = 'Notas y reflexiones',
+  siguienteTexto = 'Apuntes sobre datos, tecnología, proyectos y aprendizaje continuo — la misma bitácora abierta donde vive esta nota.',
+  siguienteHref = '/notas',
+  siguienteLinkTexto = 'Ver todas las notas →',
+} = Astro.props;
 
 const fecha = pubDate.toLocaleDateString('es-AR', {
   day: 'numeric',
@@ -33,7 +46,7 @@ const fecha = pubDate.toLocaleDateString('es-AR', {
       </div>
       <h1>{title}</h1>
       <p class="nota-desc">{description}</p>
-      <p class="nota-meta">{fecha} · Nota</p>
+      <p class="nota-meta">{fecha} · {readingTime} min de lectura</p>
     </div>
 
     <div class="figura">
@@ -48,10 +61,10 @@ const fecha = pubDate.toLocaleDateString('es-AR', {
   <div class="fin-nota">
     <a class="volver-abajo" href="/notas">&larr; Volver a Notas</a>
     <div class="siguiente-card">
-      <p class="siguiente-label">También en tu Recorrido</p>
-      <p class="siguiente-periodo">1993 → 2026</p>
-      <p class="siguiente-texto">De las planillas en Quattro Pro a la notación matricial. Esta nota conecta la etapa laboral con la etapa universitaria de tu Recorrido.</p>
-      <a class="siguiente-link" href="/#recorrido">Ver en mi Recorrido →</a>
+      <p class="siguiente-label">{siguienteLabel}</p>
+      <p class="siguiente-periodo">{siguientePeriodo}</p>
+      <p class="siguiente-texto">{siguienteTexto}</p>
+      <a class="siguiente-link" href={siguienteHref}>{siguienteLinkTexto}</a>
     </div>
   </div>
 
@@ -73,14 +86,14 @@ const fecha = pubDate.toLocaleDateString('es-AR', {
   }
   .tag.alt{ border-color: var(--verde); color: #B9C05A; }
   .nota-hero h1{
-    font-size: 46px; font-weight: 800; line-height: 1.2; color: #fff; margin: 0 0 20px; max-width: 760px;
+    font-size: 46px; font-weight: 800; line-height: 1.2; color: #fff; margin: 0 0 26px; max-width: 760px;
   }
-  .nota-desc{ font-size: 17px; line-height: 1.65; color: #D9D2C4; max-width: 640px; margin: 0 0 22px; }
-  .nota-meta{ font-size: 13.5px; color: #9C9689; font-weight: 600; letter-spacing: 0.02em; }
+  .nota-desc{ font-size: 17px; line-height: 1.65; color: #D9D2C4; max-width: 640px; margin: 0 0 30px; }
+  .nota-meta{ font-size: 13.5px; color: #9C9689; font-weight: 600; letter-spacing: 0.02em; margin: 0 0 56px; }
 
   /* IMAGEN PRINCIPAL */
   .figura{
-    max-width: 920px; margin: -40px auto 0; border-radius: 18px; overflow: hidden;
+    max-width: 1040px; margin: -40px auto 0; border-radius: 18px; overflow: hidden;
     box-shadow: 0 30px 60px rgba(0,0,0,0.35); line-height: 0;
   }
   .figura img{ width: 100%; display: block; }
@@ -88,6 +101,10 @@ const fecha = pubDate.toLocaleDateString('es-AR', {
   /* CUERPO DEL ARTICULO */
   .articulo-body{ max-width: 810px; margin: 0 auto; padding: 80px 60px 20px; }
   .articulo-body :global(p){ font-size: 17.5px; line-height: 1.85; color: var(--gris); margin: 0 0 26px; }
+  .articulo-body :global(h2){
+    font-size: 27px; font-weight: 800; color: var(--negro); line-height: 1.3; margin: 64px 0 22px;
+  }
+  .articulo-body :global(h2:first-child){ margin-top: 0; }
   .articulo-body :global(blockquote){
     font-family: var(--font-secundaria); font-style: italic; font-size: 30px; line-height: 1.55; color: var(--negro);
     border-left: 5px solid var(--naranja); padding: 16px 0 16px 36px; margin: 68px 0;
@@ -119,14 +136,15 @@ const fecha = pubDate.toLocaleDateString('es-AR', {
     .volver{ font-size: 13px; margin-bottom: 22px; }
     .tags{ gap: 8px; margin-bottom: 20px; }
     .tag{ font-size: 11px; padding: 6px 12px; }
-    .nota-hero h1{ font-size: 28px; margin-bottom: 16px; }
-    .nota-desc{ font-size: 14.5px; margin-bottom: 16px; }
-    .nota-meta{ font-size: 12.5px; }
+    .nota-hero h1{ font-size: 28px; margin-bottom: 20px; }
+    .nota-desc{ font-size: 14.5px; margin-bottom: 20px; }
+    .nota-meta{ font-size: 12.5px; margin-bottom: 0; }
 
-    .figura{ margin: 26px -2px 0; border-radius: 16px; }
+    .figura{ margin: 30px -2px 0; border-radius: 16px; }
 
     .articulo-body{ padding: 44px 22px 10px; }
     .articulo-body :global(p){ font-size: 15.5px; line-height: 1.75; margin-bottom: 22px; }
+    .articulo-body :global(h2){ font-size: 21px; margin: 44px 0 16px; }
     .articulo-body :global(blockquote){
       font-size: 22px; padding: 12px 0 12px 22px; margin: 48px 0; border-left-width: 5px;
     }
