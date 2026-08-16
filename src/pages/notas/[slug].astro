@@ -12,6 +12,9 @@ export async function getStaticPaths() {
 
 const { nota } = Astro.props;
 const { Content } = await nota.render();
+
+const palabras = nota.body.trim().split(/\s+/).length;
+const readingTime = Math.max(1, Math.round(palabras / 200));
 ---
 <NotaLayout
   title={nota.data.title}
@@ -19,6 +22,12 @@ const { Content } = await nota.render();
   pubDate={nota.data.pubDate}
   tags={nota.data.tags}
   heroImage={nota.data.heroImage}
+  readingTime={readingTime}
+  siguienteLabel={nota.data.siguienteLabel}
+  siguientePeriodo={nota.data.siguientePeriodo}
+  siguienteTexto={nota.data.siguienteTexto}
+  siguienteHref={nota.data.siguienteHref}
+  siguienteLinkTexto={nota.data.siguienteLinkTexto}
 >
   <Content />
 </NotaLayout>
