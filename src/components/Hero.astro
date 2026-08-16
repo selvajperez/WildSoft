@@ -56,8 +56,8 @@
     border-bottom: 1px solid var(--verde);
     padding-bottom: 2px;
   }
-  .hero-img{ flex: 1; display: flex; justify-content: center; }
-  .hero-img img{ width: 100%; max-width: 800px; }
+  .hero-img{ flex: 1.4; min-width: 0; display: flex; justify-content: center; }
+  .hero-img img{ width: 100%; height: auto; }
   .hero-illus-mobile{ display: none; }
 
   @media (max-width: 760px){
@@ -69,11 +69,12 @@
     .hero-img{ display: none; }
     .hero-illus-mobile{
       display: block;
+      order: 2;
       width: calc(100% + 48px);
       max-width: 480px;
       margin: 0 -24px 22px;
     }
-    .hero-text{ flex: none; }
+    .hero-text{ flex: none; order: 1; }
     .hero-text h1{ font-size: 38px; margin-bottom: 16px; }
     .phrase{ font-size: 19px; margin-bottom: 16px; }
     .lead{ font-size: 14.5px; margin-bottom: 26px; }
