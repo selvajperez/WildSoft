@@ -7,7 +7,7 @@ heroImage: "/images/notas/algebra-lineal-hero.svg"
 siguienteLabel: "También en tu Recorrido"
 siguientePeriodo: "1993 → 2026"
 siguienteTexto: "De las planillas en Quattro Pro a la notación matricial. Esta nota conecta la etapa laboral con la etapa universitaria de tu Recorrido."
-siguienteHref: "/#recorrido"
+siguienteHref: "/recorrido#licenciatura-datos"
 siguienteLinkTexto: "Ver en mi Recorrido →"
 ---
 

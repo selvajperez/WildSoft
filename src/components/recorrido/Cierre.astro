@@ -2,8 +2,10 @@
 ---
 <section class="rcierre">
   <div class="wrap">
-    <h2>La experiencia no es una línea recta</h2>
-    <p>Cada etapa incorporó nuevas herramientas, pero también reforzó una misma forma de trabajar: comprender el contexto, conectar tecnología y personas, y transformar necesidades concretas en soluciones útiles.</p>
+    <blockquote>
+      <p>&ldquo;No es un camino lineal ni terminado. Es una construcción permanente, sostenida por la experiencia, el aprendizaje y la curiosidad del primer día.&rdquo;</p>
+    </blockquote>
+    <p class="rcierre-texto">Hoy, herramientas y conocimientos que aparecieron en momentos diferentes —planillas, bases de datos, gestión, docencia, matemática, desarrollo e inteligencia artificial— conviven en una misma manera de trabajar: comprender antes de construir, organizar lo complejo y convertirlo en soluciones claras.</p>
     <div class="btn-row">
       <a class="btn btn-primary" href="/#proyectos">Ver proyectos</a>
     </div>
@@ -11,15 +13,19 @@
 </section>
 
 <style>
-  .rcierre{ background: var(--negro); color: var(--crema); text-align: center; padding: 80px 0; }
-  .rcierre h2{ font-size: 32px; font-weight: 800; color: #fff; margin: 0 0 20px; }
-  .rcierre p{ font-size: 17px; line-height: 1.7; color: #D9D2C4; max-width: 680px; margin: 0 auto 34px; }
+  .rcierre{ background: var(--crema); text-align: center; padding: 70px 0 80px; }
+  .rcierre blockquote{
+    font-family: var(--font-secundaria); font-style: italic; font-size: 27px; line-height: 1.5; color: var(--negro);
+    max-width: 700px; margin: 0 auto 26px;
+  }
+  .rcierre blockquote p{ margin: 0; }
+  .rcierre-texto{ font-size: 15.5px; line-height: 1.7; color: var(--gris); max-width: 680px; margin: 0 auto 34px; }
   .btn-row{ display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; }
 
   @media (max-width: 760px){
-    .rcierre{ padding: 50px 0; }
-    .rcierre h2{ font-size: 24px; }
-    .rcierre p{ font-size: 15px; margin-bottom: 26px; }
+    .rcierre{ padding: 44px 0 56px; }
+    .rcierre blockquote{ font-size: 20px; margin-bottom: 20px; }
+    .rcierre-texto{ font-size: 14px; margin-bottom: 26px; }
     .btn-row{ flex-direction: column; align-items: stretch; width: 100%; }
   }
 </style>
