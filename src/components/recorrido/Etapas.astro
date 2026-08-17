@@ -1,150 +1,390 @@
 ---
-import { Image } from 'astro:assets';
-import purissimus from '../../assets/recorrido/wildfox-purissimus.png';
-import lan from '../../assets/recorrido/wildfox-lan.png';
-import wildsoft from '../../assets/recorrido/wildfox-wildsoft.png';
-import docente from '../../assets/recorrido/wildfox-docente.png';
+// Contenido verbatim del Guion estructural del Recorrido — versión 1 (fuente de verdad aprobada).
+// No parafrasear ni resumir sin volver a revisar el guion.
 
-const icons: Record<string, string> = {
-  planilla: '<rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/>',
-  db: '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/>',
-  web: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 4 6 4 9s-1.5 6.5-4 9c-2.5-2.5-4-6-4-9s1.5-6.5 4-9z"/>',
-};
+interface Profundizacion { texto: string; href: string; }
+interface Hito {
+  id: string;
+  periodo: string;
+  titulo: string;
+  texto: string;
+  badge?: string;
+  profundiza?: Profundizacion;
+}
+interface Item {
+  id: string;
+  periodo: string;
+  titulo: string;
+  texto: string;
+  textoExtra?: string;
+  badge?: string;
+  badgeHref?: string;
+  profundiza?: Profundizacion[];
+  hitoAnidado?: { periodo: string; titulo: string; texto: string };
+  hitoSeparado?: Hito;
+}
 
-const etapas = [
+const tramo1: Item[] = [
   {
-    periodo: '1993 – 1999',
+    id: 'primeros-sistemas',
+    periodo: '1993–1999',
     titulo: 'Primeros sistemas y gestión',
-    texto: 'Mis primeros años estuvieron ligados a organizar información y resolver necesidades de gestión con planillas de cálculo, bases de datos y herramientas como Quattro Pro, en una época donde muchas tareas todavía eran manuales. Fue el inicio de una forma de trabajo que se mantendría siempre: observar cómo circula la información y buscar la solución que simplifique el trabajo cotidiano.',
-    tipo: 'icono',
-    icon: 'planilla',
+    texto: 'Mis primeros años estuvieron ligados a organizar información y resolver necesidades de gestión con planillas de cálculo, bases de datos y herramientas como Quattro Pro, en una época en la que muchas tareas todavía eran manuales. Allí comenzó una forma de trabajo que se mantendría en el tiempo: observar cómo circula la información y buscar una solución que simplifique el trabajo cotidiano.',
+    profundiza: [{ texto: 'Nota: Álgebra lineal antes de saber que se llamaba así', href: '/notas/algebra-lineal-antes-de-saber' }],
   },
   {
-    periodo: '1999 – 2004',
+    id: 'purissimus',
+    periodo: '1999–2004',
     titulo: 'Purissimus',
-    texto: 'En un entorno industrial y farmacéutico, participé en la integración entre sistemas de información y automatización industrial: trazabilidad de sachets de plasma con Access, códigos de barras y balanza RS-232, y control de producción con PLC Siemens S7-300, sensores y válvulas. Una etapa que exigía precisión y que consolidó la importancia de conectar tecnología, operación y personas.',
-    tipo: 'imagen',
-    imagen: purissimus,
-    alt: 'WildFox con casco de seguridad en un entorno industrial farmacéutico, representando la etapa Purissimus',
+    texto: 'En un entorno industrial y farmacéutico, participé en la integración entre sistemas de información y automatización industrial: trazabilidad de sachets de plasma con Access, códigos de barras y balanza RS-232, y control de producción con PLC Siemens S7-300, sensores y válvulas. Fue una etapa que exigió precisión y consolidó la importancia de conectar tecnología, operación y personas.',
+    profundiza: [{ texto: 'Proyecto: Purissimus', href: '/proyectos/purissimus' }],
   },
   {
-    periodo: '2004 – 2007',
+    id: 'molino-chacabuco',
+    periodo: '2004–2007',
     titulo: 'Molino Chacabuco',
     texto: 'Profundicé mi trabajo con bases de datos SQL, transformando información de distintas áreas del negocio en consultas, controles y reportes para el seguimiento operativo. Consolidé una mirada analítica: comprender qué necesitaba cada sector y devolver información confiable para decidir.',
-    tipo: 'icono',
-    icon: 'db',
   },
   {
-    periodo: '2007 – 2009',
+    id: 'lan-argentina',
+    periodo: '2007–2009',
     titulo: 'LAN Argentina',
     texto: 'Asumí la responsabilidad sobre el software de la operación local, en un entorno donde los sistemas sostenían procesos críticos de aeropuertos y comercialización. Combiné análisis, soporte, coordinación y gestión de proveedores, como enlace entre Argentina, equipos técnicos externos y las áreas de sistemas de Chile.',
-    tipo: 'imagen',
-    imagen: lan,
-    alt: 'WildFox con auriculares de call center en un entorno aeroportuario, representando la etapa en LAN Argentina',
+    hitoAnidado: {
+      periodo: 'Diciembre de 2008',
+      titulo: 'Certificación en Project Management — UTN',
+      texto: 'Durante esta etapa completé una formación anual en gestión de proyectos que permitió ordenar y formalizar herramientas que ya aplicaba en la coordinación cotidiana: alcance, planificación, seguimiento y articulación entre personas y áreas.',
+    },
   },
   {
-    periodo: '2010 – 2015',
+    id: 'ecommerce-digital',
+    periodo: '2010–2015',
     titulo: 'E-commerce y proyectos digitales',
     texto: 'Trabajé en proyectos de comercio electrónico y presencia digital: relevamiento, planificación, administración de servidores, mantenimiento de sitios y coordinación de mejoras sobre plataformas como Joomla y PrestaShop. Una etapa centrada en conectar tecnología, negocio y experiencia del usuario.',
-    tipo: 'icono',
-    icon: 'web',
+    profundiza: [{ texto: 'Proyecto: Bissú Cosméticos', href: '/proyectos/bissu-cosmeticos' }],
   },
+];
+
+const tramo2: Item[] = [
   {
-    periodo: '2016 – actualidad',
+    id: 'wildsoft',
+    periodo: '2016–actualidad',
     titulo: 'WildSoft',
-    texto: 'WildSoft nació como un espacio propio para desarrollar soluciones tecnológicas y reunir experiencias construidas en distintos ámbitos: análisis funcional, desarrollo web, automatización y soporte a clientes. Con el tiempo incorporó análisis de datos, visualización y business intelligence con Python, SQL y Power BI.',
-    tipo: 'imagen',
-    imagen: wildsoft,
-    alt: 'WildFox trabajando con Python, SQL y Power BI, representando la etapa actual en WildSoft',
+    badge: 'Etapa contenedora',
+    texto: 'WildSoft nació como un espacio propio para desarrollar soluciones tecnológicas y reunir experiencias construidas en distintos ámbitos: análisis funcional, desarrollo web, automatización y soporte a clientes. Con el tiempo incorporó análisis de datos, visualización, business intelligence e inteligencia artificial aplicada.',
+    textoExtra: 'WildSoft funciona como etapa contenedora. Dentro de ella se desarrollan líneas sostenidas y aparecen hitos puntuales, sin convertir cada proyecto en una nueva etapa profesional.',
+    hitoSeparado: {
+      id: 'hito-bid',
+      periodo: 'Jul.–dic. 2016',
+      titulo: 'Proyecto BID — Redeterminación de Precios de la Obra Pública',
+      badge: 'Contrato técnico directo',
+      texto: 'Contrato técnico directo para analizar, diseñar y desarrollar una solución orientada a modernizar un proceso normativo y administrativo vinculado con la obra pública. Se presenta como colaboración independiente situada en el mismo período, sin atribuirla contractualmente a WildSoft.',
+      profundiza: { texto: 'Ver caso completo', href: '/proyectos/redeterminacion-precios' },
+    },
   },
   {
-    periodo: '2018 – actualidad',
+    id: 'docencia',
+    periodo: '2018–actualidad',
     titulo: 'Docencia y comunicación',
+    badge: 'Línea sostenida · continúa',
+    badgeHref: '#linea-docencia',
     texto: 'Enseñé tecnología, matemática y herramientas digitales en educación secundaria y de adultos. La docencia fortaleció mi capacidad para explicar conceptos complejos, adaptar contenidos y sostener procesos en el tiempo: traducir lo técnico a un lenguaje comprensible.',
-    tipo: 'imagen',
-    imagen: docente,
-    alt: 'WildFox frente a un pizarrón con fórmulas y gráficos, representando la etapa de docencia y comunicación',
+  },
+];
+
+const lineas = [
+  { id: 'linea-docencia', titulo: 'Docencia', texto: '2018–actualidad · comunicar.' },
+  { id: 'linea-datos', titulo: 'Datos y análisis', texto: 'Formación + proyectos.' },
+  { id: 'linea-web', titulo: 'Web y presencia digital', texto: 'Desde julio de 2026 · Jardín Estudio.' },
+  { id: 'linea-ia', titulo: 'IA aplicada', texto: 'Desde enero de 2026 · transversal.' },
+];
+
+const tramo3: Hito[] = [
+  {
+    id: 'copilot',
+    periodo: 'Principios de 2025',
+    titulo: 'Copilot',
+    badge: 'Hito · IA aplicada',
+    texto: 'La incorporación de Copilot abrió una primera etapa de exploración: utilizar inteligencia artificial como apoyo para aprender, consultar y avanzar sobre problemas concretos.',
+  },
+];
+
+const licenciatura: Item = {
+  id: 'licenciatura',
+  periodo: 'Julio de 2025–actualidad',
+  titulo: 'Licenciatura en Ciencias de Datos · UniCABA',
+  texto: 'El inicio de la Licenciatura en Ciencias de Datos en la Universidad de la Ciudad (UniCABA) abrió una etapa de formación sostenida que permitió poner nombre, teoría y nuevas herramientas sobre conocimientos construidos durante años de práctica.',
+  textoExtra: 'La formación integra matemática, programación, análisis de datos y pensamiento crítico, y se conecta con una experiencia previa organizando información, trabajando con bases de datos y construyendo soluciones para problemas reales.',
+  profundiza: [
+    { texto: 'Nota: Álgebra lineal', href: '/notas/algebra-lineal-antes-de-saber' },
+    { texto: 'Explorar proyectos de Datos', href: '/proyectos/datos-y-analisis' },
+  ],
+};
+
+const tramo3b: Hito[] = [
+  {
+    id: 'limpieza-estanque',
+    periodo: 'Enero de 2026',
+    titulo: 'Limpieza del estanque',
+    badge: 'Hito · IA aplicada',
+    texto: 'Mi primera experiencia sostenida de colaboración con inteligencia artificial no comenzó escribiendo código. Surgió al organizar un problema cotidiano y concreto: la limpieza de un estanque. El proyecto permitió trabajar con diagnóstico, alcance, orden de tareas, seguimiento y revisión de resultados. Aunque no era un proyecto de sistemas, allí apareció por primera vez una metodología de colaboración con ChatGPT aplicada a la gestión de un proceso real.',
+  },
+  {
+    id: 'jardin-estudio-hito',
+    periodo: 'Julio de 2026–actualidad',
+    titulo: 'Jardín Estudio',
+    badge: 'Hito · IA aplicada',
+    texto: 'Jardín Estudio marcó el comienzo visible de una línea sostenida de trabajo en web y presencia digital dentro de WildSoft. El proyecto combinó relevamiento, arquitectura de contenido, desarrollo, diseño responsive y comunicación visual. Fue además el primer trabajo técnico desarrollado mediante una integración sostenida entre Claude Code y GPT.',
+    profundiza: { texto: 'Proyecto: Jardín Estudio', href: '/proyectos/proyecto-jardin-estudio' },
   },
 ];
 ---
-<section class="retapas" id="etapas">
+<section class="rtramo" id="tramo-1" aria-labelledby="tramo-1-h">
   <div class="wrap">
-    <div class="spine">
-      {etapas.map((e, i) => (
-        e.tipo === 'imagen' ? (
-          <div class={`fila fila-imagen ${i % 2 === 0 ? 'fila-der' : 'fila-izq'}`}>
-            <div class="fila-img">
-              <Image src={e.imagen} alt={e.alt} widths={[320, 500, 640]} sizes="(max-width: 760px) 85vw, 380px" loading="lazy" />
-            </div>
-            <div class="fila-texto">
-              <span class="periodo">{e.periodo}</span>
-              <h3>{e.titulo}</h3>
-              <p>{e.texto}</p>
-            </div>
+    <h2 id="tramo-1-h">1. Construir una forma de observar</h2>
+    <ol class="timeline">
+      {tramo1.map((item) => (
+        <li class="titem" id={item.id}>
+          <span class="titem-marca titem-marca-etapa" aria-hidden="true"></span>
+          <div class="titem-card">
+            <p class="periodo"><time>{item.periodo}</time></p>
+            <h3>{item.titulo}</h3>
+            <p>{item.texto}</p>
+            {item.profundiza && (
+              <ul class="profundiza">
+                {item.profundiza.map((p) => (
+                  <li><a href={p.href}><span aria-hidden="true">↗</span> {p.texto}</a></li>
+                ))}
+              </ul>
+            )}
+            {item.hitoAnidado && (
+              <div class="hito-anidado">
+                <p class="hito-anidado-periodo">
+                  <span class="titem-marca titem-marca-hito titem-marca-inline" aria-hidden="true"></span>
+                  {item.hitoAnidado.periodo} · {item.hitoAnidado.titulo}
+                </p>
+                <p>{item.hitoAnidado.texto}</p>
+              </div>
+            )}
           </div>
-        ) : (
-          <div class="fila fila-icono">
-            <div class="icono-badge">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" set:html={icons[e.icon]} />
-            </div>
-            <div class="fila-texto">
-              <span class="periodo">{e.periodo}</span>
-              <h3>{e.titulo}</h3>
-              <p>{e.texto}</p>
-            </div>
-          </div>
-        )
+        </li>
       ))}
-    </div>
+    </ol>
+  </div>
+</section>
+
+<section class="rtramo" id="tramo-2" aria-labelledby="tramo-2-h">
+  <div class="wrap">
+    <h2 id="tramo-2-h">2. Construir un espacio propio</h2>
+    <ol class="timeline">
+      {tramo2.map((item) => (
+        <>
+          <li class="titem" id={item.id}>
+            <span class="titem-marca titem-marca-etapa" aria-hidden="true"></span>
+            <div class="titem-card">
+              <p class="periodo"><time>{item.periodo}</time></p>
+              <h3>
+                {item.titulo}
+                {item.badge && !item.badgeHref && <span class="badge badge-neutro">{item.badge}</span>}
+                {item.badge && item.badgeHref && <a class="badge badge-linea" href={item.badgeHref}>{item.badge} <span aria-hidden="true">→</span></a>}
+              </h3>
+              <p>{item.texto}</p>
+              {item.textoExtra && <p>{item.textoExtra}</p>}
+            </div>
+          </li>
+          {item.hitoSeparado && (
+            <li class="titem titem-hito" id={item.hitoSeparado.id}>
+              <span class="titem-marca titem-marca-hito" aria-hidden="true"></span>
+              <div class="titem-card titem-card-hito">
+                <p class="periodo"><time>{item.hitoSeparado.periodo}</time></p>
+                <h3>
+                  {item.hitoSeparado.titulo}
+                  {item.hitoSeparado.badge && <span class="badge badge-hito">{item.hitoSeparado.badge}</span>}
+                </h3>
+                <p>{item.hitoSeparado.texto}</p>
+                {item.hitoSeparado.profundiza && (
+                  <ul class="profundiza">
+                    <li><a href={item.hitoSeparado.profundiza.href}><span aria-hidden="true">↗</span> {item.hitoSeparado.profundiza.texto}</a></li>
+                  </ul>
+                )}
+              </div>
+            </li>
+          )}
+        </>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<section class="rlineas" id="lineas-sostenidas" aria-labelledby="lineas-h">
+  <div class="wrap">
+    <h2 id="lineas-h">Líneas sostenidas que avanzan en paralelo</h2>
+    <ul class="lineas-grid">
+      {lineas.map((l) => (
+        <li class="linea-card" id={l.id}>
+          <span class="titem-marca titem-marca-linea" aria-hidden="true"></span>
+          <h3>{l.titulo}</h3>
+          <p>{l.texto}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<section class="rtramo rtramo-ia" id="tramo-3" aria-labelledby="tramo-3-h">
+  <div class="wrap">
+    <h2 id="tramo-3-h">3. Datos, formación y nuevas formas de trabajo</h2>
+    <p class="tramo3-intro">El recorrido de adopción de IA comienza con Copilot, atraviesa la Licenciatura y se consolida como práctica sostenida desde Limpieza del estanque.</p>
+
+    <ol class="timeline timeline-ia">
+      {tramo3.map((h) => (
+        <li class="titem titem-hito" id={h.id}>
+          <span class="titem-marca titem-marca-hito" aria-hidden="true"></span>
+          <div class="titem-card titem-card-hito">
+            <p class="periodo"><time>{h.periodo}</time></p>
+            <h3>{h.titulo}<span class="badge badge-hito">{h.badge}</span></h3>
+            <p>{h.texto}</p>
+          </div>
+        </li>
+      ))}
+
+      <li class="titem" id={licenciatura.id}>
+        <span class="titem-marca titem-marca-etapa" aria-hidden="true"></span>
+        <div class="titem-card">
+          <p class="periodo"><time>{licenciatura.periodo}</time></p>
+          <h3>{licenciatura.titulo}</h3>
+          <p>{licenciatura.texto}</p>
+          <p>{licenciatura.textoExtra}</p>
+          <ul class="profundiza">
+            {licenciatura.profundiza!.map((p) => (
+              <li><a href={p.href}><span aria-hidden="true">↗</span> {p.texto}</a></li>
+            ))}
+          </ul>
+        </div>
+      </li>
+
+      {tramo3b.map((h) => (
+        <li class="titem titem-hito" id={h.id}>
+          <span class="titem-marca titem-marca-hito" aria-hidden="true"></span>
+          <div class="titem-card titem-card-hito">
+            <p class="periodo"><time>{h.periodo}</time></p>
+            <h3>{h.titulo}<span class="badge badge-hito">{h.badge}</span></h3>
+            <p>{h.texto}</p>
+            {h.profundiza && (
+              <ul class="profundiza">
+                <li><a href={h.profundiza.href}><span aria-hidden="true">↗</span> {h.profundiza.texto}</a></li>
+              </ul>
+            )}
+          </div>
+        </li>
+      ))}
+    </ol>
+
+    <p class="tramo3-cierre">Actualidad — la línea continúa hoy, atravesando Web, Datos, Docencia y gestión de proyectos.</p>
   </div>
 </section>
 
 <style>
-  .retapas{ background: #fff; padding: 80px 0; }
-  .spine{ position: relative; max-width: 1080px; margin: 0 auto; }
-  .spine::before{
-    content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px;
-    background: rgba(21,22,18,0.1); transform: translateX(-50%);
+  .rtramo{ background: #fff; padding: 64px 0; }
+  .rtramo + .rtramo{ padding-top: 0; }
+  .rtramo h2{ font-size: 26px; font-weight: 800; color: var(--negro); margin: 0 0 34px; }
+
+  .timeline{ list-style: none; margin: 0; padding: 0; max-width: 900px; }
+
+  .titem{ position: relative; display: flex; gap: 26px; padding-left: 4px; padding-bottom: 40px; }
+  .titem:last-child{ padding-bottom: 0; }
+  .titem::before{
+    content: ''; position: absolute; left: 5px; top: 22px; bottom: -18px; width: 2px;
+    background: rgba(21,22,18,0.14);
   }
+  .titem:last-child::before{ display: none; }
 
-  .fila{ position: relative; display: flex; align-items: center; gap: 50px; margin-bottom: 70px; }
-  .fila:last-child{ margin-bottom: 0; }
+  .titem-marca{ position: relative; z-index: 1; flex: none; width: 12px; height: 12px; margin-top: 6px; border-radius: 50%; }
+  .titem-marca-etapa{ background: var(--negro); }
+  .titem-marca-hito{ background: var(--naranja); }
+  .titem-marca-linea{ background: var(--verde); }
+  .titem-marca-inline{ display: inline-block; width: 8px; height: 8px; margin: 0 6px 0 0; vertical-align: middle; }
 
-  /* Etapas con imagen: alternan lado */
-  .fila-imagen.fila-der{ flex-direction: row; }
-  .fila-imagen.fila-izq{ flex-direction: row-reverse; }
-  .fila-img{ flex: 0 0 42%; }
-  .fila-img :global(img){ width: 100%; height: auto; display: block; border-radius: 20px; }
-  .fila-imagen .fila-texto{ flex: 1; }
-  .fila-imagen.fila-der .fila-texto{ text-align: left; }
-  .fila-imagen.fila-izq .fila-texto{ text-align: right; }
+  .titem-card{ flex: 1; min-width: 0; }
+  .periodo{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 700; letter-spacing: 0.05em; color: var(--verde); margin: 0 0 6px; }
+  .titem-card h3{ display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 20px; font-weight: 800; color: var(--negro); margin: 0 0 10px; }
+  .titem-card p{ font-size: 15px; line-height: 1.65; color: var(--gris); margin: 0 0 12px; }
+  .titem-card p:last-of-type{ margin-bottom: 0; }
 
-  /* Etapas solo ícono: centradas y angostas */
-  .fila-icono{ justify-content: center; max-width: 640px; margin-left: auto; margin-right: auto; }
-  .icono-badge{
-    flex: 0 0 60px; width: 60px; height: 60px; border-radius: 50%; background: var(--fondo-claro);
-    color: var(--naranja); display: flex; align-items: center; justify-content: center;
+  .titem-card-hito{
+    background: rgba(236,115,35,0.07); border: 1px solid rgba(236,115,35,0.22);
+    border-radius: 14px; padding: 22px 24px;
   }
-  .icono-badge svg{ width: 30px; height: 30px; }
-  .fila-icono .fila-texto{ flex: 1; text-align: left; }
+  .titem-hito .titem-card p{ margin-bottom: 12px; }
+  .titem-hito .titem-card p:last-child{ margin-bottom: 0; }
 
-  .periodo{ display: inline-block; font-family: var(--font-mono); font-size: 12.5px; font-weight: 700; letter-spacing: 0.08em; color: var(--verde); margin-bottom: 8px; }
-  .fila-texto h3{ font-size: 22px; font-weight: 800; color: var(--negro); margin: 0 0 10px; }
-  .fila-texto p{ font-size: 15px; line-height: 1.65; color: var(--gris); margin: 0; }
+  .hito-anidado{
+    margin-top: 16px; background: rgba(236,115,35,0.07); border: 1px solid rgba(236,115,35,0.22);
+    border-radius: 12px; padding: 16px 20px;
+  }
+  .hito-anidado-periodo{ font-weight: 700; color: var(--negro); display: flex; align-items: center; }
+  .hito-anidado p:last-child{ margin-bottom: 0; }
+
+  .badge{
+    display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 10.5px;
+    font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 5px 11px; border-radius: 20px;
+    white-space: nowrap;
+  }
+  .badge-neutro{ background: var(--negro); color: #fff; }
+  .badge-hito{ background: var(--naranja); color: var(--negro); }
+  .badge-linea{ background: rgba(113,120,26,0.14); color: var(--negro); border: 1px solid rgba(113,120,26,0.4); }
+  a.badge-linea{ cursor: pointer; }
+  a.badge-linea:hover{ background: rgba(113,120,26,0.2); }
+
+  .profundiza{ list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+  .profundiza a{
+    display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--negro);
+    border: 1px solid var(--naranja); border-radius: 20px; padding: 7px 14px;
+  }
+  .profundiza a:hover{ background: var(--naranja); color: var(--negro); }
+
+  a.badge-linea:focus-visible, .profundiza a:focus-visible{ outline: 2px solid var(--naranja); outline-offset: 2px; }
+
+  /* Líneas sostenidas */
+  .rlineas{ background: var(--crema); padding: 60px 0; }
+  .rlineas h2{ font-size: 22px; font-weight: 800; color: var(--negro); margin: 0 0 28px; }
+  .lineas-grid{ list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .linea-card{
+    background: rgba(113,120,26,0.08); border: 1px solid rgba(113,120,26,0.25); border-radius: 14px; padding: 20px 22px;
+  }
+  .linea-card .titem-marca-linea{ width: 22px; height: 9px; border-radius: 5px; margin: 0 0 12px; }
+  .linea-card h3{ font-size: 15.5px; font-weight: 800; color: var(--negro); margin: 0 0 6px; }
+  .linea-card p{ font-size: 13px; color: var(--gris); margin: 0; line-height: 1.5; }
+
+  /* Tramo 3 — línea de IA */
+  .rtramo-ia{ padding-top: 64px; }
+  .tramo3-intro{ font-weight: 700; color: var(--verde); font-size: 15.5px; line-height: 1.6; max-width: 760px; margin: -14px 0 32px; }
+  .timeline-ia .titem::before{ background: var(--verde); }
+  .tramo3-cierre{ font-weight: 700; color: var(--verde); font-size: 15px; margin: 8px 0 0; }
 
   @media (max-width: 900px){
-    .fila-img{ flex: 0 0 38%; }
+    .lineas-grid{ grid-template-columns: 1fr 1fr; }
   }
 
   @media (max-width: 760px){
-    .retapas{ padding: 50px 0; }
-    .spine::before{ left: 0; }
-    .fila, .fila-imagen.fila-der, .fila-imagen.fila-izq{ flex-direction: column; gap: 18px; margin-bottom: 46px; padding-left: 26px; }
-    .fila-icono{ max-width: none; margin-left: 0; margin-right: 0; }
-    .fila-img{ flex: none; width: 100%; }
-    .fila-imagen .fila-texto, .fila-imagen.fila-der .fila-texto, .fila-imagen.fila-izq .fila-texto, .fila-icono .fila-texto{ text-align: left; flex: none; width: 100%; }
-    .fila-texto h3{ font-size: 19px; }
-    .fila-texto p{ font-size: 14px; }
-    .icono-badge{ margin-left: 0; }
+    .rtramo{ padding: 40px 0; }
+    .rtramo h2{ font-size: 21px; margin-bottom: 22px; }
+    .titem{ gap: 16px; padding-bottom: 28px; }
+    .titem::before{ left: 5px; top: 20px; bottom: -12px; }
+    .titem-card h3{ font-size: 17px; }
+    .titem-card p{ font-size: 14px; }
+    .titem-card-hito{ padding: 16px 16px; border-radius: 12px; }
+    .hito-anidado{ padding: 14px 14px; }
+    .profundiza a{ font-size: 12.5px; padding: 6px 12px; }
+
+    .rlineas{ padding: 40px 0; }
+    .lineas-grid{ grid-template-columns: 1fr; gap: 12px; }
+
+    .rtramo-ia{ padding-top: 40px; }
+    .tramo3-intro{ margin-top: 0; font-size: 14px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    a.badge-linea, .profundiza a{ transition: none; }
   }
 </style>

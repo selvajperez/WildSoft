@@ -1,6 +1,10 @@
 ---
-import { Image } from 'astro:assets';
-import universitario from '../../assets/recorrido/wildfox-universitario.png';
+const leyenda = [
+  { clase: 'etapa', texto: 'Etapa' },
+  { clase: 'linea', texto: 'Línea sostenida' },
+  { clase: 'hito', texto: 'Hito' },
+  { clase: 'profundiza', texto: 'Profundización' },
+];
 ---
 <section class="rhero">
   <div class="wrap rhero-inner">
@@ -11,14 +15,25 @@ import universitario from '../../assets/recorrido/wildfox-universitario.png';
       <p class="cuerpo">Un camino construido entre tecnología, gestión, docencia y aprendizaje continuo. Distintas etapas que hoy se integran en una misma forma de comprender problemas, acompañar procesos y construir soluciones.</p>
     </div>
     <div class="rhero-img">
-      <Image src={universitario} alt="WildFox en su etapa de formación y aprendizaje continuo, rodeado de libros, gráficos y herramientas de análisis" widths={[400, 700, 900]} sizes="(max-width: 760px) 90vw, 460px" loading="eager" />
+      <img src="/images/hero.png" alt="WildFox caminando con mochila por un sendero, en referencia al recorrido profesional" width="900" height="675" loading="eager" />
     </div>
+  </div>
+
+  <div class="wrap">
+    <ul class="leyenda" aria-label="Referencias del recorrido">
+      {leyenda.map((l) => (
+        <li>
+          <span class={`marca marca-${l.clase}`} aria-hidden="true"></span>
+          {l.texto}
+        </li>
+      ))}
+    </ul>
   </div>
 </section>
 
 <style>
-  .rhero{ background: var(--crema); padding: 70px 0 80px; }
-  .rhero-inner{ display: flex; align-items: center; gap: 64px; }
+  .rhero{ background: var(--crema); padding: 70px 0 34px; }
+  .rhero-inner{ display: flex; align-items: center; gap: 64px; margin-bottom: 40px; }
   .rhero-texto{ flex: 0 0 46%; }
   .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 18px; }
   .rhero-texto h1{ font-size: 56px; font-weight: 800; line-height: 1; color: var(--negro); margin: 0 0 16px; }
@@ -26,15 +41,30 @@ import universitario from '../../assets/recorrido/wildfox-universitario.png';
   .cuerpo{ font-size: 16.5px; line-height: 1.7; color: var(--gris); max-width: 480px; margin: 0; }
 
   .rhero-img{ flex: 1; text-align: center; }
-  .rhero-img :global(img){ width: 100%; max-width: 460px; height: auto; border-radius: 24px; }
+  .rhero-img img{ width: 100%; max-width: 460px; height: auto; margin: 0 auto; }
+
+  .leyenda{
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px 28px;
+    list-style: none; margin: 0; padding: 20px 26px;
+    background: #fff; border-radius: 14px; border: 1px solid rgba(21,22,18,0.08);
+  }
+  .leyenda li{ display: flex; align-items: center; gap: 9px; font-size: 13.5px; font-weight: 600; color: var(--negro); }
+  .marca{ display: inline-block; flex: none; width: 12px; height: 12px; }
+  .marca-etapa{ border-radius: 50%; background: var(--negro); }
+  .marca-hito{ border-radius: 50%; background: var(--naranja); }
+  .marca-linea{ width: 18px; height: 9px; border-radius: 5px; background: var(--verde); }
+  .marca-profundiza{ border-radius: 50%; background: transparent; border: 2px solid var(--naranja); }
 
   @media (max-width: 760px){
-    .rhero{ padding: 44px 0 50px; }
-    .rhero-inner{ flex-direction: column-reverse; gap: 32px; }
+    .rhero{ padding: 44px 0 26px; }
+    .rhero-inner{ flex-direction: column-reverse; gap: 28px; margin-bottom: 26px; }
     .rhero-texto{ flex: none; text-align: center; }
     .rhero-texto h1{ font-size: 36px; }
     .bajada{ font-size: 18px; }
     .cuerpo{ font-size: 15px; margin: 0 auto; }
-    .rhero-img :global(img){ max-width: 320px; }
+    .rhero-img img{ max-width: 260px; }
+
+    .leyenda{ gap: 8px 16px; padding: 16px 18px; border-radius: 12px; justify-content: center; }
+    .leyenda li{ font-size: 12px; }
   }
 </style>
