@@ -11,6 +11,7 @@ interface Hito {
   badge?: string;
   profundiza?: Profundizacion;
 }
+interface Imagen { src: string; alt: string; }
 interface Item {
   id: string;
   periodo: string;
@@ -22,6 +23,7 @@ interface Item {
   profundiza?: Profundizacion[];
   hitoAnidado?: { periodo: string; titulo: string; texto: string };
   hitoSeparado?: Hito;
+  imagen?: Imagen;
 }
 
 const tramo1: Item[] = [
@@ -38,6 +40,7 @@ const tramo1: Item[] = [
     titulo: 'Purissimus',
     texto: 'En un entorno industrial y farmacéutico, participé en la integración entre sistemas de información y automatización industrial: trazabilidad de sachets de plasma con Access, códigos de barras y balanza RS-232, y control de producción con PLC Siemens S7-300, sensores y válvulas. Fue una etapa que exigió precisión y consolidó la importancia de conectar tecnología, operación y personas.',
     profundiza: [{ texto: 'Proyecto: Purissimus', href: '/proyectos/purissimus' }],
+    imagen: { src: '/images/recorrido/wildfox-purissimus.png', alt: 'WildFox como técnico de planta industrial, con casco, tablero de control y muestras de laboratorio, en referencia a la etapa en Purissimus' },
   },
   {
     id: 'molino-chacabuco',
@@ -89,6 +92,7 @@ const tramo2: Item[] = [
     badge: 'Línea sostenida · continúa',
     badgeHref: '#linea-docencia',
     texto: 'Enseñé tecnología, matemática y herramientas digitales en educación secundaria y de adultos. La docencia fortaleció mi capacidad para explicar conceptos complejos, adaptar contenidos y sostener procesos en el tiempo: traducir lo técnico a un lenguaje comprensible.',
+    imagen: { src: '/images/recorrido/wildfox-docente.png', alt: 'WildFox como docente frente a un pizarrón con fórmulas matemáticas y gráficos, en referencia a la línea de Docencia y comunicación' },
   },
 ];
 
@@ -119,6 +123,7 @@ const licenciatura: Item = {
     { texto: 'Nota: Álgebra lineal', href: '/notas/algebra-lineal-antes-de-saber' },
     { texto: 'Explorar proyectos de Datos', href: '/proyectos/datos-y-analisis' },
   ],
+  imagen: { src: '/images/recorrido/wildfox-universitario.png', alt: 'WildFox como estudiante universitario trabajando en una laptop, rodeado de libros e íconos de datos y estadística, en referencia a la Licenciatura en Ciencias de Datos' },
 };
 
 const tramo3b: Hito[] = [
@@ -146,26 +151,33 @@ const tramo3b: Hito[] = [
       {tramo1.map((item) => (
         <li class="titem" id={item.id}>
           <span class="titem-marca titem-marca-etapa" aria-hidden="true"></span>
-          <div class="titem-card">
-            <p class="periodo"><time>{item.periodo}</time></p>
-            <h3>{item.titulo}</h3>
-            <p>{item.texto}</p>
-            {item.profundiza && (
-              <ul class="profundiza">
-                {item.profundiza.map((p) => (
-                  <li><a href={p.href}><span aria-hidden="true">↗</span> {p.texto}</a></li>
-                ))}
-              </ul>
-            )}
-            {item.hitoAnidado && (
-              <div class="hito-anidado">
-                <p class="hito-anidado-periodo">
-                  <span class="titem-marca titem-marca-hito titem-marca-inline" aria-hidden="true"></span>
-                  {item.hitoAnidado.periodo} · {item.hitoAnidado.titulo}
-                </p>
-                <p>{item.hitoAnidado.texto}</p>
+          <div class={item.imagen ? 'titem-card titem-card-personaje' : 'titem-card'}>
+            {item.imagen && (
+              <div class="titem-personaje-img">
+                <img src={item.imagen.src} alt={item.imagen.alt} width="1024" height="1024" />
               </div>
             )}
+            <div class={item.imagen ? 'titem-personaje-contenido' : ''}>
+              <p class="periodo"><time>{item.periodo}</time></p>
+              <h3>{item.titulo}</h3>
+              <p>{item.texto}</p>
+              {item.profundiza && (
+                <ul class="profundiza">
+                  {item.profundiza.map((p) => (
+                    <li><a href={p.href}><span aria-hidden="true">↗</span> {p.texto}</a></li>
+                  ))}
+                </ul>
+              )}
+              {item.hitoAnidado && (
+                <div class="hito-anidado">
+                  <p class="hito-anidado-periodo">
+                    <span class="titem-marca titem-marca-hito titem-marca-inline" aria-hidden="true"></span>
+                    {item.hitoAnidado.periodo} · {item.hitoAnidado.titulo}
+                  </p>
+                  <p>{item.hitoAnidado.texto}</p>
+                </div>
+              )}
+            </div>
           </div>
         </li>
       ))}
@@ -181,15 +193,22 @@ const tramo3b: Hito[] = [
         <>
           <li class="titem" id={item.id}>
             <span class="titem-marca titem-marca-etapa" aria-hidden="true"></span>
-            <div class="titem-card">
-              <p class="periodo"><time>{item.periodo}</time></p>
-              <h3>
-                {item.titulo}
-                {item.badge && !item.badgeHref && <span class="badge badge-neutro">{item.badge}</span>}
-                {item.badge && item.badgeHref && <a class="badge badge-linea" href={item.badgeHref}>{item.badge} <span aria-hidden="true">→</span></a>}
-              </h3>
-              <p>{item.texto}</p>
-              {item.textoExtra && <p>{item.textoExtra}</p>}
+            <div class={item.imagen ? 'titem-card titem-card-personaje' : 'titem-card'}>
+              {item.imagen && (
+                <div class="titem-personaje-img">
+                  <img src={item.imagen.src} alt={item.imagen.alt} width="1024" height="1024" />
+                </div>
+              )}
+              <div class={item.imagen ? 'titem-personaje-contenido' : ''}>
+                <p class="periodo"><time>{item.periodo}</time></p>
+                <h3>
+                  {item.titulo}
+                  {item.badge && !item.badgeHref && <span class="badge badge-neutro">{item.badge}</span>}
+                  {item.badge && item.badgeHref && <a class="badge badge-linea" href={item.badgeHref}>{item.badge} <span aria-hidden="true">→</span></a>}
+                </h3>
+                <p>{item.texto}</p>
+                {item.textoExtra && <p>{item.textoExtra}</p>}
+              </div>
             </div>
           </li>
           {item.hitoSeparado && (
@@ -250,16 +269,21 @@ const tramo3b: Hito[] = [
 
       <li class="titem" id={licenciatura.id}>
         <span class="titem-marca titem-marca-etapa" aria-hidden="true"></span>
-        <div class="titem-card">
-          <p class="periodo"><time>{licenciatura.periodo}</time></p>
-          <h3>{licenciatura.titulo}</h3>
-          <p>{licenciatura.texto}</p>
-          <p>{licenciatura.textoExtra}</p>
-          <ul class="profundiza">
-            {licenciatura.profundiza!.map((p) => (
-              <li><a href={p.href}><span aria-hidden="true">↗</span> {p.texto}</a></li>
-            ))}
-          </ul>
+        <div class="titem-card titem-card-personaje">
+          <div class="titem-personaje-img">
+            <img src={licenciatura.imagen!.src} alt={licenciatura.imagen!.alt} width="1024" height="1024" />
+          </div>
+          <div class="titem-personaje-contenido">
+            <p class="periodo"><time>{licenciatura.periodo}</time></p>
+            <h3>{licenciatura.titulo}</h3>
+            <p>{licenciatura.texto}</p>
+            <p>{licenciatura.textoExtra}</p>
+            <ul class="profundiza">
+              {licenciatura.profundiza!.map((p) => (
+                <li><a href={p.href}><span aria-hidden="true">↗</span> {p.texto}</a></li>
+              ))}
+            </ul>
+          </div>
         </div>
       </li>
 
@@ -319,6 +343,11 @@ const tramo3b: Hito[] = [
     background: rgba(236,115,35,0.07); border: 1px solid rgba(236,115,35,0.22);
     border-radius: 14px; padding: 22px 24px;
   }
+
+  .titem-card-personaje{ display: flex; gap: 26px; align-items: flex-start; }
+  .titem-personaje-img{ flex: 0 0 168px; }
+  .titem-personaje-img img{ width: 100%; height: auto; border-radius: 14px; display: block; }
+  .titem-personaje-contenido{ flex: 1; min-width: 0; }
   .titem-hito .titem-card p{ margin-bottom: 12px; }
   .titem-hito .titem-card p:last-child{ margin-bottom: 0; }
 
@@ -379,6 +408,8 @@ const tramo3b: Hito[] = [
     .titem-card h3{ font-size: 17px; }
     .titem-card p{ font-size: 14px; }
     .titem-card-hito{ padding: 16px 16px; border-radius: 12px; }
+    .titem-card-personaje{ flex-direction: column; gap: 16px; }
+    .titem-personaje-img{ flex: none; width: 100%; max-width: 200px; margin: 0 auto; }
     .hito-anidado{ padding: 14px 14px; }
     .profundiza a{ font-size: 12.5px; padding: 6px 12px; }
 
