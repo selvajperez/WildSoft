@@ -285,7 +285,7 @@ const tramo3b: Hito[] = [
 </section>
 
 <style>
-  .rtramo{ background: #fff; padding: 64px 0; }
+  .rtramo{ background: var(--crema); padding: 64px 0; }
   .rtramo + .rtramo{ padding-top: 0; }
   .rtramo h2{ font-size: 26px; font-weight: 800; color: var(--negro); margin: 0 0 34px; }
 
@@ -305,7 +305,11 @@ const tramo3b: Hito[] = [
   .titem-marca-linea{ background: var(--verde); }
   .titem-marca-inline{ display: inline-block; width: 8px; height: 8px; margin: 0 6px 0 0; vertical-align: middle; }
 
-  .titem-card{ flex: 1; min-width: 0; }
+  .titem-card{
+    flex: 1; min-width: 0;
+    background: #fff; border: 1px solid rgba(21,22,18,0.10); border-radius: 16px;
+    padding: 24px 26px; box-shadow: 0 1px 3px rgba(21,22,18,0.05);
+  }
   .periodo{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 700; letter-spacing: 0.05em; color: var(--verde); margin: 0 0 6px; }
   .titem-card h3{ display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 20px; font-weight: 800; color: var(--negro); margin: 0 0 10px; }
   .titem-card p{ font-size: 15px; line-height: 1.65; color: var(--gris); margin: 0 0 12px; }
@@ -371,6 +375,7 @@ const tramo3b: Hito[] = [
     .rtramo h2{ font-size: 21px; margin-bottom: 22px; }
     .titem{ gap: 16px; padding-bottom: 28px; }
     .titem::before{ left: 5px; top: 20px; bottom: -12px; }
+    .titem-card{ padding: 18px 18px; border-radius: 14px; }
     .titem-card h3{ font-size: 17px; }
     .titem-card p{ font-size: 14px; }
     .titem-card-hito{ padding: 16px 16px; border-radius: 12px; }
