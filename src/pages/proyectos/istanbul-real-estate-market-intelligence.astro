@@ -1,0 +1,151 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import Lightbox from '../../components/caso-bid/Lightbox.astro';
+
+const GITHUB = 'https://github.com/selvajperez/istanbul-real-estate-market-intelligence';
+const PDF = '/downloads/Caso-de-Estudio-Istanbul-Real-Estate-Market-Intelligence.pdf';
+
+const tecnologias = ['Python', 'Pandas', 'Power Query', 'DAX', 'Power BI'];
+---
+<BaseLayout
+  title="Real Estate Market Intelligence — Istanbul — WildSoft"
+  description="Caso de estudio: de casi 25.000 propiedades a una herramienta de Market Intelligence en Power BI — comparación de distritos, exploración de micro-mercados y detección de barrios que se alejan de la referencia de su distrito."
+>
+  <Header />
+
+  <section class="ihero">
+    <div class="wrap">
+      <div class="kicker">Real Estate · Data Analytics · Power BI</div>
+      <h1>Real Estate Market Intelligence</h1>
+      <p class="subtitulo">Istanbul Property Market — 2026</p>
+      <p class="bajada">De casi 25.000 propiedades a una lectura de micro-mercados: dónde cambia el valor, qué atributos lo acompañan y qué barrios se alejan de la referencia de su distrito.</p>
+      <div class="btn-row">
+        <a class="btn btn-primary" href={GITHUB} target="_blank" rel="noopener">Ver proyecto en GitHub</a>
+        <a class="btn btn-secondary" href={PDF} download>Ver dashboard (PDF)</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="isection">
+    <div class="wrap">
+      <div class="isection-text">
+        <h2>El precio total no cuenta toda la historia.</h2>
+        <p>El objetivo fue pasar de un dataset inmobiliario de gran volumen a una herramienta de Market Intelligence capaz de comparar distritos, explorar micro-mercados y detectar diferencias relevantes en el precio por m².</p>
+        <p class="stats-line"><span>25 mil propiedades</span><i>·</i><span>583 barrios</span><i>·</i><span>3 vistas analíticas</span></p>
+      </div>
+      <button class="img-frame" data-lightbox="/images/istanbul-real-estate/01-overview.png" data-lightbox-alt="Overview: KPIs generales (cantidad de propiedades, precio mediano, precio por m² mediano) y ranking de precio por m² por distrito">
+        <img src="/images/istanbul-real-estate/01-overview.png" alt="Overview: KPIs generales (cantidad de propiedades, precio mediano, precio por m² mediano) y ranking de precio por m² por distrito" loading="eager" />
+      </button>
+    </div>
+  </section>
+
+  <section class="isection isection-crema">
+    <div class="wrap">
+      <div class="isection-text">
+        <h2>Del mapa general a los micro-mercados.</h2>
+        <p>El análisis cruza ubicación, antigüedad y características constructivas para explorar cómo cambia el precio por m² dentro del mercado.</p>
+      </div>
+      <button class="img-frame" data-lightbox="/images/istanbul-real-estate/02-market-explorer.png" data-lightbox-alt="Market Explorer: barrios por antigüedad vs. precio por m² (tamaño = oferta), y precio por m² por condición y por calefacción, con filtro por distrito y por complejo">
+        <img src="/images/istanbul-real-estate/02-market-explorer.png" alt="Market Explorer: barrios por antigüedad vs. precio por m² (tamaño = oferta), y precio por m² por condición y por calefacción, con filtro por distrito y por complejo" loading="lazy" />
+      </button>
+    </div>
+  </section>
+
+  <section class="isection">
+    <div class="wrap">
+      <div class="isection-text">
+        <h2>¿Qué barrios se alejan de su propia referencia?</h2>
+        <p>Cada barrio se compara con el precio por m² de su propio distrito. El análisis identificó 270 barrios bajo referencia y 313 sobre referencia. Se presentan como candidatos para profundizar el análisis, no como oportunidades de inversión garantizadas.</p>
+      </div>
+      <button class="img-frame" data-lightbox="/images/istanbul-real-estate/03-opportunities.png" data-lightbox-alt="Opportunities: barrios bajo y sobre la referencia de su distrito, con las tablas Top Oportunidades y Top Premium ordenadas por desvío porcentual">
+        <img src="/images/istanbul-real-estate/03-opportunities.png" alt="Opportunities: barrios bajo y sobre la referencia de su distrito, con las tablas Top Oportunidades y Top Premium ordenadas por desvío porcentual" loading="lazy" />
+      </button>
+    </div>
+  </section>
+
+  <section class="icierre">
+    <div class="wrap">
+      <blockquote class="cierre-quote">Python encontró las preguntas. Power BI convirtió los datos en decisiones explorables.</blockquote>
+
+      <div class="tech-row">
+        {tecnologias.map((t) => <span class="tag">{t}</span>)}
+      </div>
+
+      <div class="btn-row">
+        <a class="btn btn-primary" href={GITHUB} target="_blank" rel="noopener">GitHub</a>
+        <a class="btn btn-secondary" href={PDF} download>Dashboard (PDF)</a>
+      </div>
+
+      <a class="volver" href="/proyectos/datos-y-analisis">&larr; Volver a Datos y análisis</a>
+    </div>
+  </section>
+
+  <Footer />
+  <Lightbox />
+</BaseLayout>
+
+<style>
+  .ihero{ background: var(--crema); padding: 60px 0 50px; text-align: center; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 16px; }
+  .ihero h1{ font-size: 44px; font-weight: 800; line-height: 1.1; color: var(--negro); margin: 0 0 14px; }
+  .subtitulo{ font-family: var(--font-secundaria); font-style: italic; font-size: 22px; color: var(--naranja); margin: 0 0 20px; }
+  .bajada{ font-size: 17px; line-height: 1.6; color: var(--gris); max-width: 660px; margin: 0 auto 36px; }
+  .btn-row{ display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; }
+
+  .isection{ background: #fff; padding: 70px 0; }
+  .isection-crema{ background: var(--crema); }
+  .isection-text{ max-width: 720px; margin: 0 auto 36px; text-align: center; }
+  .isection-text h2{ font-size: 30px; font-weight: 800; color: var(--negro); line-height: 1.25; margin: 0 0 16px; }
+  .isection-text p{ font-size: 16.5px; line-height: 1.7; color: var(--gris); margin: 0; }
+  .stats-line{
+    display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
+    font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--negro);
+    margin: 22px 0 0 !important; letter-spacing: 0.01em;
+  }
+  .stats-line i{ font-style: normal; color: var(--naranja); }
+
+  .img-frame{
+    display: block; width: 100%; padding: 0; border: 1px solid rgba(21,22,18,0.08); background: none;
+    border-radius: 18px; overflow: hidden; box-shadow: 0 24px 48px -30px rgba(21,22,18,0.35);
+    cursor: zoom-in; max-width: 1080px; margin: 0 auto;
+  }
+  .img-frame img{ width: 100%; height: auto; display: block; }
+
+  .icierre{ background: #fff; padding: 70px 0 80px; text-align: center; }
+  .cierre-quote{
+    font-family: var(--font-secundaria); font-style: italic; font-size: 26px; line-height: 1.5; color: var(--negro);
+    max-width: 700px; margin: 0 auto 36px; border: none; padding: 0;
+  }
+  .tech-row{ display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 0 0 36px; }
+  .tag{
+    font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 7px 16px; border-radius: 20px; border: 1px solid var(--naranja); color: var(--naranja);
+  }
+  .icierre .btn-row{ margin-bottom: 26px; }
+  .volver{
+    display: inline-flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 700;
+    color: var(--verde); border-bottom: 1px solid var(--verde); padding-bottom: 2px;
+  }
+
+  @media (max-width: 760px){
+    .ihero{ padding: 44px 0 40px; }
+    .ihero h1{ font-size: 28px; }
+    .subtitulo{ font-size: 18px; margin-bottom: 16px; }
+    .bajada{ font-size: 15px; margin-bottom: 28px; }
+    .btn-row{ flex-direction: column; align-items: stretch; width: 100%; }
+
+    .isection{ padding: 44px 0; }
+    .isection-text{ margin-bottom: 26px; }
+    .isection-text h2{ font-size: 22px; }
+    .isection-text p{ font-size: 14.5px; }
+    .stats-line{ font-size: 12px; gap: 8px; }
+    .img-frame{ border-radius: 14px; }
+
+    .icierre{ padding: 44px 0 56px; }
+    .cierre-quote{ font-size: 20px; margin-bottom: 26px; }
+    .tech-row{ margin-bottom: 26px; }
+    .icierre .btn-row{ flex-direction: column; align-items: stretch; width: 100%; margin-bottom: 22px; }
+  }
+</style>
