@@ -1,0 +1,59 @@
+---
+const pasos = [
+  { titulo: 'Comprender', texto: 'Cuál era el problema y qué necesitaba realmente el proyecto.' },
+  { titulo: 'Conectar', texto: 'Qué personas, procesos, datos y tecnologías había que articular.' },
+  { titulo: 'Construir', texto: 'Qué solución se realizó y qué resultado produjo.' },
+];
+---
+<section class="phero">
+  <div class="wrap phero-inner">
+    <div class="phero-texto">
+      <div class="kicker">Selva J. Pérez</div>
+      <h1>Proyectos</h1>
+      <p class="bajada">Liderar un proyecto es encontrar un camino entre el problema y una solución posible.</p>
+    </div>
+    <div class="phero-img">
+      <img src="/images/proyectos/wildfox-trifurcada.png" alt="WildFox parado ante un camino que se bifurca en tres carteles de madera: Comprender, Conectar y Construir" width="1536" height="1024" />
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="metodo-kicker">Una metodología transversal</div>
+    <div class="metodo-grid">
+      {pasos.map((p) => (
+        <div class="metodo-card">
+          <h3>{p.titulo}</h3>
+          <p>{p.texto}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .phero{ background: var(--crema); padding: 70px 0 60px; }
+  .phero-inner{ display: flex; flex-direction: column; align-items: center; gap: 36px; margin-bottom: 60px; text-align: center; }
+  .phero-texto{ max-width: 640px; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 18px; }
+  .phero-texto h1{ font-size: 52px; font-weight: 800; line-height: 1; color: var(--negro); margin: 0 0 16px; }
+  .bajada{ font-size: 18px; line-height: 1.6; color: var(--gris); max-width: 500px; margin: 0 auto; }
+
+  .phero-img{ width: 100%; max-width: 1040px; margin: 0 auto; }
+  .phero-img img{ width: 100%; height: auto; display: block; margin: 0 auto; }
+
+  .metodo-kicker{ text-align: center; font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gris); opacity: 0.7; margin-bottom: 24px; }
+  .metodo-grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 940px; margin: 0 auto; }
+  .metodo-card{ background: #fff; border-radius: 14px; padding: 24px 24px; }
+  .metodo-card h3{ font-size: 17px; font-weight: 800; color: var(--naranja); margin: 0 0 8px; }
+  .metodo-card p{ font-size: 13.5px; line-height: 1.55; color: var(--gris); margin: 0; }
+
+  @media (max-width: 760px){
+    .phero{ padding: 40px 0 40px; }
+    .phero-inner{ gap: 24px; margin-bottom: 40px; }
+    .phero-texto h1{ font-size: 34px; }
+    .bajada{ font-size: 15.5px; margin: 0 auto; }
+
+    .metodo-grid{ display: flex; flex-direction: column; gap: 14px; }
+    .metodo-card{ padding: 20px 20px; border-radius: 12px; }
+  }
+</style>

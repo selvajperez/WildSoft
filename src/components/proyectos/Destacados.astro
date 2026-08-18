@@ -1,0 +1,74 @@
+---
+const casos = [
+  {
+    kicker: 'Gestión y transformación de procesos',
+    titulo: 'Proyecto BID',
+    periodo: 'Julio–diciembre de 2016',
+    texto: 'Redeterminación de Precios de la Obra Pública — contrato técnico directo, situado en el mismo período que WildSoft.',
+    href: '/proyectos/redeterminacion-precios',
+    destacado: true,
+  },
+  {
+    kicker: 'Datos y decisiones',
+    titulo: 'Maxiconsumo',
+    texto: 'Análisis de datos aplicado a un problema de decisión, dentro de la línea sostenida de Datos y análisis.',
+    href: '/proyectos/maxiconsumo',
+  },
+  {
+    kicker: 'Web e IA aplicada',
+    titulo: 'Jardín Estudio',
+    texto: 'Primer trabajo técnico integrado con Claude Code y GPT — origen visible de la línea sostenida de Web y presencia digital.',
+    href: '/proyectos/proyecto-jardin-estudio',
+  },
+];
+---
+<section class="pdestacados">
+  <div class="wrap">
+    <h2>Tres casos destacados</h2>
+    <p class="sub">No es un orden cronológico: son las tres dimensiones principales del perfil.</p>
+
+    <div class="grid">
+      {casos.map((c) => (
+        <div class={`caso-card ${c.destacado ? 'destacado' : ''}`}>
+          <div class="caso-kicker">{c.kicker}</div>
+          <h3>{c.titulo}</h3>
+          {c.periodo && <p class="caso-periodo">{c.periodo}</p>}
+          <p class="caso-texto">{c.texto}</p>
+          <p class="progreso">Comprender → Conectar → Construir</p>
+          <a class="btn-caso" href={c.href}><span aria-hidden="true">↗</span> Ver caso completo</a>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .pdestacados{ padding: 70px 0; }
+  .pdestacados h2{ font-size: 28px; font-weight: 800; color: var(--negro); margin: 0 0 8px; }
+  .sub{ font-size: 14.5px; color: var(--gris); margin: 0 0 40px; }
+
+  .grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .caso-card{ background: #fff; border: 1px solid rgba(21,22,18,0.1); border-radius: 16px; padding: 26px 26px; }
+  .caso-card.destacado{ background: rgba(236,115,35,0.08); border-color: rgba(236,115,35,0.35); }
+  .caso-kicker{ font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--verde); margin-bottom: 12px; }
+  .caso-card.destacado .caso-kicker{ color: var(--naranja); }
+  .caso-card h3{ font-size: 21px; font-weight: 800; color: var(--negro); margin: 0 0 6px; }
+  .caso-periodo{ font-size: 13px; font-weight: 700; color: var(--gris); margin: 0 0 12px; }
+  .caso-texto{ font-size: 14px; line-height: 1.6; color: var(--gris); margin: 0 0 16px; }
+  .progreso{ font-size: 12px; font-weight: 700; color: var(--verde); margin: 0 0 18px; }
+  .caso-card.destacado .progreso{ color: var(--naranja); }
+  .btn-caso{
+    display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 700; color: var(--negro);
+    border: 1px solid var(--naranja); border-radius: 20px; padding: 9px 18px;
+  }
+  .btn-caso:hover{ background: var(--naranja); color: var(--negro); }
+
+  @media (max-width: 760px){
+    .pdestacados{ padding: 44px 0; }
+    .pdestacados h2{ font-size: 22px; }
+    .sub{ margin-bottom: 26px; }
+    .grid{ display: flex; flex-direction: column; gap: 16px; }
+    .caso-card{ padding: 22px 22px; border-radius: 14px; }
+    .caso-card h3{ font-size: 19px; }
+  }
+</style>

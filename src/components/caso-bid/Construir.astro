@@ -1,0 +1,116 @@
+---
+const bloques = [
+  { titulo: 'Gestión documental', items: ['Expedientes', 'Obras', 'Redeterminaciones', 'Documentos', 'Certificados', 'Actas', 'Memos'] },
+  { titulo: 'Flujo administrativo', items: ['Estados', 'Perfiles', 'Permisos', 'Alertas', 'Firmas', 'Tratamiento FIFO'] },
+  { titulo: 'Cálculo', items: ['Índices', 'Factores', 'Ponderaciones', 'Normativa', 'Generación de resultados'] },
+];
+const alternativas = ['Nuxeo', 'Abox', 'LogicalDoc', 'NavegaDoc'];
+const ambientes = [
+  { n: 'Desarrollo', estado: 'Alcanzado', ok: true },
+  { n: 'Testing', estado: 'Alcanzado', ok: true },
+  { n: 'Producción', estado: 'Fuera de alcance de esta etapa', ok: false },
+];
+const evidencias = [
+  { src: '/images/caso-bid/proto-01-home.png', titulo: 'Wireframe original (2016)', texto: 'Home del prototipo' },
+  { src: '/images/caso-bid/evidencia-diagrama-er.png', titulo: 'Diagrama Entidad-Relación', texto: 'Anexo IV' },
+];
+---
+<section class="cconstruir" id="construir">
+  <div class="wrap">
+    <div class="kicker">3 · Construir</div>
+    <p class="quote">&ldquo;La solución integró gestión documental, circuito administrativo y cálculo.&rdquo;</p>
+
+    <div class="bloques">
+      {bloques.map((b, i) => (
+        <>
+          <div class="bloque">
+            <h3>{b.titulo}</h3>
+            <ul>{b.items.map((it) => <li>{it}</li>)}</ul>
+          </div>
+          {i < bloques.length - 1 && <div class="bloque-arrow" aria-hidden="true">→</div>}
+        </>
+      ))}
+    </div>
+    <p class="modelo">Expedientes → Obras → Redeterminaciones — un expediente puede contener varias obras, y cada obra, múltiples redeterminaciones.</p>
+
+    <div class="evidencias">
+      {evidencias.map((e) => (
+        <a class="evidencia" href={e.src} target="_blank" rel="noopener">
+          <img src={e.src} alt={`${e.titulo} — ${e.texto}`} />
+          <span class="evidencia-cap">{e.titulo} — {e.texto}</span>
+        </a>
+      ))}
+    </div>
+
+    <h3 class="sub-head">Evaluación de gestores documentales</h3>
+    <div class="comparador">
+      {alternativas.map((a) => <span class="alt">{a}</span>)}
+      <span class="alt destacado">Alfresco Community — seleccionado</span>
+    </div>
+    <p class="motivo">Empate técnico entre Alfresco y LogicalDoc. Se eligió Alfresco porque incluía la notificación a usuarios requerida por la operatoria.</p>
+
+    <h3 class="sub-head">Ambientes de trabajo</h3>
+    <div class="ambientes">
+      {ambientes.map((a, i) => (
+        <>
+          <div class={`ambiente ${a.ok ? 'ok' : 'no-ok'}`}>
+            <div class="ambiente-nombre">{a.n}</div>
+            <div class="ambiente-estado">{a.ok ? '✓ ' : ''}{a.estado}</div>
+          </div>
+          {i < ambientes.length - 1 && <div class="ambiente-arrow" aria-hidden="true">→</div>}
+        </>
+      ))}
+    </div>
+    <p class="nota-alcance">El proyecto llegó hasta el ambiente de testing. El pasaje a producción quedó fuera de esta etapa contractual.</p>
+  </div>
+</section>
+
+<style>
+  .cconstruir{ background: var(--crema); padding: 70px 0; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); text-align: center; margin-bottom: 26px; }
+  .quote{ font-family: var(--font-secundaria); font-style: italic; font-size: 28px; line-height: 1.45; color: var(--negro); text-align: center; max-width: 780px; margin: 0 auto 44px; }
+
+  .bloques{ display: flex; align-items: stretch; gap: 0; max-width: 1000px; margin: 0 auto 16px; }
+  .bloque{ flex: 1; background: #fff; border-radius: 14px; padding: 22px 22px; }
+  .bloque h3{ font-size: 16px; font-weight: 800; margin: 0 0 12px; color: var(--negro); }
+  .bloque ul{ margin: 0; padding-left: 16px; }
+  .bloque li{ font-size: 13px; line-height: 1.6; color: var(--gris); }
+  .bloque-arrow{ flex: 0 0 auto; display: flex; align-items: center; color: var(--naranja); font-size: 20px; padding: 0 12px; }
+
+  .modelo{ text-align: center; font-style: italic; font-size: 13.5px; color: var(--gris); max-width: 700px; margin: 0 auto 44px; }
+
+  .evidencias{ display: flex; gap: 20px; max-width: 700px; margin: 0 auto 50px; }
+  .evidencia{ flex: 1; display: block; background: #fff; border: 1px solid rgba(21,22,18,0.1); border-radius: 12px; overflow: hidden; }
+  .evidencia img{ width: 100%; height: 130px; object-fit: cover; display: block; }
+  .evidencia-cap{ display: block; padding: 10px 14px; font-size: 12.5px; font-weight: 700; color: var(--verde); }
+
+  .sub-head{ text-align: center; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--gris); opacity: 0.75; margin: 0 0 20px; }
+  .comparador{ display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-width: 800px; margin: 0 auto 14px; }
+  .alt{ font-size: 13px; padding: 9px 16px; border: 1px solid rgba(21,22,18,0.15); border-radius: 20px; color: var(--gris); background: #fff; }
+  .alt.destacado{ background: var(--naranja); border-color: var(--naranja); color: #fff; font-weight: 700; }
+  .motivo{ text-align: center; font-size: 13.5px; color: var(--gris); max-width: 640px; margin: 0 auto 50px; }
+
+  .ambientes{ display: flex; align-items: center; justify-content: center; gap: 0; max-width: 900px; margin: 0 auto 18px; }
+  .ambiente{ flex: 1; text-align: center; padding: 18px 14px; border-radius: 12px; border: 1.5px solid rgba(21,22,18,0.12); background: #fff; }
+  .ambiente.ok{ border-color: var(--verde); background: rgba(114,120,26,0.06); }
+  .ambiente-nombre{ font-size: 14px; font-weight: 700; color: var(--negro); margin-bottom: 6px; }
+  .ambiente-estado{ font-size: 12px; color: var(--gris); }
+  .ambiente.ok .ambiente-estado{ color: var(--verde); font-weight: 700; }
+  .ambiente-arrow{ flex: 0 0 auto; color: var(--gris); opacity: 0.4; font-size: 15px; padding: 0 6px; }
+  .nota-alcance{ text-align: center; font-size: 13px; color: var(--gris); font-style: italic; max-width: 640px; margin: 0 auto; }
+
+  @media (max-width: 760px){
+    .cconstruir{ padding: 44px 0; }
+    .quote{ font-size: 21px; margin-bottom: 32px; }
+    .bloques{ flex-direction: column; gap: 14px; margin-bottom: 12px; }
+    .bloque-arrow{ transform: rotate(90deg); padding: 4px 0; justify-content: center; }
+    .modelo{ margin-bottom: 32px; }
+    .evidencias{ flex-direction: column; gap: 14px; margin-bottom: 36px; }
+    .evidencia img{ height: 160px; }
+    .comparador{ margin-bottom: 12px; }
+    .motivo{ margin-bottom: 36px; }
+    .ambientes{ flex-direction: column; gap: 10px; }
+    .ambiente{ width: 100%; }
+    .ambiente-arrow{ transform: rotate(90deg); padding: 2px 0; }
+  }
+</style>

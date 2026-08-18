@@ -1,0 +1,57 @@
+---
+const datos = [
+  { label: 'Programa', valor: 'PMGM — Préstamo BID N.º 1855/OC-AR' },
+  { label: 'Organismo', valor: 'Ministerio del Interior, Obras Públicas y Vivienda' },
+  { label: 'Período', valor: 'Julio–diciembre de 2016' },
+  { label: 'Rol', valor: 'Jefe de Desarrollo / Consultoría técnica' },
+];
+---
+<section class="chero">
+  <div class="wrap">
+    <div class="kicker">Caso de estudio</div>
+    <h1>Modernización del Proceso de Redeterminación de Precios de Contratos de Obra Pública</h1>
+    <p class="bajada">Análisis, diseño y desarrollo de un prototipo evolutivo destinado a modernizar el proceso de redeterminación de precios de contratos de obra pública.</p>
+
+    <dl class="datos-grid">
+      {datos.map((d) => (
+        <div class="dato">
+          <dt>{d.label}</dt>
+          <dd>{d.valor}</dd>
+        </div>
+      ))}
+    </dl>
+
+    <p class="contrato-nota">Contrato técnico directo e independiente — no atribuido contractualmente a WildSoft</p>
+  </div>
+</section>
+
+<style>
+  .chero{ padding-top: 70px; padding-bottom: 20px; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 20px; }
+  .chero h1{ font-size: 42px; font-weight: 800; line-height: 1.18; color: var(--negro); margin: 0 0 20px; max-width: 820px; }
+  .bajada{ font-size: 17px; line-height: 1.65; color: var(--gris); margin: 0 0 34px; max-width: 700px; }
+
+  .datos-grid{
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px 40px;
+    max-width: 820px; margin: 0 0 26px; padding: 26px 30px;
+    background: #fff; border: 1px solid rgba(21,22,18,0.1); border-radius: 16px;
+  }
+  .dato{ margin: 0; }
+  .dato dt{ font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--verde); margin: 0 0 6px; }
+  .dato dd{ font-size: 15px; font-weight: 700; color: var(--negro); margin: 0; }
+
+  .contrato-nota{
+    display: inline-block; font-size: 13.5px; font-weight: 700; color: var(--negro);
+    background: rgba(236,115,35,0.12); border: 1px solid rgba(236,115,35,0.35);
+    border-radius: 20px; padding: 10px 20px; margin: 0;
+  }
+
+  @media (max-width: 760px){
+    .chero{ padding-top: 40px; padding-bottom: 10px; }
+    .kicker{ margin-bottom: 16px; }
+    .chero h1{ font-size: 26px; line-height: 1.22; margin-bottom: 16px; }
+    .bajada{ font-size: 15px; margin-bottom: 26px; }
+    .datos-grid{ grid-template-columns: 1fr; gap: 16px; padding: 20px 20px; border-radius: 14px; margin-bottom: 20px; }
+    .contrato-nota{ font-size: 12.5px; padding: 9px 16px; }
+  }
+</style>

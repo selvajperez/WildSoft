@@ -1,0 +1,31 @@
+---
+const fuentes = [
+  'Acta de Alcance del Proyecto — 12/07/2016',
+  'Anexo II — Cronograma de Tareas (11 entregables)',
+  'Anexo III — Diseño Funcional',
+  'Anexo IV — Diagrama Entidad-Relación',
+  'Anexo V — Flujo UML (casos de uso)',
+  'Carpeta Indec / 2014 (24 archivos)',
+];
+---
+<section class="cfuentes">
+  <div class="wrap">
+    <div class="kicker">Fuentes documentadas</div>
+    <div class="pills">
+      {fuentes.map((f) => <span class="pill">{f}</span>)}
+    </div>
+  </div>
+</section>
+
+<style>
+  .cfuentes{ padding: 50px 0 70px; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); text-align: center; margin-bottom: 24px; }
+  .pills{ display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-width: 1000px; margin: 0 auto; }
+  .pill{ font-size: 13px; font-weight: 600; color: var(--gris); padding: 10px 18px; border: 1px solid rgba(21,22,18,0.15); border-radius: 20px; }
+
+  @media (max-width: 760px){
+    .cfuentes{ padding: 30px 0 44px; }
+    .pills{ gap: 8px; justify-content: flex-start; }
+    .pill{ font-size: 12px; padding: 8px 14px; }
+  }
+</style>
