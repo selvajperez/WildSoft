@@ -1,0 +1,66 @@
+---
+const circuito = ['Normativa', 'Expedientes', 'Índices oficiales', 'Revisiones', 'Aprobaciones', 'Documentación', 'Tiempos administrativos'];
+---
+<section class="ccomprender" id="comprender">
+  <div class="wrap">
+    <div class="kicker">1 · Comprender</div>
+    <p class="quote">&ldquo;No se trataba solamente de calcular; había que ordenar un circuito completo.&rdquo;</p>
+
+    <p class="cuerpo">El proceso de redeterminación de precios involucraba normativa compleja, expedientes administrativos, índices oficiales, documentación técnica y múltiples instancias de revisión y aprobación. La entrada en vigencia del <b>Decreto 691/2016</b> generó la necesidad de revisar el procedimiento existente y diseñar una solución que permitiera agilizar el cálculo, organizar los expedientes y mejorar la trazabilidad de la información.</p>
+
+    <div class="circuito">
+      {circuito.map((c) => <span>{c}</span>)}
+    </div>
+
+    <div class="comparacion">
+      <div class="comp-col">
+        <div class="comp-label">Régimen anterior — Decreto 1295/2002</div>
+        <ul>
+          <li>Umbral de disparo del 10% de variación</li>
+          <li>Margen del 10% del contrato inamovible</li>
+          <li>Circuito predominantemente manual</li>
+        </ul>
+      </div>
+      <div class="comp-arrow" aria-hidden="true">→</div>
+      <div class="comp-col destacado">
+        <div class="comp-label">Nuevo régimen — Decreto 691/2016</div>
+        <ul>
+          <li>Umbral reducido al 5% de variación</li>
+          <li>Elimina el margen congelado</li>
+          <li>Adecuación provisoria de hasta el 90% mientras se tramita la redeterminación definitiva</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ccomprender{ background: var(--negro); color: var(--crema); padding: 70px 0; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); text-align: center; margin-bottom: 26px; }
+  .quote{ font-family: var(--font-secundaria); font-style: italic; font-size: 28px; line-height: 1.45; color: #fff; text-align: center; max-width: 780px; margin: 0 auto 30px; }
+  .cuerpo{ font-size: 15.5px; line-height: 1.75; color: #D9D2C4; max-width: 760px; margin: 0 auto 36px; text-align: center; }
+  .cuerpo b{ color: var(--naranja); }
+
+  .circuito{ display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 900px; margin: 0 auto 50px; }
+  .circuito span{ font-size: 13px; color: #D9D2C4; padding: 9px 18px; border: 1px solid rgba(251,242,226,0.2); border-radius: 20px; }
+
+  .comparacion{ display: flex; align-items: stretch; gap: 26px; max-width: 940px; margin: 0 auto; }
+  .comp-col{ flex: 1; border: 1px solid rgba(251,242,226,0.15); border-radius: 12px; padding: 24px 26px; }
+  .comp-col.destacado{ border-color: var(--naranja); background: rgba(236,115,35,0.08); }
+  .comp-label{ font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--verde); margin-bottom: 14px; }
+  .comp-col.destacado .comp-label{ color: var(--naranja); }
+  .comp-col ul{ margin: 0; padding-left: 18px; }
+  .comp-col li{ font-size: 13.5px; line-height: 1.6; color: #D9D2C4; margin-bottom: 8px; }
+  .comp-arrow{ flex: 0 0 auto; display: flex; align-items: center; color: var(--naranja); font-size: 20px; }
+
+  @media (max-width: 760px){
+    .ccomprender{ padding: 44px 0; }
+    .quote{ font-size: 21px; margin-bottom: 22px; }
+    .cuerpo{ font-size: 14px; margin-bottom: 30px; }
+    .circuito{ gap: 8px; margin-bottom: 36px; justify-content: flex-start; }
+    .circuito span{ font-size: 12px; padding: 8px 14px; }
+    .comparacion{ flex-direction: column; gap: 14px; }
+    .comp-arrow{ transform: rotate(90deg); justify-content: center; }
+    .comp-col{ padding: 20px 20px; width: 100%; }
+  }
+</style>

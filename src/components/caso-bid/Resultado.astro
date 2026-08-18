@@ -1,0 +1,58 @@
+---
+const resultados = [
+  'Documentación de alcance y requerimientos',
+  'Diseño funcional',
+  'Modelo de datos',
+  'Casos de uso',
+  'Evaluación tecnológica',
+  'Selección de Alfresco',
+  'Ambiente de desarrollo',
+  'Prototipo instalado y operativo',
+  'Definición de arquitectura',
+  'Perfiles y permisos',
+  'Circuito administrativo digital',
+  'Reglas de cálculo',
+  'Diseño definitivo corregido a partir de pruebas',
+];
+---
+<section class="cresultado">
+  <div class="wrap">
+    <div class="kicker">Resultado — qué produjo el proyecto</div>
+
+    <div class="tags">
+      {resultados.map((r) => <span>{r}</span>)}
+    </div>
+
+    <p class="quote">&ldquo;El proyecto no consistió únicamente en desarrollar una aplicación. Implicó analizar y rediseñar un proceso completo, integrar normativa, datos, documentos, usuarios y tecnología, y transformar ese análisis en una solución funcional, escalable y validada por las áreas involucradas.&rdquo;</p>
+
+    <div class="btn-row">
+      <a class="btn btn-primary" href="/proyectos">Volver a Proyectos</a>
+      <a class="btn btn-secondary" href="/recorrido#hito-bid">Ver hito BID en el Recorrido</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cresultado{ background: var(--negro); color: var(--crema); padding: 70px 0; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); text-align: center; margin-bottom: 34px; }
+
+  .tags{ display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 980px; margin: 0 auto 46px; }
+  .tags span{ font-size: 12.5px; color: #D9D2C4; padding: 9px 16px; border: 1px solid rgba(251,242,226,0.18); border-radius: 20px; }
+
+  .quote{
+    font-family: var(--font-secundaria); font-style: italic; font-size: 20px; line-height: 1.6; color: var(--crema);
+    text-align: center; max-width: 780px; margin: 0 auto 40px;
+  }
+
+  .btn-row{ display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; }
+  .cresultado .btn-secondary{ border: 1.5px solid rgba(251,242,226,0.4); color: var(--crema); }
+
+  @media (max-width: 760px){
+    .cresultado{ padding: 44px 0; }
+    .kicker{ margin-bottom: 26px; }
+    .tags{ gap: 8px; margin-bottom: 36px; }
+    .tags span{ font-size: 12px; padding: 8px 14px; }
+    .quote{ font-size: 17px; margin-bottom: 32px; }
+    .btn-row{ flex-direction: column; align-items: stretch; width: 100%; }
+  }
+</style>

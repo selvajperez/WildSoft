@@ -1,0 +1,50 @@
+---
+const etapas = [
+  { n: '01', titulo: 'Definición del alcance', texto: 'Documento de alcance, involucrados y objetivos del sistema.', fecha: '21/07/2016' },
+  { n: '02', titulo: 'Relevamiento', texto: 'Análisis normativo y de procesos, diagnóstico.', fecha: '30/09/2016' },
+  { n: '03', titulo: 'Análisis funcional', texto: 'Especificación de requerimientos funcionales y no funcionales.', fecha: '30/09/2016' },
+  { n: '04', titulo: 'Diseño', texto: 'Diseño global y de detalle con artefactos UML y casos de uso.', fecha: '30/09/2016' },
+  { n: '05', titulo: 'Prototipo', texto: 'Ambiente de desarrollo y test instalado y operativo.', fecha: '31/10/2016' },
+  { n: '06', titulo: 'Pruebas', texto: 'Plan de pruebas funcionales para evaluar el prototipo.', fecha: '31/10/2016' },
+  { n: '07', titulo: 'Correcciones', texto: 'Resultado de las evaluaciones y cambios funcionales a introducir.', fecha: '31/10/2016' },
+  { n: '08', titulo: 'Diseño definitivo', texto: 'Diseño global y de detalle definitivo de la solución.', fecha: '30/11/2016' },
+];
+---
+<section class="cmetodo">
+  <div class="wrap">
+    <h2>Metodología y herramientas documentadas</h2>
+    <p class="sub">Ocho etapas verificables, cada una con su propio entregable y fecha.</p>
+
+    <div class="grid">
+      {etapas.map((e) => (
+        <div class="etapa">
+          <div class="etapa-num">{e.n}</div>
+          <h3>{e.titulo}</h3>
+          <p>{e.texto}</p>
+          <span class="etapa-fecha">{e.fecha}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .cmetodo{ background: var(--fondo-claro); padding: 70px 0; }
+  .cmetodo h2{ font-size: 28px; font-weight: 800; color: var(--negro); text-align: center; margin: 0 0 10px; }
+  .sub{ text-align: center; font-size: 14.5px; color: var(--gris); margin: 0 0 44px; }
+
+  .grid{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; }
+  .etapa{ background: #fff; border-radius: 14px; padding: 22px 20px; border-top: 4px solid var(--verde); }
+  .etapa-num{ font-family: var(--font-secundaria); font-size: 22px; color: var(--verde); margin-bottom: 8px; }
+  .etapa h3{ font-size: 15px; font-weight: 700; margin: 0 0 8px; color: var(--negro); }
+  .etapa p{ font-size: 12.5px; line-height: 1.55; color: var(--gris); margin: 0 0 12px; }
+  .etapa-fecha{ font-family: var(--font-mono); font-size: 11px; color: var(--gris); opacity: 0.7; }
+
+  @media (max-width: 760px){
+    .cmetodo{ padding: 44px 0; }
+    .cmetodo h2{ font-size: 22px; }
+    .sub{ margin-bottom: 30px; }
+    .grid{ grid-template-columns: 1fr; gap: 14px; }
+    .etapa{ padding: 18px 16px; border-radius: 12px; }
+  }
+</style>

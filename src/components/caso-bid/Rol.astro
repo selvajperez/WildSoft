@@ -1,0 +1,57 @@
+---
+const grupos = [
+  {
+    titulo: 'Análisis funcional',
+    items: ['Relevamiento y análisis de procesos', 'Análisis de normativa', 'Identificación de actores y circuitos administrativos', 'Definición de requerimientos funcionales y no funcionales'],
+  },
+  {
+    titulo: 'Diseño de solución',
+    items: ['Diseño del prototipo', 'Definición de pantallas y módulos'],
+  },
+  {
+    titulo: 'Coordinación y validación',
+    items: ['Coordinación del desarrollo', 'Instalación y validación del prototipo', 'Reuniones con usuarios y responsables de las áreas', 'Revisión y corrección del diseño a partir de pruebas'],
+  },
+  {
+    titulo: 'Documentación y modelado',
+    items: ['Modelado de datos', 'Elaboración de documentación técnica', 'Evaluación de alternativas tecnológicas'],
+  },
+];
+---
+<section class="crol">
+  <div class="wrap">
+    <h2>Rol y responsabilidades de Selva</h2>
+    <p class="sub">Jefe de Desarrollo / Consultoría técnica</p>
+
+    <div class="grupos">
+      {grupos.map((g) => (
+        <div class="grupo-card">
+          <h3>{g.titulo}</h3>
+          <ul>{g.items.map((i) => <li>{i}</li>)}</ul>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .crol{ padding: 70px 0; }
+  .crol h2{ font-size: 28px; font-weight: 800; color: var(--negro); text-align: center; margin: 0 0 10px; }
+  .sub{ text-align: center; font-size: 14.5px; color: var(--gris); margin: 0 0 44px; }
+
+  .grupos{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; max-width: 940px; margin: 0 auto; }
+  .grupo-card{ background: var(--crema); border-radius: 14px; padding: 26px 26px; border-left: 5px solid var(--naranja); }
+  .grupo-card h3{ font-size: 17px; font-weight: 800; margin: 0 0 12px; color: var(--negro); }
+  .grupo-card ul{ margin: 0; padding-left: 18px; }
+  .grupo-card li{ font-size: 13.5px; line-height: 1.6; color: var(--gris); margin-bottom: 6px; }
+
+  @media (max-width: 760px){
+    .crol{ padding: 44px 0; }
+    .crol h2{ font-size: 22px; }
+    .sub{ margin-bottom: 30px; }
+    .grupos{ display: flex; flex-direction: column; gap: 14px; }
+    .grupo-card{ padding: 20px 20px; border-radius: 12px; }
+    .grupo-card h3{ font-size: 15.5px; }
+    .grupo-card li{ font-size: 13px; }
+  }
+</style>

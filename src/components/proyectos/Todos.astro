@@ -1,0 +1,57 @@
+---
+interface Proyecto { titulo: string; tags: string[]; href: string; destacado?: boolean; }
+const proyectos: Proyecto[] = [
+  { titulo: 'Maxiconsumo', tags: ['Datos y análisis'], href: '/proyectos/maxiconsumo' },
+  { titulo: 'Hospital Analytics', tags: ['Datos y análisis'], href: '/proyectos/hospital-analytics' },
+  { titulo: 'Istanbul', tags: ['Datos y análisis'], href: '/proyectos/istanbul-real-estate-market-intelligence' },
+  { titulo: 'Purissimus', tags: ['Sistemas y automatización'], href: '/proyectos/purissimus' },
+  { titulo: 'Jardín Estudio', tags: ['Web y presencia digital', 'IA aplicada'], href: '/proyectos/proyecto-jardin-estudio' },
+  { titulo: 'Bissú Cosméticos', tags: ['Web y presencia digital', 'E-commerce'], href: '/proyectos/bissu-cosmeticos' },
+  { titulo: 'BID', tags: ['Gestión y transformación de procesos'], href: '/proyectos/redeterminacion-precios', destacado: true },
+];
+---
+<section class="ptodos">
+  <div class="wrap">
+    <h2>Todos los proyectos</h2>
+    <p class="sub">Explorá todos los casos por su ámbito principal.</p>
+
+    <ul class="grid">
+      {proyectos.map((p) => (
+        <li class={`fila ${p.destacado ? 'destacado' : ''}`}>
+          <a class="fila-link" href={p.href}>
+            <span class="fila-titulo">{p.titulo}</span>
+            <span class="fila-tags">
+              {p.tags.map((t) => <span class={`tag ${t === 'IA aplicada' ? 'tag-ia' : ''}`}>{t}</span>)}
+            </span>
+            <span class="fila-ver">Ver caso <span aria-hidden="true">→</span></span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .ptodos{ background: var(--fondo-claro); padding: 70px 0; }
+  .ptodos h2{ font-size: 28px; font-weight: 800; color: var(--negro); margin: 0 0 8px; }
+  .sub{ font-size: 14.5px; color: var(--gris); margin: 0 0 34px; }
+
+  .grid{ list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .fila{ background: #fff; border: 1px solid rgba(21,22,18,0.1); border-radius: 14px; }
+  .fila.destacado{ background: rgba(236,115,35,0.08); border-color: rgba(236,115,35,0.35); }
+  .fila-link{ display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; padding: 18px 20px; }
+  .fila-titulo{ font-size: 16px; font-weight: 800; color: var(--negro); flex: 1 0 auto; }
+  .fila-tags{ display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag{ font-size: 11.5px; font-weight: 700; color: var(--negro); background: rgba(113,120,26,0.14); border: 1px solid rgba(113,120,26,0.35); border-radius: 20px; padding: 5px 12px; white-space: nowrap; }
+  .tag-ia{ background: rgba(236,115,35,0.14); border-color: rgba(236,115,35,0.4); }
+  .fila-ver{ font-size: 13px; font-weight: 700; color: var(--naranja); margin-left: auto; white-space: nowrap; }
+
+  @media (max-width: 760px){
+    .ptodos{ padding: 44px 0; }
+    .ptodos h2{ font-size: 22px; }
+    .sub{ margin-bottom: 22px; }
+    .grid{ grid-template-columns: 1fr; gap: 12px; }
+    .fila-link{ flex-direction: column; align-items: flex-start; padding: 18px 18px; }
+    .fila-ver{ margin-left: 0; }
+  }
+</style>
