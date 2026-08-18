@@ -13,8 +13,7 @@ const pasos = [
       <p class="bajada">Liderar un proyecto es encontrar un camino entre el problema y una solución posible.</p>
     </div>
     <div class="phero-img">
-      <span class="made-ai">Made with AI</span>
-      <img src="/images/proyectos.png" alt="WildFox trabajando entre dashboards, código y bases de datos" width="1024" height="1024" />
+      <img src="/images/proyectos/wildfox-trifurcada.png" alt="WildFox parado ante un camino que se bifurca en tres carteles de madera: Comprender, Conectar y Construir" width="1536" height="1024" />
     </div>
   </div>
 
@@ -33,18 +32,14 @@ const pasos = [
 
 <style>
   .phero{ background: var(--crema); padding: 70px 0 60px; }
-  .phero-inner{ display: flex; align-items: center; gap: 64px; margin-bottom: 60px; }
-  .phero-texto{ flex: 0 0 44%; text-align: left; }
+  .phero-inner{ display: flex; flex-direction: column; align-items: center; gap: 36px; margin-bottom: 60px; text-align: center; }
+  .phero-texto{ max-width: 640px; }
   .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 18px; }
   .phero-texto h1{ font-size: 52px; font-weight: 800; line-height: 1; color: var(--negro); margin: 0 0 16px; }
-  .bajada{ font-size: 18px; line-height: 1.6; color: var(--gris); max-width: 440px; margin: 0; }
+  .bajada{ font-size: 18px; line-height: 1.6; color: var(--gris); max-width: 500px; margin: 0 auto; }
 
-  .phero-img{ flex: 1; position: relative; text-align: center; }
-  .phero-img img{ width: 100%; max-width: 460px; height: auto; margin: 0 auto; }
-  .made-ai{
-    position: absolute; top: 0; right: 6%; font-size: 11px; color: var(--gris); opacity: 0.6;
-    background: #fff; border: 1px solid rgba(21,22,18,0.12); border-radius: 20px; padding: 4px 12px;
-  }
+  .phero-img{ width: 100%; max-width: 1040px; margin: 0 auto; }
+  .phero-img img{ width: 100%; height: auto; display: block; margin: 0 auto; }
 
   .metodo-kicker{ text-align: center; font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gris); opacity: 0.7; margin-bottom: 24px; }
   .metodo-grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 940px; margin: 0 auto; }
@@ -54,12 +49,9 @@ const pasos = [
 
   @media (max-width: 760px){
     .phero{ padding: 40px 0 40px; }
-    .phero-inner{ flex-direction: column; gap: 30px; margin-bottom: 40px; text-align: center; }
-    .phero-texto{ flex: none; text-align: center; }
+    .phero-inner{ gap: 24px; margin-bottom: 40px; }
     .phero-texto h1{ font-size: 34px; }
     .bajada{ font-size: 15.5px; margin: 0 auto; }
-    .phero-img img{ max-width: 240px; }
-    .made-ai{ right: 12%; font-size: 10px; }
 
     .metodo-grid{ display: flex; flex-direction: column; gap: 14px; }
     .metodo-card{ padding: 20px 20px; border-radius: 12px; }
