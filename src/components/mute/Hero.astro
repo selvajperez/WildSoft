@@ -1,0 +1,47 @@
+---
+const datos = [
+  { label: 'Tipo', valor: 'Producto propio, reutilizable' },
+  { label: 'Período', valor: '2026–actualidad' },
+  { label: 'Rol', valor: 'Diseño funcional, arquitectura y desarrollo' },
+];
+---
+<section class="mhero">
+  <div class="wrap">
+    <div class="kicker">Caso de estudio</div>
+    <h1>MUTE — Catálogo multi-comercio</h1>
+    <p class="bajada">Sistema reutilizable para crear catálogos comerciales independientes a partir de una misma base de código. Permite administrar productos desde el celular, gestionar imágenes, stock y pedidos, y desplegar nuevas tiendas mediante configuración específica de cada comercio.</p>
+
+    <dl class="datos-grid">
+      {datos.map((d) => (
+        <div class="dato">
+          <dt>{d.label}</dt>
+          <dd>{d.valor}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</section>
+
+<style>
+  .mhero{ padding-top: 70px; padding-bottom: 20px; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 20px; }
+  .mhero h1{ font-size: 42px; font-weight: 800; line-height: 1.18; color: var(--negro); margin: 0 0 20px; max-width: 780px; }
+  .bajada{ font-size: 17px; line-height: 1.65; color: var(--gris); margin: 0 0 34px; max-width: 700px; }
+
+  .datos-grid{
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px 32px;
+    max-width: 900px; margin: 0; padding: 26px 30px;
+    background: #fff; border: 1px solid rgba(21,22,18,0.1); border-radius: 16px;
+  }
+  .dato{ margin: 0; }
+  .dato dt{ font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--verde); margin: 0 0 6px; }
+  .dato dd{ font-size: 15px; font-weight: 700; color: var(--negro); margin: 0; }
+
+  @media (max-width: 760px){
+    .mhero{ padding-top: 40px; padding-bottom: 10px; }
+    .kicker{ margin-bottom: 16px; }
+    .mhero h1{ font-size: 26px; line-height: 1.22; margin-bottom: 16px; }
+    .bajada{ font-size: 15px; margin-bottom: 26px; }
+    .datos-grid{ grid-template-columns: 1fr; gap: 16px; padding: 20px 20px; border-radius: 14px; }
+  }
+</style>

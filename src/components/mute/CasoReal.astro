@@ -1,0 +1,53 @@
+---
+const evolucion = ['Tienda individual', 'Template', 'Stock', 'Carga rápida móvil'];
+---
+<section class="mcaso" id="caso-real">
+  <div class="wrap">
+    <h2>Caso real: Proyecto Jardín</h2>
+    <p class="cuerpo">Proyecto Jardín — implementación del sistema para un estudio paisajístico, adaptado a un modelo de catálogo con disponibilidad sujeta a confirmación.</p>
+
+    <p class="evolucion-label">Evolución del producto</p>
+    <div class="evolucion">
+      {evolucion.map((e, i) => (
+        <>
+          <span class="evolucion-item">{e}</span>
+          {i < evolucion.length - 1 && <span class="evolucion-arrow" aria-hidden="true">→</span>}
+        </>
+      ))}
+    </div>
+
+    <div class="enlaces">
+      <a class="btn-caso" href="/proyectos/proyecto-jardin-estudio"><span aria-hidden="true">↗</span> Ver caso: Proyecto Jardín Estudio</a>
+      <a class="btn-caso" href="https://mute.wildsoft.com.ar" target="_blank" rel="noopener"><span aria-hidden="true">↗</span> Ver demo en vivo</a>
+      <a class="btn-caso" href="https://mute.wildsoft.com.ar/admin" target="_blank" rel="noopener"><span aria-hidden="true">↗</span> Ver panel de administración</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .mcaso{ padding: 70px 0; }
+  .mcaso h2{ font-size: 28px; font-weight: 800; color: var(--negro); text-align: center; margin: 0 0 18px; }
+  .cuerpo{ font-size: 15.5px; line-height: 1.7; color: var(--gris); max-width: 700px; margin: 0 auto 40px; text-align: center; }
+
+  .evolucion-label{ text-align: center; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--gris); opacity: 0.75; margin: 0 0 18px; }
+  .evolucion{ display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; max-width: 800px; margin: 0 auto 44px; }
+  .evolucion-item{ font-size: 13.5px; font-weight: 600; color: var(--negro); background: var(--crema); padding: 9px 18px; border-radius: 20px; }
+  .evolucion-arrow{ color: var(--naranja); font-size: 16px; }
+
+  .enlaces{ display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+  .btn-caso{
+    display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 700; color: var(--negro);
+    border: 1px solid var(--naranja); border-radius: 20px; padding: 10px 20px;
+  }
+  .btn-caso:hover{ background: var(--naranja); color: var(--negro); }
+
+  @media (max-width: 760px){
+    .mcaso{ padding: 44px 0; }
+    .mcaso h2{ font-size: 22px; }
+    .cuerpo{ margin-bottom: 30px; }
+    .evolucion{ gap: 8px; justify-content: flex-start; margin-bottom: 32px; }
+    .evolucion-item{ font-size: 12.5px; padding: 8px 14px; }
+    .enlaces{ flex-direction: column; align-items: stretch; }
+    .btn-caso{ justify-content: center; }
+  }
+</style>

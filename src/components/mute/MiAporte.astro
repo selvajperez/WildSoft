@@ -1,0 +1,25 @@
+---
+const items = ['Diseño funcional', 'Arquitectura de la solución', 'Desarrollo asistido por IA', 'Integración de servicios', 'Testing', 'Despliegue'];
+---
+<section class="maporte">
+  <div class="wrap">
+    <h2>Mi aporte</h2>
+    <ul class="lista">
+      {items.map((i) => <li>{i}</li>)}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .maporte{ background: var(--crema); padding: 60px 0; }
+  .maporte h2{ font-size: 24px; font-weight: 800; color: var(--negro); text-align: center; margin: 0 0 26px; }
+  .lista{ list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 800px; margin-left: auto; margin-right: auto; }
+  .lista li{ font-size: 14px; font-weight: 600; color: var(--negro); background: #fff; border: 1px solid rgba(21,22,18,0.1); border-radius: 20px; padding: 10px 18px; }
+
+  @media (max-width: 760px){
+    .maporte{ padding: 40px 0; }
+    .maporte h2{ font-size: 20px; margin-bottom: 20px; }
+    .lista{ gap: 8px; justify-content: flex-start; }
+    .lista li{ font-size: 13px; padding: 8px 14px; }
+  }
+</style>

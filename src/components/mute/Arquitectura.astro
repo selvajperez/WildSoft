@@ -1,0 +1,48 @@
+---
+const flujo = ['Astro + TypeScript/JavaScript', 'APIs del servidor', 'Google Sheets', 'Cloudinary', 'WhatsApp'];
+---
+<section class="marquitectura" id="arquitectura">
+  <div class="wrap">
+    <div class="kicker">Arquitectura y reutilización</div>
+    <p class="quote">&ldquo;Una misma base de código, distintas tiendas independientes.&rdquo;</p>
+
+    <p class="cuerpo">MUTE separa la lógica común de la configuración específica de cada comercio. El catálogo, carrito, control de stock, carga de imágenes, administración y generación de pedidos se reutilizan sin modificaciones, mientras que identidad visual, categorías, WhatsApp y otros parámetros se centralizan en una configuración por tienda.</p>
+
+    <p class="integra-label">La solución integra:</p>
+    <div class="flujo">
+      {flujo.map((f, i) => (
+        <>
+          <span class="flujo-item">{f}</span>
+          {i < flujo.length - 1 && <span class="flujo-arrow" aria-hidden="true">→</span>}
+        </>
+      ))}
+    </div>
+    <p class="flujo-nota">con despliegues independientes en Vercel.</p>
+
+    <p class="cierre-parrafo">Esto permite crear implementaciones diferentes sobre una misma base, como Proyecto Jardín, sin duplicar la lógica principal.</p>
+  </div>
+</section>
+
+<style>
+  .marquitectura{ background: var(--negro); color: var(--crema); padding: 70px 0; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); text-align: center; margin-bottom: 26px; }
+  .quote{ font-family: var(--font-secundaria); font-style: italic; font-size: 28px; line-height: 1.45; color: #fff; text-align: center; max-width: 760px; margin: 0 auto 30px; }
+  .cuerpo{ font-size: 15.5px; line-height: 1.75; color: #D9D2C4; max-width: 760px; margin: 0 auto 36px; text-align: center; }
+
+  .integra-label{ text-align: center; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--gris); opacity: 0.85; margin: 0 0 18px; color: #D9D2C4; }
+  .flujo{ display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; max-width: 960px; margin: 0 auto 14px; }
+  .flujo-item{ font-size: 13px; color: #D9D2C4; padding: 9px 18px; border: 1px solid rgba(251,242,226,0.2); border-radius: 20px; }
+  .flujo-arrow{ color: var(--naranja); font-size: 16px; }
+  .flujo-nota{ text-align: center; font-size: 13px; color: #D9D2C4; opacity: 0.8; margin: 0 0 40px; }
+
+  .cierre-parrafo{ text-align: center; font-size: 15px; line-height: 1.65; color: #D9D2C4; max-width: 700px; margin: 0 auto; }
+
+  @media (max-width: 760px){
+    .marquitectura{ padding: 44px 0; }
+    .quote{ font-size: 21px; margin-bottom: 22px; }
+    .cuerpo{ font-size: 14px; margin-bottom: 30px; }
+    .flujo{ gap: 8px; justify-content: flex-start; }
+    .flujo-item{ font-size: 12px; padding: 8px 14px; }
+    .flujo-nota{ margin-bottom: 32px; }
+  }
+</style>
