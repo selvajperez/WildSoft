@@ -1,0 +1,27 @@
+---
+---
+<section class="mcierre">
+  <div class="wrap">
+    <p class="quote">&ldquo;Una misma base, tantas tiendas como comercios la necesiten.&rdquo;</p>
+    <div class="btn-row">
+      <a class="btn btn-primary" href="/proyectos">Volver a Proyectos</a>
+      <a class="btn btn-secondary" href="/proyectos/proyecto-jardin-estudio">Ver Proyecto Jardín</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .mcierre{ background: var(--negro); color: var(--crema); text-align: center; padding: 70px 0 80px; }
+  .quote{
+    font-family: var(--font-secundaria); font-style: italic; font-size: 24px; line-height: 1.5; color: var(--crema);
+    max-width: 680px; margin: 0 auto 34px;
+  }
+  .btn-row{ display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; }
+  .mcierre .btn-secondary{ border: 1.5px solid rgba(251,242,226,0.4); color: var(--crema); }
+
+  @media (max-width: 760px){
+    .mcierre{ padding: 44px 0 56px; }
+    .quote{ font-size: 19px; margin-bottom: 26px; }
+    .btn-row{ flex-direction: column; align-items: stretch; width: 100%; }
+  }
+</style>

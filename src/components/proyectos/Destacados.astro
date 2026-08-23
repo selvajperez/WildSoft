@@ -20,12 +20,18 @@ const casos = [
     texto: 'Primer trabajo técnico integrado con Claude Code y GPT — origen visible de la línea sostenida de Web y presencia digital.',
     href: '/proyectos/proyecto-jardin-estudio',
   },
+  {
+    kicker: 'Producto y arquitectura',
+    titulo: 'MUTE',
+    texto: 'Sistema reutilizable para catálogos comerciales: una misma base de código, tiendas independientes por configuración.',
+    href: '/proyectos/mute',
+  },
 ];
 ---
 <section class="pdestacados">
   <div class="wrap">
-    <h2>Tres casos destacados</h2>
-    <p class="sub">No es un orden cronológico: son las tres dimensiones principales del perfil.</p>
+    <h2>Casos destacados</h2>
+    <p class="sub">No es un orden cronológico: son las dimensiones principales del perfil.</p>
 
     <div class="grid">
       {casos.map((c) => (
@@ -47,7 +53,7 @@ const casos = [
   .pdestacados h2{ font-size: 28px; font-weight: 800; color: var(--negro); margin: 0 0 8px; }
   .sub{ font-size: 14.5px; color: var(--gris); margin: 0 0 40px; }
 
-  .grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .grid{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; max-width: 980px; margin: 0 auto; }
   .caso-card{ background: #fff; border: 1px solid rgba(21,22,18,0.1); border-radius: 16px; padding: 26px 26px; }
   .caso-card.destacado{ background: rgba(236,115,35,0.08); border-color: rgba(236,115,35,0.35); }
   .caso-kicker{ font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--verde); margin-bottom: 12px; }

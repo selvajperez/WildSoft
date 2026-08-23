@@ -1,0 +1,31 @@
+---
+const items = [
+  'Carga rápida y completa', 'Cámara y galería', 'Gestión de imágenes', 'Catálogo responsive',
+  'Stock', 'Carrito', 'Pedidos por WhatsApp', 'Configuración multi-comercio',
+];
+---
+<section class="mfunc">
+  <div class="wrap">
+    <h2>Funcionalidades</h2>
+    <div class="pills">
+      {items.map((i) => <span class="pill">{i}</span>)}
+    </div>
+  </div>
+</section>
+
+<style>
+  .mfunc{ padding: 70px 0; }
+  .mfunc h2{ font-size: 28px; font-weight: 800; color: var(--negro); text-align: center; margin: 0 0 32px; }
+  .pills{ display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-width: 900px; margin: 0 auto; }
+  .pill{
+    font-size: 14px; font-weight: 600; color: var(--negro);
+    background: var(--crema); border: 1px solid rgba(21,22,18,0.12); border-radius: 20px; padding: 11px 20px;
+  }
+
+  @media (max-width: 760px){
+    .mfunc{ padding: 44px 0; }
+    .mfunc h2{ font-size: 22px; margin-bottom: 22px; }
+    .pills{ gap: 8px; justify-content: flex-start; }
+    .pill{ font-size: 13px; padding: 9px 16px; }
+  }
+</style>
