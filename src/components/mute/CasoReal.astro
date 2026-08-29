@@ -17,9 +17,16 @@ const evolucion = ['Tienda individual', 'Template', 'Stock', 'Carga rápida móv
     </div>
 
     <div class="enlaces">
-      <a class="btn-caso" href="/proyectos/proyecto-jardin-estudio"><span aria-hidden="true">↗</span> Ver caso: Proyecto Jardín Estudio</a>
+      <a class="btn-caso" href="https://catalogo.proyectojardin.com.ar" target="_blank" rel="noopener"><span aria-hidden="true">↗</span> Ver caso: Proyecto Jardín Estudio</a>
       <a class="btn-caso" href="https://mute.wildsoft.com.ar" target="_blank" rel="noopener"><span aria-hidden="true">↗</span> Ver demo en vivo</a>
       <a class="btn-caso" href="https://mute.wildsoft.com.ar/admin" target="_blank" rel="noopener"><span aria-hidden="true">↗</span> Ver panel de administración</a>
+    </div>
+
+    <div class="otra-impl">
+      <p class="otra-impl-kicker">Otra implementación</p>
+      <h3>Mali</h3>
+      <p class="otra-impl-texto">Segunda implementación de MUTE, con identidad visual, catálogo y configuración propios sobre la misma base tecnológica.</p>
+      <a class="btn-caso btn-caso-mini" href="https://mali-tau.vercel.app" target="_blank" rel="noopener"><span aria-hidden="true">↗</span> Ver catálogo de Mali</a>
     </div>
   </div>
 </section>
@@ -41,6 +48,15 @@ const evolucion = ['Tienda individual', 'Template', 'Stock', 'Carga rápida móv
   }
   .btn-caso:hover{ background: var(--naranja); color: var(--negro); }
 
+  .otra-impl{
+    max-width: 480px; margin: 44px auto 0; padding-top: 28px;
+    border-top: 1px solid rgba(21,22,18,0.1); text-align: center;
+  }
+  .otra-impl-kicker{ font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gris); opacity: 0.75; margin: 0 0 8px; }
+  .otra-impl h3{ font-size: 17px; font-weight: 800; color: var(--negro); margin: 0 0 8px; }
+  .otra-impl-texto{ font-size: 13px; line-height: 1.55; color: var(--gris); margin: 0 0 16px; }
+  .btn-caso-mini{ font-size: 12.5px; padding: 8px 16px; }
+
   @media (max-width: 760px){
     .mcaso{ padding: 44px 0; }
     .mcaso h2{ font-size: 22px; }
@@ -49,5 +65,6 @@ const evolucion = ['Tienda individual', 'Template', 'Stock', 'Carga rápida móv
     .evolucion-item{ font-size: 12.5px; padding: 8px 14px; }
     .enlaces{ flex-direction: column; align-items: stretch; }
     .btn-caso{ justify-content: center; }
+    .otra-impl{ margin-top: 32px; padding-top: 22px; }
   }
 </style>
