@@ -1,0 +1,52 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#151612"/>
+
+  <!-- LEFT: una tienda -->
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="110" y="240" width="150" height="110" rx="12"/>
+  </g>
+  <g font-family="monospace" font-size="14" fill="#8d8879" text-anchor="middle">
+    <text x="185" y="300">tienda</text>
+    <text x="185" y="320">1</text>
+  </g>
+  <text x="185" y="385" font-family="monospace" font-size="14" fill="#8d8879" text-anchor="middle">lo que parecía el sistema</text>
+
+  <!-- bridge arrow -->
+  <g stroke="#EC7323" stroke-width="2" fill="none">
+    <line x1="300" y1="295" x2="430" y2="295"/>
+    <polygon points="430,287 445,295 430,303" fill="#EC7323"/>
+  </g>
+
+  <!-- RIGHT: una base, tres tiendas (fork) -->
+  <g stroke="#4a4944" stroke-width="2" fill="none">
+    <line x1="500" y1="295" x2="620" y2="295"/>
+  </g>
+
+  <!-- trunk splitting into three branches -->
+  <path d="M 620 295 C 680 295, 700 175, 760 175" stroke="#8a9430" stroke-width="2" fill="none"/>
+  <path d="M 620 295 L 760 295" stroke="#8a9430" stroke-width="2" fill="none"/>
+  <path d="M 620 295 C 680 295, 700 415, 760 415" stroke="#8a9430" stroke-width="2" fill="none"/>
+
+  <circle cx="620" cy="295" r="9" fill="#151612" stroke="#D9D2C4" stroke-width="2.5"/>
+
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="760" y="130" width="150" height="90" rx="12"/>
+    <rect x="760" y="250" width="150" height="90" rx="12"/>
+    <rect x="760" y="370" width="150" height="90" rx="12"/>
+  </g>
+  <circle cx="760" cy="175" r="7" fill="#151612" stroke="#EC7323" stroke-width="2.5"/>
+  <circle cx="760" cy="295" r="7" fill="#151612" stroke="#B9C05A" stroke-width="2.5"/>
+  <circle cx="760" cy="415" r="7" fill="#151612" stroke="#B9C05A" stroke-width="2.5"/>
+
+  <g font-family="monospace" font-size="14" fill="#D9D2C4" text-anchor="middle">
+    <text x="835" y="180">base</text>
+    <text x="835" y="300">jardín</text>
+    <text x="835" y="420">mali</text>
+  </g>
+
+  <text x="835" y="490" font-family="monospace" font-size="14" fill="#8d8879" text-anchor="middle">una base, tres tiendas propias</text>
+
+  <!-- caption -->
+  <text x="600" y="560" font-family="Georgia, serif" font-size="28" fill="#F2EEE3" text-anchor="middle" font-style="italic">La segunda tienda cambió la primera</text>
+  <text x="600" y="596" font-family="monospace" font-size="14" fill="#8d8879" text-anchor="middle">MUTE — de una tienda a una estructura reutilizable</text>
+</svg>
