@@ -1,0 +1,4 @@
+database/*.db
+collector_alibaba/collector.log
+__pycache__/
+*.pyc
