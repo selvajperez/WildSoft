@@ -99,7 +99,14 @@ def parsear_precio(fob_price_without_unit: str | None, price_from_usd: str | Non
     return None, None, None
 
 
-def _normalizar_url_imagen(url: str | None) -> str | None:
+def _normalizar_url(url: str | None) -> str | None:
+    """Antepone el esquema a URLs relativas al protocolo (ej. '//foo' -> 'https://foo').
+
+    Alibaba entrega `url` (el link a la ficha) sin esquema en productos "a
+    Cotizar" (RFQ, sin compra directa) y con esquema completo en productos
+    de compra directa; `imageUrls.original` es siempre relativo al protocolo.
+    Mismo tratamiento para ambos casos.
+    """
     if not url:
         return None
     if url.startswith("//"):
@@ -130,16 +137,21 @@ def parsear_pagina_listado(html: str, categorias: dict[int, str] | None = None) 
         productos.append({
             "producto_id_alibaba": item.get("id"),
             "nombre": item.get("subject"),
-            "url": item.get("url"),
+            "url": _normalizar_url(item.get("url")),
             "precio_min": precio_min,
             "precio_max": precio_max,
             "moneda": moneda,
             "moq": item.get("moq"),
             "cantidad_vendida": item.get("prodSold180"),
-            "imagen_principal": _normalizar_url_imagen((item.get("imageUrls") or {}).get("original")),
+            "imagen_principal": _normalizar_url((item.get("imageUrls") or {}).get("original")),
             "categoria_id": group_id,
             "categoria": categorias.get(group_id),
             "peso_gramos": None,  # solo disponible en la ficha de detalle (fase 2)
+            # Productos "a Cotizar" (RFQ, sin compra directa) apagan juntos
+            # tradeProduct, rtsProduct y aliFreight, y omiten localFreightStr
+            # directamente del JSON — confirmado con HTML real (ver tests).
+            "compra_directa": bool(item.get("tradeProduct")) and bool(item.get("rtsProduct")),
+            "envio_calculable": bool(item.get("aliFreight")),
         })
 
     pnv = contenido.get("pageNavView")

@@ -27,6 +27,7 @@ alibaba-catalog/
       test_diagnostico_precio.py
       fixtures/
         productlist_page19.html          # HTML real (recortado) de un listado válido
+        productlist_page_mixto.html      # los mismos 2 + 2 productos reales "a Cotizar" (RFQ)
         pagina_bloqueada_captcha.html    # HTML real (recortado) de la página de bloqueo CAPTCHA
   paginas_html_crudo/    # HTML crudo de cada página visitada por collector_browser.py (no se commitea)
   database/
@@ -181,6 +182,10 @@ representa realmente un campo antes de tocar `parser.py`.
 | `categoria_id` / `categoria` | `groupId`, resuelto contra el módulo de categorías | puede ser `null` / "Sin agrupar" |
 | `peso_gramos` | — | **siempre `NULL` en esta fase**: no está en el listado, solo en la ficha de detalle (fase 2, fuera de esta tarea) |
 | `producto_id_alibaba` | `id` | id interno de Alibaba, útil como referencia adicional |
+| `compra_directa` | `tradeProduct AND rtsProduct` | `True` = el producto tiene "Agregar al carrito"/compra directa; `False` = solo "Chatear ahora" (RFQ, requiere cotizar). Confirmado con 2 productos reales de cada tipo (ver `productlist_page_mixto.html`): en los "a Cotizar" ambos flags vienen en `false` juntos. |
+| `envio_calculable` | `aliFreight` | `True` = Alibaba puede calcular el flete para este producto. En los productos "a Cotizar" viene `false`, y de hecho el campo `localFreightStr` del listado directamente no está presente en el JSON. |
+
+**Nota sobre costo de envío**: no se agregó `costo_envio`/`cantidad_envio`. El único campo candidato (`localFreightStr`) no es confiable — en el fixture, dos productos completamente distintos mostraban el *mismo* valor exacto (`"ARS 61.740,30"`), señal de que es una estimación genérica y no un costo real por producto. Se decidió no exponerlo hasta confirmar un cálculo confiable por producto (probablemente haría falta visitar la ficha de detalle).
 
 ## Base de datos (`database/db.py`)
 
@@ -189,7 +194,10 @@ SQLite, dos tablas:
 - `productos_alibaba`, con las columnas de la tabla de arriba más
   `fecha_scrapeo` (UTC, ISO 8601). `upsert_producto`/`upsert_productos`
   insertan o actualizan por `url` (no se duplican filas si se vuelve a
-  correr el collector).
+  correr el collector). `compra_directa`/`envio_calculable` se agregaron
+  después de la primera versión: `conectar()` hace el `ALTER TABLE`
+  automáticamente si la base ya existía sin esas columnas (no hace falta
+  recrear ni perder los productos ya guardados).
 - `progreso_paginas` (`pagina`, `fecha_completada`), usada solo por
   `collector_browser.py` para poder reanudar sin repetir páginas ya
   recorridas. `reiniciar_progreso` la vacía sin tocar los productos.

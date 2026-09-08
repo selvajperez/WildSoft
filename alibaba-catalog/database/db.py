@@ -32,6 +32,8 @@ CREATE TABLE IF NOT EXISTS productos_alibaba (
     categoria_id INTEGER,
     categoria TEXT,
     peso_gramos REAL,
+    compra_directa INTEGER,
+    envio_calculable INTEGER,
     fecha_scrapeo TEXT NOT NULL
 );
 """
@@ -39,8 +41,24 @@ CREATE TABLE IF NOT EXISTS productos_alibaba (
 COLUMNAS_PRODUCTO = [
     "producto_id_alibaba", "nombre", "url", "precio_min", "precio_max", "moneda",
     "moq", "cantidad_vendida", "imagen_principal", "categoria_id", "categoria",
-    "peso_gramos",
+    "peso_gramos", "compra_directa", "envio_calculable",
 ]
+
+# Columnas agregadas después de la creación inicial de la tabla: en una base
+# ya existente (CREATE TABLE IF NOT EXISTS no las agrega retroactivamente),
+# hace falta un ALTER TABLE explícito para no perder los datos ya guardados.
+_MIGRACIONES_PRODUCTOS = {
+    "compra_directa": "ALTER TABLE productos_alibaba ADD COLUMN compra_directa INTEGER",
+    "envio_calculable": "ALTER TABLE productos_alibaba ADD COLUMN envio_calculable INTEGER",
+}
+
+
+def _migrar_columnas_faltantes(conexion: sqlite3.Connection) -> None:
+    columnas_existentes = {fila[1] for fila in conexion.execute("PRAGMA table_info(productos_alibaba)")}
+    for columna, sentencia in _MIGRACIONES_PRODUCTOS.items():
+        if columna not in columnas_existentes:
+            conexion.execute(sentencia)
+    conexion.commit()
 
 ESQUEMA_PROGRESO = """
 CREATE TABLE IF NOT EXISTS progreso_paginas (
@@ -54,6 +72,7 @@ def conectar(db_path: Path | str = DB_PATH_DEFAULT) -> sqlite3.Connection:
     conexion = sqlite3.connect(db_path)
     conexion.execute(ESQUEMA)
     conexion.execute(ESQUEMA_PROGRESO)
+    _migrar_columnas_faltantes(conexion)
     return conexion
 
 
