@@ -1,5 +1,5 @@
 import collector_browser
-from collector_browser import _guardar_html_crudo, _paginas_pendientes
+from collector_browser import _guardar_html_crudo, _paginas_pendientes, _parsear_rango_paginas
 
 
 def test_paginas_pendientes_sin_progreso_previo():
@@ -25,3 +25,15 @@ def test_guardar_html_crudo_escribe_un_archivo_por_pagina(tmp_path, monkeypatch)
 
     archivo = tmp_path / "paginas_html_crudo" / "productlist-3.html"
     assert archivo.read_text(encoding="utf-8") == "<html>contenido de la página 3</html>"
+
+
+def test_parsear_rango_paginas_simple():
+    assert _parsear_rango_paginas("1-14") == list(range(1, 15))
+
+
+def test_parsear_rango_paginas_pagina_unica():
+    assert _parsear_rango_paginas("7") == [7]
+
+
+def test_parsear_rango_paginas_lista_mixta_sin_duplicados_y_ordenada():
+    assert _parsear_rango_paginas("5, 1-3, 3") == [1, 2, 3, 5]

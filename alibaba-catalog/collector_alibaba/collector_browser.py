@@ -21,6 +21,8 @@ Uso (ver también README.md):
     python collector_browser.py               # corrida normal
     python collector_browser.py --login        # forzar login manual de nuevo
     python collector_browser.py --reiniciar-progreso   # re-recorrer todo
+    python collector_browser.py --recuperar-html 1-14  # solo archivar HTML de esas páginas,
+                                                          # sin tocar el progreso guardado
 """
 
 from __future__ import annotations
@@ -82,6 +84,22 @@ def _paginas_pendientes(total_paginas: int, completadas: set[int]) -> list[int]:
 def _guardar_html_crudo(pagina: int, html: str) -> None:
     DIR_HTML_CRUDO.mkdir(parents=True, exist_ok=True)
     (DIR_HTML_CRUDO / f"productlist-{pagina}.html").write_text(html, encoding="utf-8")
+
+
+def _parsear_rango_paginas(texto: str) -> list[int]:
+    """'1-14' -> [1..14]; '3' -> [3]; '1,3,5-7' -> [1,3,5,6,7] (sin duplicados, ordenado)."""
+    paginas: set[int] = set()
+    for parte in texto.split(","):
+        parte = parte.strip()
+        if not parte:
+            continue
+        if "-" in parte:
+            inicio_str, fin_str = parte.split("-", 1)
+            inicio, fin = int(inicio_str), int(fin_str)
+            paginas.update(range(inicio, fin + 1))
+        else:
+            paginas.add(int(parte))
+    return sorted(paginas)
 
 
 def _confirmar_login_manual() -> None:
@@ -201,6 +219,86 @@ def recolectar_catalogo_navegador(
     return total_guardado
 
 
+def recuperar_html_paginas(paginas: list[int], forzar_login: bool = False) -> None:
+    """
+    Vuelve a visitar páginas puntuales solo para archivar su HTML crudo en
+    `paginas_html_crudo/` (ej. para recuperar el dato crudo de páginas ya
+    completadas cuando se detectó un bug de parseo después de recorrerlas).
+
+    A propósito NO toca `progreso_paginas`: no marca páginas como
+    completadas, así que no puede alterar ni desmarcar el progreso que ya
+    existe. `recolectar_catalogo_navegador` sigue siendo la única función
+    que avanza ese checkpoint. Sí reutiliza el parser para refrescar
+    `productos_alibaba` (upsert, deduplicado por URL) como efecto
+    secundario útil, pero eso tampoco toca el progreso.
+    """
+    if not paginas:
+        return
+
+    conexion = db.conectar()
+    es_primera_vez = not PERFIL_DEDICADO.exists()
+
+    with sync_playwright() as p:
+        contexto = p.chromium.launch_persistent_context(
+            user_data_dir=str(PERFIL_DEDICADO),
+            channel="chrome",
+            headless=False,
+        )
+        try:
+            pagina_navegador = contexto.pages[0] if contexto.pages else contexto.new_page()
+
+            if es_primera_vez or forzar_login:
+                pagina_navegador.goto(URL_PRIMERA_PAGINA, wait_until="domcontentloaded")
+                _confirmar_login_manual()
+
+            # Página 1 hace falta siempre para conocer categorías y el
+            # patrón de paginación real, aunque no esté en `paginas`.
+            logger.info("Descargando página 1 para conocer categorías y paginación (progreso NO modificado)...")
+            pagina_navegador.goto(URL_PRIMERA_PAGINA, wait_until="domcontentloaded")
+            html_pagina_1 = pagina_navegador.content()
+
+            if contiene_marcadores_bloqueo(html_pagina_1):
+                _pausar_por_bloqueo(URL_PRIMERA_PAGINA, 1)
+                raise PaginaBloqueadaError(f"Bloqueo detectado en {URL_PRIMERA_PAGINA}")
+
+            categorias = parsear_categorias(html_pagina_1)
+            productos_pagina_1, paginacion = parsear_pagina_listado(html_pagina_1, categorias)
+
+            if paginacion is None:
+                logger.error("No se pudo leer la paginación en %s.", URL_PRIMERA_PAGINA)
+                raise SystemExit(1)
+
+            if 1 in paginas:
+                _guardar_html_crudo(1, html_pagina_1)
+                db.upsert_productos(conexion, productos_pagina_1)
+                logger.info("Página 1: HTML archivado y productos refrescados (progreso NO modificado).")
+
+            for numero_pagina in paginas:
+                if numero_pagina == 1:
+                    continue
+
+                _esperar_entre_paginas()
+                url = _url_pagina(paginacion.formato_url, numero_pagina)
+                pagina_navegador.goto(url, wait_until="domcontentloaded")
+                html = pagina_navegador.content()
+
+                if contiene_marcadores_bloqueo(html):
+                    _pausar_por_bloqueo(url, numero_pagina)
+                    raise PaginaBloqueadaError(f"Bloqueo detectado en la página {numero_pagina} ({url})")
+
+                _guardar_html_crudo(numero_pagina, html)
+                productos_pagina, _ = parsear_pagina_listado(html, categorias)
+                db.upsert_productos(conexion, productos_pagina)
+                logger.info(
+                    "Página %d: HTML archivado y %d productos refrescados (progreso NO modificado).",
+                    numero_pagina, len(productos_pagina),
+                )
+        finally:
+            contexto.close()
+
+    logger.info("Recuperación de HTML crudo terminada para las páginas: %s", paginas)
+
+
 def main() -> None:
     argparser = argparse.ArgumentParser(description="Collector de catálogo Alibaba vía Chrome real (Playwright).")
     argparser.add_argument(
@@ -215,7 +313,23 @@ def main() -> None:
         "--max-paginas", type=int, default=None,
         help="Límite de páginas a recorrer (útil para probar con pocas antes de correr las 28 completas).",
     )
+    argparser.add_argument(
+        "--recuperar-html", type=str, default=None, metavar="RANGO",
+        help=(
+            "Volver a visitar páginas puntuales SOLO para archivar su HTML crudo "
+            "(ej. '1-14' o '3,5,7-9'). No toca el progreso guardado: no marca ni "
+            "desmarca páginas como completadas. Ignora --reiniciar-progreso."
+        ),
+    )
     args = argparser.parse_args()
+
+    if args.recuperar_html:
+        paginas = _parsear_rango_paginas(args.recuperar_html)
+        try:
+            recuperar_html_paginas(paginas, forzar_login=args.login)
+        except PaginaBloqueadaError:
+            sys.exit(1)
+        return
 
     if args.reiniciar_progreso:
         conexion = db.conectar()

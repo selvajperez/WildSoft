@@ -108,7 +108,27 @@ python collector_alibaba/collector_browser.py                    # corrida norma
 python collector_alibaba/collector_browser.py --login             # forzar login manual de nuevo (p. ej. sesión expirada)
 python collector_alibaba/collector_browser.py --reiniciar-progreso   # olvidar progreso y recorrer todo de nuevo
 python collector_alibaba/collector_browser.py --max-paginas 2      # probar con pocas páginas antes de correr las 28
+python collector_alibaba/collector_browser.py --recuperar-html 1-14  # ver más abajo
 ```
+
+### Recuperar el HTML crudo de páginas ya completadas (`--recuperar-html`)
+
+`--reiniciar-progreso` vuelve a recorrer **todo** el catálogo desde cero,
+lo cual no sirve si solo hace falta el HTML crudo de páginas que ya están
+marcadas como completadas: si el sitio bloqueara antes de llegar a donde ya
+se había llegado, se perdería un checkpoint válido (aunque los productos
+sigan en SQLite).
+
+`--recuperar-html RANGO` vuelve a visitar **solo** las páginas indicadas
+(`1-14`, `3`, o `1,3,5-9`) para archivar su HTML crudo en
+`paginas_html_crudo/`. A propósito **no toca `progreso_paginas`**: no
+marca ni desmarca ninguna página como completada, así que no puede alterar
+el checkpoint existente pase lo que pase durante la recuperación (incluido
+un bloqueo a mitad de camino). Sí reutiliza el parser para refrescar
+`productos_alibaba` (upsert, deduplicado por URL) como efecto secundario,
+pero eso tampoco toca el progreso. Seguridad, sesión y comportamiento ante
+CAPTCHA son exactamente los mismos que en una corrida normal (Chrome real
+y visible, perfil dedicado, se detiene y avisa si aparece un bloqueo).
 
 ### Instalación y uso en Windows
 
