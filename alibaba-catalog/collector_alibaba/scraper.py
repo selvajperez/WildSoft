@@ -59,11 +59,26 @@ def robots_permite(url: str, user_agent: str = USER_AGENT) -> bool:
     return rp.can_fetch(user_agent, url)
 
 
+# Marcadores tomados de una página de bloqueo real (slider CAPTCHA "punish"
+# de Alibaba) capturada en septiembre 2026: llega con HTTP 200, así que no
+# alcanza con el status code. Antes se usaba "captcha" en el cuerpo y
+# "productlist" ausente, pero la propia página de bloqueo incluye la URL
+# original (`/productlist-N.html`) como metadata del verify-callback, así
+# que ese heurístico daba falso negativo. Se buscan en cambio marcadores
+# específicos del template de bloqueo, que no aparecen en un listado real.
+_MARCADORES_BLOQUEO = (
+    "punish-component",
+    "_____tmd_____",
+    "awsc/captcha",
+    "sufei-punish",
+)
+
+
 def _es_bloqueo(respuesta: requests.Response) -> bool:
     if respuesta.status_code in (403, 429, 503):
         return True
     cuerpo = respuesta.text.lower()
-    return "captcha" in cuerpo and "productlist" not in cuerpo
+    return any(marcador in cuerpo for marcador in _MARCADORES_BLOQUEO)
 
 
 def obtener_pagina(url: str, sesion: requests.Session | None = None) -> str:
