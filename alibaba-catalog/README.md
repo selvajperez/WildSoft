@@ -19,13 +19,16 @@ alibaba-catalog/
     parser.py             # extrae el JSON embebido en el HTML y lo normaliza
     collector.py           # orquesta por HTTP puro: recorre la paginación real y guarda en la base
     collector_browser.py   # orquesta con Chrome real (Playwright): alternativa cuando el sitio bloquea el HTTP puro
+    diagnostico_precio.py  # busca un producto en el HTML crudo archivado y muestra su JSON sin normalizar
     tests/
       test_parser.py
       test_scraper.py
       test_collector_browser.py
+      test_diagnostico_precio.py
       fixtures/
         productlist_page19.html          # HTML real (recortado) de un listado válido
         pagina_bloqueada_captcha.html    # HTML real (recortado) de la página de bloqueo CAPTCHA
+  paginas_html_crudo/    # HTML crudo de cada página visitada por collector_browser.py (no se commitea)
   database/
     db.py             # esquema SQLite + upsert + progreso de páginas + export a CSV
     tests/test_db.py
@@ -122,6 +125,27 @@ dedicado, no el habitual): iniciá sesión en Alibaba ahí manualmente,
 volvé a la terminal y presioná ENTER. De ahí en más el collector recorre
 las páginas solo. Si en algún punto aparece el CAPTCHA, va a avisarlo por
 consola, dejar la ventana abierta, y esperar un ENTER para cerrar.
+
+## Archivo de HTML crudo y diagnóstico (`diagnostico_precio.py`)
+
+`collector_browser.py` guarda el HTML de cada página que visita, tal cual,
+antes de parsearlo, en `paginas_html_crudo/productlist-N.html` (no se
+commitea — son datos scrapeados, no código). `parser.py` solo se queda con
+los campos ya normalizados (`precio_min`, `moneda`, etc.); sin este
+archivo, un campo del JSON original mal interpretado no se puede
+diagnosticar ni reprocesar más tarde sin volver a navegar Alibaba.
+
+Para ver el registro crudo (sin normalizar) de un producto puntual una vez
+que hay páginas archivadas:
+
+```bash
+python collector_alibaba/diagnostico_precio.py "nombre o parte del nombre del producto"
+python collector_alibaba/diagnostico_precio.py "nombre del producto" --pagina 7   # si ya se sabe la página
+```
+
+Imprime el JSON completo del producto tal cual lo entrega Alibaba (todos
+los campos, no solo los que usa el parser), útil para confirmar qué
+representa realmente un campo antes de tocar `parser.py`.
 
 ## Qué se extrae por producto
 

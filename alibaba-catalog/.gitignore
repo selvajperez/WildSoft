@@ -2,5 +2,6 @@ database/*.db
 collector_alibaba/collector.log
 collector_alibaba/collector_browser.log
 .perfil_chrome_collector/
+paginas_html_crudo/
 __pycache__/
 *.pyc

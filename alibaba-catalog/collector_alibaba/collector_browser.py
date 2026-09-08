@@ -13,6 +13,10 @@ hacer. El progreso (qué páginas ya se recorrieron) queda guardado en la
 base, así que una corrida posterior retoma donde quedó sin repetir
 páginas ya hechas.
 
+Cada página visitada se archiva tal cual (HTML crudo, antes de parsear)
+en `paginas_html_crudo/`, para poder diagnosticar o reprocesar el catálogo
+sin volver a navegar Alibaba si algún campo se interpretó mal.
+
 Uso (ver también README.md):
     python collector_browser.py               # corrida normal
     python collector_browser.py --login        # forzar login manual de nuevo
@@ -45,6 +49,13 @@ URL_PRIMERA_PAGINA = f"{URL_BASE}/productlist-1.html?filter=all&sortType=modifie
 # ni depender del Chrome de todos los días.
 PERFIL_DEDICADO = Path(__file__).parent.parent / ".perfil_chrome_collector"
 
+# Archivo del HTML crudo de cada página visitada, tal cual lo devuelve el
+# navegador, antes de parsearlo. `parser.py` solo se queda con los campos
+# ya normalizados; sin este archivo, un campo del JSON original mal
+# interpretado (como el bug de `priceFrom` de septiembre 2026) no se puede
+# diagnosticar ni reprocesar después sin volver a navegar Alibaba.
+DIR_HTML_CRUDO = Path(__file__).parent.parent / "paginas_html_crudo"
+
 DELAY_ENTRE_PAGINAS_SEG = (1.5, 3.0)
 
 logging.basicConfig(
@@ -66,6 +77,11 @@ def _esperar_entre_paginas() -> None:
 def _paginas_pendientes(total_paginas: int, completadas: set[int]) -> list[int]:
     """Páginas de 1 a `total_paginas` que todavía no están en `completadas`."""
     return [pagina for pagina in range(1, total_paginas + 1) if pagina not in completadas]
+
+
+def _guardar_html_crudo(pagina: int, html: str) -> None:
+    DIR_HTML_CRUDO.mkdir(parents=True, exist_ok=True)
+    (DIR_HTML_CRUDO / f"productlist-{pagina}.html").write_text(html, encoding="utf-8")
 
 
 def _confirmar_login_manual() -> None:
@@ -121,6 +137,7 @@ def recolectar_catalogo_navegador(
             logger.info("Descargando página 1 (navegador) para conocer categorías y paginación real...")
             pagina_navegador.goto(url_inicial, wait_until="domcontentloaded")
             html_pagina_1 = pagina_navegador.content()
+            _guardar_html_crudo(1, html_pagina_1)
 
             if contiene_marcadores_bloqueo(html_pagina_1):
                 _pausar_por_bloqueo(url_inicial, 1)
@@ -162,6 +179,7 @@ def recolectar_catalogo_navegador(
                 url = _url_pagina(paginacion.formato_url, numero_pagina)
                 pagina_navegador.goto(url, wait_until="domcontentloaded")
                 html = pagina_navegador.content()
+                _guardar_html_crudo(numero_pagina, html)
 
                 if contiene_marcadores_bloqueo(html):
                     _pausar_por_bloqueo(url, numero_pagina)
