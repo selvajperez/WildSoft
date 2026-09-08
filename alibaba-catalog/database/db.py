@@ -1,9 +1,11 @@
 """
 Persistencia en SQLite del catálogo scrapeado.
 
-Un único archivo (`catalogo_alibaba.db` por defecto) con una tabla,
-`productos_alibaba`. El upsert deduplica por `url` (la ficha de producto
-en Alibaba), que es estable entre corridas del collector.
+Un único archivo (`catalogo_alibaba.db` por defecto) con dos tablas:
+`productos_alibaba` (el upsert deduplica por `url`, estable entre corridas
+del collector) y `progreso_paginas` (qué páginas de listado ya se
+recorrieron con éxito, para poder retomar sin repetirlas si el collector
+se corta a mitad de camino).
 """
 
 from __future__ import annotations
@@ -40,10 +42,18 @@ COLUMNAS_PRODUCTO = [
     "peso_gramos",
 ]
 
+ESQUEMA_PROGRESO = """
+CREATE TABLE IF NOT EXISTS progreso_paginas (
+    pagina INTEGER PRIMARY KEY,
+    fecha_completada TEXT NOT NULL
+);
+"""
+
 
 def conectar(db_path: Path | str = DB_PATH_DEFAULT) -> sqlite3.Connection:
     conexion = sqlite3.connect(db_path)
     conexion.execute(ESQUEMA)
+    conexion.execute(ESQUEMA_PROGRESO)
     return conexion
 
 
@@ -84,3 +94,23 @@ def exportar_csv(conexion: sqlite3.Connection, destino: Path | str) -> None:
         writer = csv.writer(archivo)
         writer.writerow(columnas)
         writer.writerows(cursor.fetchall())
+
+
+def marcar_pagina_completada(conexion: sqlite3.Connection, pagina: int) -> None:
+    """Registra que una página de listado ya se recorrió con éxito."""
+    conexion.execute(
+        "INSERT OR REPLACE INTO progreso_paginas (pagina, fecha_completada) VALUES (?, ?)",
+        (pagina, datetime.now(timezone.utc).isoformat()),
+    )
+    conexion.commit()
+
+
+def obtener_paginas_completadas(conexion: sqlite3.Connection) -> set[int]:
+    filas = conexion.execute("SELECT pagina FROM progreso_paginas").fetchall()
+    return {fila[0] for fila in filas}
+
+
+def reiniciar_progreso(conexion: sqlite3.Connection) -> None:
+    """Olvida qué páginas se completaron. No borra productos ya guardados."""
+    conexion.execute("DELETE FROM progreso_paginas")
+    conexion.commit()

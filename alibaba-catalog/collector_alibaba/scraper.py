@@ -74,11 +74,20 @@ _MARCADORES_BLOQUEO = (
 )
 
 
+def contiene_marcadores_bloqueo(html: str) -> bool:
+    """
+    Chequeo de bloqueo agnóstico del transporte: sirve tanto para el HTML que
+    trae `requests` como para el HTML renderizado que devuelve un navegador
+    real (Playwright), que no tiene status code HTTP propio para inspeccionar.
+    """
+    cuerpo = html.lower()
+    return any(marcador in cuerpo for marcador in _MARCADORES_BLOQUEO)
+
+
 def _es_bloqueo(respuesta: requests.Response) -> bool:
     if respuesta.status_code in (403, 429, 503):
         return True
-    cuerpo = respuesta.text.lower()
-    return any(marcador in cuerpo for marcador in _MARCADORES_BLOQUEO)
+    return contiene_marcadores_bloqueo(respuesta.text)
 
 
 def obtener_pagina(url: str, sesion: requests.Session | None = None) -> str:

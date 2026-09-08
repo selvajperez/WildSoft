@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from scraper import _es_bloqueo
+from scraper import _es_bloqueo, contiene_marcadores_bloqueo
 
 FIXTURES = Path(__file__).parent / "fixtures"
 PAGINA_BLOQUEADA = (FIXTURES / "pagina_bloqueada_captcha.html").read_text(encoding="utf-8")
@@ -36,3 +36,13 @@ def test_marca_como_bloqueo_status_codes_tipicos():
 
 def test_no_marca_como_bloqueo_status_200_sin_marcadores():
     assert _es_bloqueo(RespuestaFalsa(status_code=200, text="<html><body>ok</body></html>")) is False
+
+
+def test_contiene_marcadores_bloqueo_es_reutilizable_sin_status_code():
+    """
+    `collector_browser.py` obtiene el HTML de un navegador real (Playwright),
+    que no tiene un status code HTTP para inspeccionar como `requests`. Por
+    eso el chequeo de marcadores tiene que poder usarse solo con el HTML.
+    """
+    assert contiene_marcadores_bloqueo(PAGINA_BLOQUEADA) is True
+    assert contiene_marcadores_bloqueo(PAGINA_LISTADO_OK) is False

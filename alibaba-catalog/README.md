@@ -15,14 +15,20 @@ valide que el catálogo se extrae bien.
 ```
 alibaba-catalog/
   collector_alibaba/
-    scraper.py       # capa HTTP: headers, robots.txt, reintentos con backoff, delay
-    parser.py        # extrae el JSON embebido en el HTML y lo normaliza
-    collector.py      # orquesta: recorre la paginación real y guarda en la base
+    scraper.py            # capa HTTP: headers, robots.txt, reintentos con backoff, delay
+    parser.py             # extrae el JSON embebido en el HTML y lo normaliza
+    collector.py           # orquesta por HTTP puro: recorre la paginación real y guarda en la base
+    collector_browser.py   # orquesta con Chrome real (Playwright): alternativa cuando el sitio bloquea el HTTP puro
     tests/
       test_parser.py
-      fixtures/productlist_page19.html   # HTML real (recortado) para testear sin red
+      test_scraper.py
+      test_collector_browser.py
+      fixtures/
+        productlist_page19.html          # HTML real (recortado) de un listado válido
+        pagina_bloqueada_captcha.html    # HTML real (recortado) de la página de bloqueo CAPTCHA
   database/
-    db.py             # esquema SQLite + upsert + export a CSV
+    db.py             # esquema SQLite + upsert + progreso de páginas + export a CSV
+    tests/test_db.py
   comparator/README.md   # pendiente (fase 2)
   ui/README.md           # pendiente (fase 2)
   requirements.txt
@@ -59,6 +65,64 @@ coincide con la realidad).
   collector corta, loguea el bloqueo en `collector_alibaba/collector.log`
   y no reintenta indefinidamente.
 
+## Alternativa cuando el sitio bloquea el HTTP puro: `collector_browser.py`
+
+En la práctica, el listado terminó devolviendo el CAPTCHA "punish" de
+Alibaba (HTTP 200, sin datos de producto) apenas ante requests hechos con
+`requests` — sin cookies de sesión ni huella de navegador real, no importa
+qué tan "educados" sean. `collector_browser.py` es la alternativa: usa
+[Playwright](https://playwright.dev/python/) para manejar un **Chrome real
+y visible** (no headless, no Chromium embebido) con un **perfil de datos
+dedicado** (`.perfil_chrome_collector/`, separado del Chrome habitual de
+la usuaria). La usuaria inicia sesión en Alibaba manualmente ahí una sola
+vez; esa sesión queda guardada en el perfil para las corridas siguientes.
+
+Puntos importantes de este enfoque:
+
+- **No resuelve ni evade CAPTCHAs.** Si aparece uno, el collector se
+  detiene ahí mismo, lo loguea, deja la ventana de Chrome abierta para que
+  la usuaria decida qué hacer, y espera un ENTER en la terminal antes de
+  cerrar todo. Nunca hace click ni intenta pasarlo por su cuenta.
+- **Reutiliza `parser.py` y la detección de bloqueo sin cambios**: el HTML
+  que devuelve `page.content()` de Playwright se parsea exactamente igual
+  que el que devuelve `requests`. La detección de bloqueo también es
+  compartida (`scraper.contiene_marcadores_bloqueo`), solo que ahora se
+  aplica al HTML renderizado en vez de a un `requests.Response`.
+- **Progreso persistido y reanudable**: cada página que se procesa con
+  éxito queda marcada en la tabla `progreso_paginas` de la base. Si el
+  collector se corta (por un bloqueo, por cerrar la terminal, etc.), la
+  próxima corrida retoma desde ahí sin volver a pedir las páginas ya
+  hechas. `--reiniciar-progreso` la resetea si en algún momento se quiere
+  recorrer todo el catálogo de nuevo (no borra los productos ya guardados,
+  `upsert_producto` deduplica por URL).
+- **Login manual solo cuando hace falta**: la primera vez que se usa el
+  perfil dedicado (o si se pasa `--login`), el collector abre la página y
+  espera confirmación por ENTER antes de seguir. En corridas posteriores,
+  mientras la sesión guardada siga viva, no vuelve a pedirlo.
+
+```bash
+python collector_alibaba/collector_browser.py                    # corrida normal
+python collector_alibaba/collector_browser.py --login             # forzar login manual de nuevo (p. ej. sesión expirada)
+python collector_alibaba/collector_browser.py --reiniciar-progreso   # olvidar progreso y recorrer todo de nuevo
+python collector_alibaba/collector_browser.py --max-paginas 2      # probar con pocas páginas antes de correr las 28
+```
+
+### Instalación y uso en Windows
+
+```powershell
+cd alibaba-catalog
+pip install -r requirements.txt
+playwright install chrome
+
+python collector_alibaba\collector_browser.py
+```
+
+Al ejecutarlo la primera vez se abre una ventana de Chrome (con el perfil
+dedicado, no el habitual): iniciá sesión en Alibaba ahí manualmente,
+volvé a la terminal y presioná ENTER. De ahí en más el collector recorre
+las páginas solo. Si en algún punto aparece el CAPTCHA, va a avisarlo por
+consola, dejar la ventana abierta, y esperar un ENTER para cerrar.
+
 ## Qué se extrae por producto
 
 | Campo | Origen | Notas |
@@ -76,10 +140,17 @@ coincide con la realidad).
 
 ## Base de datos (`database/db.py`)
 
-SQLite, tabla `productos_alibaba` con las columnas de la tabla de arriba
-más `fecha_scrapeo` (UTC, ISO 8601). `upsert_producto`/`upsert_productos`
-insertan o actualizan por `url` (no se duplican filas si se vuelve a
-correr el collector). `exportar_csv` vuelca la tabla completa a un CSV.
+SQLite, dos tablas:
+
+- `productos_alibaba`, con las columnas de la tabla de arriba más
+  `fecha_scrapeo` (UTC, ISO 8601). `upsert_producto`/`upsert_productos`
+  insertan o actualizan por `url` (no se duplican filas si se vuelve a
+  correr el collector).
+- `progreso_paginas` (`pagina`, `fecha_completada`), usada solo por
+  `collector_browser.py` para poder reanudar sin repetir páginas ya
+  recorridas. `reiniciar_progreso` la vacía sin tocar los productos.
+
+`exportar_csv` vuelca la tabla `productos_alibaba` completa a un CSV.
 
 ## Instalación y uso
 
@@ -87,13 +158,17 @@ correr el collector). `exportar_csv` vuelca la tabla completa a un CSV.
 cd alibaba-catalog
 pip install -r requirements.txt
 
-# Correr el collector completo (recorre toda la paginación real):
+# Collector por HTTP puro (recorre toda la paginación real):
+# en la práctica, Alibaba lo bloquea con un CAPTCHA — ver más abajo la alternativa.
 python collector_alibaba/collector.py
 
-# Exportar lo guardado a CSV:
+# Collector con Chrome real (ver sección de arriba y "Windows" para el detalle):
+python collector_alibaba/collector_browser.py
+
+# Exportar lo guardado a CSV (con cualquiera de los dos collectors):
 python -c "from database import db; c = db.conectar(); db.exportar_csv(c, 'catalogo.csv')"
 
-# Tests (no requieren red, usan el fixture HTML real guardado):
+# Tests (no requieren red ni Chrome instalado, usan fixtures HTML reales guardados):
 pip install pytest
 pytest
 ```
