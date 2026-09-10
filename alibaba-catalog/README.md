@@ -26,16 +26,19 @@ alibaba-catalog/
     collector.py           # orquesta por HTTP puro: recorre la paginación real y guarda en la base
     collector_browser.py   # orquesta con Chrome real (Playwright): alternativa cuando el sitio bloquea el HTTP puro
     diagnostico_precio.py  # busca un producto en el HTML crudo archivado y muestra su JSON sin normalizar
+    capturador_exploratorio.py  # Fase 1 del sourcing: captura automática de muestras ML + Alibaba
     tests/
       test_parser.py
       test_scraper.py
       test_collector_browser.py
       test_diagnostico_precio.py
+      test_capturador_exploratorio.py
       fixtures/
         productlist_page19.html          # HTML real (recortado) de un listado válido
         productlist_page_mixto.html      # los mismos 2 + 2 productos reales "a Cotizar" (RFQ)
         pagina_bloqueada_captcha.html    # HTML real (recortado) de la página de bloqueo CAPTCHA
-  paginas_html_crudo/    # HTML crudo de cada página visitada por collector_browser.py (no se commitea)
+  paginas_html_crudo/       # HTML crudo de cada página visitada por collector_browser.py (no se commitea)
+  capturas_exploratorias/   # muestras de capturador_exploratorio.py + manifiesto.jsonl (no se commitea)
   database/
     db.py             # esquema SQLite: catálogo Alibaba + motor de sourcing ML/Alibaba
     tests/
@@ -238,6 +241,54 @@ archivo `.db`, sin tocar `productos_alibaba`/`progreso_paginas`):
 Todavía no hay collector que llene estas tablas (eso es la fase 1 en
 adelante) — por ahora es el esquema + las funciones de acceso, ya
 testeadas con SQLite en memoria (`database/tests/test_db_sourcing.py`).
+
+## Captura automática de muestras (`capturador_exploratorio.py`)
+
+Antes de escribir el parser de Mercado Libre (o el de la ficha individual
+de Alibaba) hace falta HTML real para inspeccionar su estructura — mismo
+criterio que ya usamos con el catálogo Alibaba: nunca adivinar el formato.
+Pero acá no tiene sentido pedirle a la usuaria que navegue y guarde
+páginas a mano — el objetivo del proyecto es automatizar exactamente eso.
+
+`capturador_exploratorio.py` usa el mismo Chrome real + perfil persistente
+que `collector_browser.py` (mismo login manual, sirve para ambos sitios) y
+captura sola, sin ningún dato manual:
+
+1. Una búsqueda en Mercado Libre (`--busqueda-ml`, default "cepillo de
+   limpieza" — la misma categoría del proveedor Alibaba ya catalogado).
+2. La ficha del primer resultado de esa búsqueda (extracción best-effort
+   del link por patrón `MLA-<dígitos>`; si no encuentra nada porque el
+   patrón real de ML es distinto, lo loguea y sigue sin la ficha en vez
+   de romper la corrida).
+3. Una ficha de producto de Alibaba (`--url-alibaba`, default: un producto
+   real de compra directa ya confirmado en esta catalogación).
+
+```bash
+python collector_alibaba/capturador_exploratorio.py
+python collector_alibaba/capturador_exploratorio.py --busqueda-ml "candado bicicleta"
+python collector_alibaba/capturador_exploratorio.py --login   # forzar login manual de nuevo
+```
+
+Guarda cada HTML en `capturas_exploratorias/` y un renglón por captura en
+`capturas_exploratorias/manifiesto.jsonl` (URL, archivo, timestamp,
+si se detectó un bloqueo).
+
+**Importante sobre la detección de bloqueo**: para Alibaba se reutiliza
+`scraper.contiene_marcadores_bloqueo`, ya confirmado con HTML real. Para
+Mercado Libre **todavía no tenemos ni una muestra real de su página de
+bloqueo/CAPTCHA** — `bloqueado_ml_heuristico` es un heurístico genérico
+explícitamente provisorio (busca palabras como "captcha", "verificación de
+seguridad"). En cuanto esta misma herramienta capture alguna vez un
+bloqueo real de ML, hay que reemplazarlo por marcadores específicos, con
+el mismo proceso que ya se usó para Alibaba (ver el fixture
+`pagina_bloqueada_captcha.html` como referencia de cómo se hizo la vez
+anterior).
+
+Si aparece un bloqueo (real o falso positivo del heurístico), la
+herramienta pausa, pide resolverlo en la ventana de Chrome, y **al
+presionar ENTER sigue sola** con el resto de las capturas — a diferencia
+de `collector_browser.py`, acá no hay un catálogo largo que proteger
+cortando la corrida, así que tiene sentido seguir en vez de abortar todo.
 
 ## Instalación y uso
 

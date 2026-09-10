@@ -1,7 +1,9 @@
 database/*.db
 collector_alibaba/collector.log
 collector_alibaba/collector_browser.log
+collector_alibaba/capturador_exploratorio.log
 .perfil_chrome_collector/
 paginas_html_crudo/
+capturas_exploratorias/
 __pycache__/
 *.pyc
