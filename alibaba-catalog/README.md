@@ -1,14 +1,20 @@
-# Catálogo Alibaba (collector automatizado)
+# Catálogo Alibaba + motor de sourcing Mercado Libre → Alibaba (MUTE)
 
 Proyecto independiente del resto del repo (vive solo en esta carpeta, con
 su propio `requirements.txt`). Es la evolución de `alibaba-ml-comparador/`
-(que carga datos a mano): acá el objetivo es automatizar la recolección
-del catálogo completo de un proveedor puntual de Alibaba.
+(que carga datos a mano). Tiene dos partes:
 
-**Alcance de esta versión: solo el collector del catálogo de Alibaba.**
-Mercado Libre, el comparador y la UI quedan pendientes para una sesión
-posterior (ver `comparator/README.md` y `ui/README.md`), una vez que se
-valide que el catálogo se extrae bien.
+1. **Collector de catálogo Alibaba** (`collector_alibaba/`, `database/db.py`
+   tablas `productos_alibaba`/`progreso_paginas`): recorre el catálogo
+   completo de un proveedor puntual — ya funcionando, ver secciones de
+   abajo.
+2. **Motor de sourcing automático** (en construcción, por fases — ver
+   `database/db.py` tablas `candidatos_ml`/`alibaba_comparables`/
+   `historial_ml`): busca demanda en Mercado Libre, encuentra comparables
+   en Alibaba, verifica precio real en la ficha individual, aplica un
+   filtro económico, y arma una shortlist de finalistas. Pensado para
+   correr solo, durante horas, sin intervención manual salvo resolver un
+   CAPTCHA si aparece.
 
 ## Estructura
 
@@ -31,10 +37,12 @@ alibaba-catalog/
         pagina_bloqueada_captcha.html    # HTML real (recortado) de la página de bloqueo CAPTCHA
   paginas_html_crudo/    # HTML crudo de cada página visitada por collector_browser.py (no se commitea)
   database/
-    db.py             # esquema SQLite + upsert + progreso de páginas + export a CSV
-    tests/test_db.py
-  comparator/README.md   # pendiente (fase 2)
-  ui/README.md           # pendiente (fase 2)
+    db.py             # esquema SQLite: catálogo Alibaba + motor de sourcing ML/Alibaba
+    tests/
+      test_db.py            # catálogo (productos_alibaba, progreso_paginas)
+      test_db_sourcing.py   # motor de sourcing (candidatos_ml, alibaba_comparables, historial_ml)
+  comparator/README.md   # pendiente (fases 3-4 del sourcing)
+  ui/README.md           # pendiente (fase de shortlist final)
   requirements.txt
 ```
 
@@ -203,6 +211,33 @@ SQLite, dos tablas:
   recorridas. `reiniciar_progreso` la vacía sin tocar los productos.
 
 `exportar_csv` vuelca la tabla `productos_alibaba` completa a un CSV.
+
+## Esquema del motor de sourcing (`candidatos_ml`, `alibaba_comparables`, `historial_ml`)
+
+Tablas nuevas, independientes del catálogo Alibaba de arriba (mismo
+archivo `.db`, sin tocar `productos_alibaba`/`progreso_paginas`):
+
+- **`candidatos_ml`**: una fila por publicación de Mercado Libre con
+  evidencia de demanda. Se deduplica por `url_ml` (`upsert_candidato_ml`).
+  `estado` recorre el pipeline (`ESTADOS_CANDIDATO` en `db.py`): `nuevo` →
+  `con_comparable` → `precio_verificado` → `segunda_etapa` → `finalista`,
+  o alguno de los `descartado_*` con su `motivo_descarte`.
+  `fecha_detectado` se preserva entre actualizaciones (no se pisa).
+- **`alibaba_comparables`**: el producto de Alibaba elegido como
+  comparable de un candidato (`candidato_id`), con el precio **verificado
+  en la ficha individual** (`precio_alibaba_50u`) — nunca el de la
+  búsqueda. `precio_no_verificado`/`requiere_contacto_proveedor` son los
+  flags de la regla "si no se puede determinar el precio con confianza,
+  excluir de esta corrida".
+- **`historial_ml`**: observaciones de un candidato en el tiempo (precio,
+  stock visible, ventas visibles, ranking). **Append-only**:
+  `registrar_observacion_historial` siempre inserta una fila nueva, nunca
+  actualiza una existente — es la base para medir rotación real
+  comparando observaciones sucesivas, no un snapshot que se pisa.
+
+Todavía no hay collector que llene estas tablas (eso es la fase 1 en
+adelante) — por ahora es el esquema + las funciones de acceso, ya
+testeadas con SQLite en memoria (`database/tests/test_db_sourcing.py`).
 
 ## Instalación y uso
 
