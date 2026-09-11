@@ -1,5 +1,10 @@
 # Catálogo Alibaba + motor de sourcing Mercado Libre → Alibaba (MUTE)
 
+> **¿Retomando el proyecto?** Empezá por [`ESTADO_ACTUAL.md`](ESTADO_ACTUAL.md)
+> — resumen de qué está validado, qué falta, y el próximo punto de
+> entrada explícito. Este README es la bitácora completa con el detalle
+> de cada hallazgo; el otro archivo es el snapshot rápido.
+
 Proyecto independiente del resto del repo (vive solo en esta carpeta, con
 su propio `requirements.txt`). Es la evolución de `alibaba-ml-comparador/`
 (que carga datos a mano). Tiene dos partes:
