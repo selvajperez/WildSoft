@@ -7,73 +7,107 @@
 
 ## 🚦 Próximo punto de entrada (leer esto primero)
 
-**Match Mode (matching ML ↔ Alibaba) está diseñado, implementado y
-probado con datos reales capturados — pero todavía NO validado con
-navegación real en vivo.** Eso es lo que sigue, antes de tocar el filtro
-económico o cualquier otra cosa nueva:
+**Match Mode está funcionando de punta a punta con navegación real** (Caso
+1 de la validación real, ver abajo) — el pipeline completo (ficha ML →
+búsqueda Alibaba → ranking → verificación de top_k → decisión) corrió sin
+errores sobre datos en vivo. Sigue la batería de validación (faltan más
+casos) **antes de calibrar nada o avanzar al filtro económico.**
 
-**Correr la batería de validación real pedida por la usuaria**, sobre su
-máquina (mismo perfil de Chrome `.perfil_chrome_collector` ya calentado):
+**Nota operativa importante, encontrada durante la validación**: el perfil
+de Chrome (`.perfil_chrome_collector`) puede acumular "mala reputación"
+ante el CAPTCHA de Alibaba después de varios intentos fallidos seguidos —
+no es un problema del código. Si aparece el slider CAPTCHA de forma
+persistente incluso resolviéndolo a mano, la solución que funcionó fue
+crear un perfil nuevo (renombrar el viejo, dejarlo como respaldo/muestra
+para comparar) y calentarlo de cero con un Chrome manual antes de volver
+a correr el script. Ver sección 4 para el detalle.
+
+Correr un caso (ya no hace falta pasar la URL a mano — hay un helper que
+elige automáticamente el próximo candidato con `demanda_confirmada` y
+mayor `unidades_vendidas`; como cada corrida cambia el `estado` del
+candidato procesado, la corrida siguiente elige uno distinto solo):
 
 ```powershell
 cd alibaba-catalog\collector_alibaba
-python orquestador_matching.py "https://articulo.mercadolibre.com.ar/MLA-..." --login
-# corridas siguientes ya no necesitan --login
-python orquestador_matching.py "https://articulo.mercadolibre.com.ar/MLA-..."
+python _validar_caso1.py --login   # solo si hace falta loguearse de nuevo
+python _validar_caso1.py           # corridas siguientes
 ```
 
-`url_ml` tiene que ser la URL de un candidato **ya presente en
-`candidatos_ml` con `estado = demanda_confirmada`** (Match Mode verifica
-demanda→comparable, no descubre productos nuevos — correr primero
-`orquestador_demanda_ml.py` si hace falta un candidato nuevo).
-
 Casos a cubrir (pedido explícito de la usuaria, con al menos un caso por
-punto):
+punto) — **estado actual: 1/4 corrido**:
 
-1. **Varios matches claros** (2-3 candidatos de ML de distinto rubro,
-   para no calibrar todo alrededor de un solo tipo de producto).
-2. **Un caso sin match real** — un candidato de ML de un producto que casi
-   seguro no está en Alibaba tal cual (ej. algo con marca/certificación
-   local) — el resultado esperado es `SIN_MATCH_CONFIABLE` explícito, no
-   "el más parecido aunque sea malo".
-3. **Un "gemelo tramposo"**: un producto visualmente muy parecido en
-   Alibaba pero con un atributo esencial incompatible (tipo de producto,
-   material, capacidad, etc. distinto) — tiene que quedar vetado, no
-   elegido solo porque la imagen/texto puntúan alto. (La lógica de este
-   veto ya está probada con datos sintéticos en
-   `tests/test_matcher.py::test_ejecutar_matching_gemelo_tramposo_...`,
-   falta confirmarla con un caso real.)
+1. **Varios matches claros** (2-3 candidatos de ML de distinto rubro) —
+   ✅ **Caso 1 corrido** (ver abajo), resultado `SIN_MATCH_CONFIABLE` por
+   muy poco margen — no es un match claro todavía confirmado, hace falta
+   al menos otro caso de este punto.
+2. **Un caso sin match real** — sin probar todavía.
+3. **Un "gemelo tramposo"** — sin probar todavía (lógica ya validada con
+   datos sintéticos en `tests/test_matcher.py`, falta un caso real).
 4. Si se consigue, **un caso con fotos distintas del mismo producto real**
-   (mismo producto, ángulos/fondos distintos) — para ver si la similitud
-   de imagen sigue siendo suficientemente alta.
+   — sin probar todavía.
 
-Para cada caso, documentar acá mismo (nueva sub-sección "Resultados de la
-validación real") o en el propio `matching_alibaba` (ya queda todo
-guardado ahí, auditable): candidato de ML, candidatos de Alibaba
-considerados (`candidatos_rankeados`/`candidatos_evaluados`, ya vienen en
-el resultado), cuál se eligió o por qué no se eligió ninguno, señales
-usadas, score/confianza, y la URL individual de Alibaba cuando hay match.
-
-**Muy probable que haga falta calibrar** (ajuste #5, a propósito dejado
-abierto):
-- Los pesos (`PesosMatching`, default texto 0.45 / imagen 0.35 /
-  atributos 0.20) y umbrales (`UmbralesMatching`, default MATCH_ALTO≥0.80,
-  MATCH_PROBABLE≥0.60) de `matcher.py`.
-- El recall de la estrategia de búsqueda v1 (título de ML limpiado, sin
-  traducir) — si en la validación real no encuentra productos que sí
-  existen en Alibaba, agregar una segunda estrategia (ej. traducida al
-  inglés) a `orquestador_matching.ESTRATEGIAS_QUERY_DEFAULT` (diseñado
-  para eso, no hace falta tocar `matcher.py`).
-- El diccionario de categorías/materiales de `atributos_matching.py`
-  (`CANON_CATEGORIA`/`CANON_MATERIAL`) es chico a propósito — un chequeo
-  ad-hoc con los dos fixtures reales de ML/Alibaba mostró que hoy no
-  distingue "cepillo eléctrico de piso" de "cepillo de mano para
-  platos" (ambos caen en el bucket genérico `cepillo`) — el texto/imagen
-  deberían compensarlo, pero es un límite conocido del diccionario v1, no
-  un bug — ver sección 7.
+Para cada caso, documentar acá mismo (ver "Validación real — resultados
+por caso" abajo) o en el propio `matching_alibaba` (ya queda todo
+guardado ahí, auditable).
 
 **No avanzar con el filtro económico (×2.5 / USD 10) ni con ninguna otra
-funcionalidad nueva hasta terminar esta validación real.**
+funcionalidad nueva hasta terminar esta validación real.** Tampoco
+calibrar pesos/umbrales/patrones todavía — instrucción explícita de la
+usuaria: juntar más observaciones independientes primero.
+
+### Validación real — resultados por caso
+
+#### Caso 1 (2026-09-11) — corrida real completa, sin CAPTCHA, sin crashes
+
+- **Candidato ML**: `MLA6343795` — "Cepillo Limpiador Eléctrico 9
+  accesorios Multifuncion Piso Color Blanco" (elegido automáticamente,
+  mayor `unidades_vendidas` entre `demanda_confirmada`).
+- **Query usada** (estrategia v1, español sin traducir): "cepillo
+  limpiador eléctrico accesorios multifuncion piso" → **48 resultados**
+  en Alibaba (la estrategia v1 alcanzó, no hizo falta una segunda en
+  inglés para este caso).
+- **Top 3 verificados** (fichas abiertas en orden, todos productos reales
+  de "cepillo eléctrico recargable multifunción para baño/cocina/piso" —
+  muy parecidos entre sí y al candidato de ML):
+  1. Score final 0.591
+  2. Score final 0.595
+  3. Score final 0.593
+- **Decisión: `SIN_MATCH_CONFIABLE`.** Ningún veto por atributo esencial
+  (ninguno de los 3 fue un "gemelo tramposo" — la categoría `cepillo`
+  coincidió en los tres), pero los tres quedaron justo por debajo del
+  umbral de `MATCH_PROBABLE` (≥0.60 hace falta, sacaron ~0.59-0.595).
+  Motivo completo en `matching_alibaba`: "Se agotaron los 3 candidatos
+  verificables del top_k sin encontrar un match confiable (0 vetados por
+  atributo esencial incompatible, el resto por debajo del umbral de
+  match)."
+
+**Dos hallazgos registrados, sin tocar código todavía** (pesos, umbral
+0.60, patrones de atributos y parser de imagen quedan igual hasta juntar
+más casos):
+
+1. **La ficha de ML de este candidato devolvió `imagen_url = None`**
+   (`parser_ficha_ml.py` no encontró `image` en su JSON-LD esta vez —
+   puede pasar según el producto). Sin imagen de ML, la señal visual
+   (35% del peso) aportó `0.0` en los tres candidatos verificados, aunque
+   sean visualmente muy parecidos al ojo. Con `atributos_score=1.0` (el
+   único atributo comparable, `categoria`, coincidió) y `texto_score`
+   entre 0.87-0.88, el cálculo real fue `0.88×0.45 + 0×0.35 + 1.0×0.20 ≈
+   0.596` — muy cerca del umbral. Es razonable sospechar que si la imagen
+   hubiera estado disponible, al menos uno de los tres podría haber
+   cruzado a `MATCH_PROBABLE`. Sin evidencia todavía de cuán seguido pasa
+   esto (¿todas las fichas de ML tienen imagen, o es una excepción?) —
+   necesita más casos antes de decidir un fallback (ej. tomar la
+   miniatura del listado si la ficha no trae imagen).
+2. **"9 accesorios" (del título de ML) no fue reconocido como cantidad de
+   piezas** por `atributos_matching._RE_CANTIDAD_PIEZAS` — el patrón solo
+   reconoce "pcs/piezas/unidades/units", no "accesorios". No apareció en
+   ninguna `comparaciones_atributos` de este caso. Candidato a ampliar el
+   patrón más adelante, con más evidencia real de qué palabras usa la
+   gente para esto.
+
+**Caso 2 en curso** — mismo mecanismo automático, otro candidato de
+`demanda_confirmada` (el primero ya cambió de estado tras el Caso 1, así
+que `_validar_caso1.py` elige uno distinto solo).
 
 ---
 
@@ -243,6 +277,25 @@ mismo (regla explícita de la usuaria).
   Resolver el login/CAPTCHA ahí con normalidad, **cerrar esa ventana por
   completo**, y recién ahí correr el script — reutiliza la sesión ya
   "calentada" sin volver a toparse con el problema.
+- **Hallazgo nuevo (validación real de Match Mode, 2026-09-11): la
+  reputación del perfil se puede "ensuciar"**. Después de varios intentos
+  fallidos seguidos contra el CAPTCHA de Alibaba (incluso resolviéndolo a
+  mano en un Chrome manual, siguiendo el truco de arriba), el mismo
+  perfil siguió recibiendo el slider una y otra vez. Experimento
+  controlado (perfil viejo sin tocar como control, perfil nuevo desde
+  cero): con un perfil `.perfil_chrome_collector` recién creado, tanto la
+  navegación manual como la automatizada (Playwright) pasaron la
+  búsqueda y la apertura de ficha de Alibaba **sin un solo CAPTCHA**
+  (confirmado en `capturas_exploratorias/manifiesto.jsonl`, entradas
+  `matching_alibaba_busqueda`/`matching_alibaba_ficha` con
+  `bloqueado: false`). Conclusión: el CAPTCHA de Playwright en sí mismo
+  sigue siendo real (ver el hallazgo de arriba), pero ADEMÁS la sesión/
+  perfil puede acumular sospecha con el tiempo/intentos — dos problemas
+  distintos, no uno solo. Si vuelve a aparecer el CAPTCHA de forma
+  persistente: renombrar `.perfil_chrome_collector` (nunca borrarlo, sirve
+  de referencia) y dejar que el próximo `navegador_persistente()` cree uno
+  nuevo en su lugar, después calentarlo con el truco de Chrome manual de
+  arriba.
 - **Manejo del bloqueo dentro del pipeline** (`navegador_ml.pausar_por_bloqueo_y_continuar`):
   nunca cierra Chrome ni intenta resolver/evadir nada. Pausa
   indefinidamente (sin timeout corto) con el mensaje "[Sitio] requiere
@@ -375,13 +428,15 @@ En orden, cada uno bloqueado por el anterior:
 
 ## 9. Estado de los tests
 
-**198/198 tests pasan** (`pytest` desde la raíz de `alibaba-catalog/`,
-147 previos a esta fase + 51 nuevos de Match Mode: `test_embeddings.py`,
+**201/201 tests pasan** (`pytest` desde la raíz de `alibaba-catalog/`,
+147 previos a esta fase + 54 nuevos de Match Mode: `test_embeddings.py`,
 `test_atributos_matching.py`, `test_matcher.py`,
 `test_orquestador_matching.py`, más tests agregados a los parsers
-existentes y a `test_db_sourcing.py`). Cada test de matching usa
-embedders fake (deterministas, sin red) — la única verificación con red
-real pendiente es la validación en vivo de la sección 🚦.
+existentes, a `test_db_sourcing.py` y a `test_navegador_ml.py`
+(`goto_seguro`, ver sección 8). Cada test de matching usa embedders fake
+(deterministas, sin red) — la validación en vivo real (sección 🚦) ya
+arrancó y confirmó que el pipeline funciona con navegación real (Caso 1),
+sigue con más casos.
 
 ```bash
 cd alibaba-catalog
