@@ -125,23 +125,46 @@ def _guardar_html_diagnostico(id_ml: str, html: str) -> Path:
     return archivo
 
 
+def _guardar_html_diagnostico_busqueda(busqueda: str, html: str) -> Path:
+    """
+    Guarda el HTML crudo del LISTADO cuando `parsear_listado_busqueda` no
+    extrajo ningún resultado -- 0 resultados en una búsqueda real (ej.
+    "cepillo de limpieza") es anómalo, no un caso normal, y sin el HTML no
+    hay forma de saber si fue un bloqueo no detectado, un cambio de
+    plantilla, u otra cosa, sin pedirle a nadie que lo recolecte a mano.
+    """
+    DIR_DIAGNOSTICO_FICHAS.mkdir(parents=True, exist_ok=True)
+    slug = busqueda.replace(" ", "_")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    archivo = DIR_DIAGNOSTICO_FICHAS / f"busqueda_sin_resultados_{slug}_{timestamp}.html"
+    archivo.write_text(html, encoding="utf-8")
+    logger.warning("Búsqueda '%s' sin resultados -- HTML guardado en %s para diagnóstico.", busqueda, archivo)
+    return archivo
+
+
 def medir_busqueda(
     busqueda: str,
     obtener_html_busqueda: Callable[[str], str],
     abrir_ficha: Callable[[str, str], str],
     max_fichas_por_busqueda: int,
     guardar_diagnostico: Callable[[str, str], None] | None = None,
+    guardar_diagnostico_busqueda: Callable[[str, str], None] | None = None,
 ) -> list[dict]:
     """
     Abre TODAS las fichas Prioridad A/B de una búsqueda (A primero, igual
     que `orquestador_demanda_ml.py`), hasta `max_fichas_por_busqueda`, sin
     ningún criterio de corte por "candidatos ya confirmados" -- acá el
     objetivo es medir, no curar candidatos. `guardar_diagnostico`, si se
-    pasa, se invoca para cada ficha que quede "otro_error" (no toca disco
-    por defecto, así los tests no tienen efectos secundarios de archivo).
+    pasa, se invoca para cada ficha que quede "otro_error"; `guardar_diagnostico_busqueda`,
+    si se pasa, se invoca si el listado no dio ningún resultado. Ninguno
+    toca disco por defecto, así los tests no tienen efectos secundarios
+    de archivo.
     """
     html_busqueda = obtener_html_busqueda(_url_busqueda(busqueda))
     resultados = parsear_listado_busqueda(html_busqueda)
+
+    if not resultados and guardar_diagnostico_busqueda is not None:
+        guardar_diagnostico_busqueda(busqueda, html_busqueda)
 
     cola_a = [item for item in resultados if clasificar_prioridad(item) == "A"]
     cola_b = [item for item in resultados if clasificar_prioridad(item) == "B"]
@@ -203,6 +226,7 @@ def ejecutar_medicion_real(
                 medir_busqueda(
                     busqueda, obtener_html_busqueda, abrir_ficha, max_fichas_por_busqueda,
                     guardar_diagnostico=_guardar_html_diagnostico,
+                    guardar_diagnostico_busqueda=_guardar_html_diagnostico_busqueda,
                 )
             )
 

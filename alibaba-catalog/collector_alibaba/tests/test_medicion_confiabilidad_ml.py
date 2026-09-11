@@ -93,6 +93,49 @@ def test_medir_busqueda_guarda_diagnostico_solo_de_otro_error():
     assert "iniciar sesión" in llamadas[0][1]
 
 
+def test_medir_busqueda_guarda_diagnostico_de_busqueda_sin_resultados():
+    """
+    Hallazgo real (corrida del 2026-09-11): una corrida terminó con 0
+    fichas intentadas en las 5 búsquedas, sin que se detectara ningún
+    bloqueo -- el listado mismo no dio resultados. `guardar_diagnostico_busqueda`
+    tiene que invocarse en ese caso para poder diagnosticarlo con HTML real.
+    """
+    llamadas = []
+
+    def _abrir_busqueda_vacia(_url: str) -> str:
+        return "<html><body>no hay li.ui-search-layout__item acá</body></html>"
+
+    intentos = medir_busqueda(
+        "cepillo de limpieza", _abrir_busqueda_vacia, _abrir_ficha_mixta, max_fichas_por_busqueda=15,
+        guardar_diagnostico_busqueda=lambda busqueda, html: llamadas.append((busqueda, html)),
+    )
+
+    assert intentos == []
+    assert len(llamadas) == 1
+    assert llamadas[0][0] == "cepillo de limpieza"
+    assert "no hay li.ui-search-layout__item" in llamadas[0][1]
+
+
+def test_medir_busqueda_no_guarda_diagnostico_de_busqueda_si_hubo_resultados():
+    llamadas = []
+
+    medir_busqueda(
+        "cepillo de limpieza", _abrir_busqueda_real, _abrir_ficha_mixta, max_fichas_por_busqueda=15,
+        guardar_diagnostico_busqueda=lambda busqueda, html: llamadas.append((busqueda, html)),
+    )
+
+    assert llamadas == []
+
+
+def test_guardar_html_diagnostico_busqueda_escribe_el_archivo(tmp_path, monkeypatch):
+    monkeypatch.setattr(medicion_confiabilidad_ml, "DIR_DIAGNOSTICO_FICHAS", tmp_path / "diagnostico_fichas_ml")
+
+    archivo = medicion_confiabilidad_ml._guardar_html_diagnostico_busqueda("cepillo de limpieza", "<html>vacío</html>")
+
+    assert archivo.name.startswith("busqueda_sin_resultados_cepillo_de_limpieza_")
+    assert archivo.read_text(encoding="utf-8") == "<html>vacío</html>"
+
+
 def test_medir_busqueda_sin_guardar_diagnostico_no_falla():
     intentos = medir_busqueda("cepillo de limpieza", _abrir_busqueda_real, _abrir_ficha_mixta, max_fichas_por_busqueda=15)
     assert len(intentos) == 2  # no revienta sin guardar_diagnostico, aunque haya un 404 de por medio
