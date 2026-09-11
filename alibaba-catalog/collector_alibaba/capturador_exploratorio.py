@@ -79,11 +79,25 @@ logger = logging.getLogger("capturador_exploratorio")
 # --- Detección de bloqueo -----------------------------------------------
 #
 # Para Alibaba reutilizamos el detector ya probado con HTML real
-# (scraper.contiene_marcadores_bloqueo). Para Mercado Libre TODAVÍA NO
-# tenemos ni una sola muestra real de su página de bloqueo/CAPTCHA: esto es
-# un heurístico genérico y explícitamente provisorio. En cuanto tengamos
-# una captura real de un bloqueo de ML, hay que reemplazar esto por
-# marcadores específicos, con el mismo criterio que ya se usó para Alibaba.
+# (scraper.contiene_marcadores_bloqueo).
+#
+# Para Mercado Libre confirmamos con una captura real (ver
+# tests/fixtures/ml_desafio_pow.html) que lo primero que aparece NO es un
+# CAPTCHA que requiera a una persona: es un desafío "Proof of Work" de
+# Akamai Bot Manager que el propio JavaScript de la página resuelve solo
+# (cualquier navegador real que ejecute JS, como el nuestro, lo pasa en
+# unos segundos) y después navega sola al contenido real. Por eso NO se
+# pausa para pedir intervención humana ante esto: se espera a que se
+# resuelva. Si después de esperar seguimos en esta misma página, recién
+# ahí puede hacer falta un CAPTCHA real -- pero eso todavía no lo vimos
+# con HTML real, así que `bloqueado_ml_heuristico` sigue siendo un
+# heurístico genérico y explícitamente provisorio para ese caso.
+_MARCADORES_DESAFIO_POW_ML = (
+    "micro-landing-container",
+    "verifychallenge",
+    "snoopy-generation-web",
+)
+
 _MARCADORES_BLOQUEO_ML_PROVISORIOS = (
     "captcha",
     "verificación de seguridad",
@@ -93,9 +107,29 @@ _MARCADORES_BLOQUEO_ML_PROVISORIOS = (
 )
 
 
+def es_desafio_pow_ml(html: str) -> bool:
+    cuerpo = html.lower()
+    return any(marcador in cuerpo for marcador in _MARCADORES_DESAFIO_POW_ML)
+
+
 def bloqueado_ml_heuristico(html: str) -> bool:
     cuerpo = html.lower()
     return any(marcador in cuerpo for marcador in _MARCADORES_BLOQUEO_ML_PROVISORIOS)
+
+
+def _esperar_resolucion_desafio_pow(pagina, intentos: int = 8, espera_ms: int = 2000) -> str:
+    """
+    El desafío PoW se resuelve solo con JS real en unos segundos. Espera
+    en pasos cortos en vez de un único timeout largo, para no perder
+    tiempo si se resuelve rápido.
+    """
+    html = pagina.content()
+    for _ in range(intentos):
+        if not es_desafio_pow_ml(html):
+            break
+        pagina.wait_for_timeout(espera_ms)
+        html = pagina.content()
+    return html
 
 
 def _extraer_primer_link_producto_ml(html: str) -> str | None:
@@ -172,6 +206,10 @@ def _capturar_busqueda_ml(pagina, busqueda: str) -> str:
     pagina.goto(url, wait_until="domcontentloaded")
     html = pagina.content()
 
+    if es_desafio_pow_ml(html):
+        logger.info("Desafío PoW de Mercado Libre detectado; esperando resolución automática...")
+        html = _esperar_resolucion_desafio_pow(pagina)
+
     if bloqueado_ml_heuristico(html):
         html = _pausar_por_bloqueo_y_continuar(pagina, url, "búsqueda Mercado Libre")
 
@@ -194,6 +232,10 @@ def _capturar_ficha_ml(pagina, html_busqueda: str) -> None:
     logger.info("Abriendo ficha de Mercado Libre: %s", link)
     pagina.goto(link, wait_until="domcontentloaded")
     html = pagina.content()
+
+    if es_desafio_pow_ml(html):
+        logger.info("Desafío PoW de Mercado Libre detectado; esperando resolución automática...")
+        html = _esperar_resolucion_desafio_pow(pagina)
 
     if bloqueado_ml_heuristico(html):
         html = _pausar_por_bloqueo_y_continuar(pagina, link, "ficha Mercado Libre")

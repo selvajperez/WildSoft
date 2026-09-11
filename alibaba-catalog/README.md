@@ -27,16 +27,20 @@ alibaba-catalog/
     collector_browser.py   # orquesta con Chrome real (Playwright): alternativa cuando el sitio bloquea el HTTP puro
     diagnostico_precio.py  # busca un producto en el HTML crudo archivado y muestra su JSON sin normalizar
     capturador_exploratorio.py  # Fase 1 del sourcing: captura automática de muestras ML + Alibaba
+    parser_ficha_alibaba.py     # Fase 2 (arranque): parsea la ficha individual de Alibaba (precio real, MOQ)
     tests/
       test_parser.py
       test_scraper.py
       test_collector_browser.py
       test_diagnostico_precio.py
       test_capturador_exploratorio.py
+      test_parser_ficha_alibaba.py
       fixtures/
         productlist_page19.html          # HTML real (recortado) de un listado válido
         productlist_page_mixto.html      # los mismos 2 + 2 productos reales "a Cotizar" (RFQ)
         pagina_bloqueada_captcha.html    # HTML real (recortado) de la página de bloqueo CAPTCHA
+        ml_desafio_pow.html              # HTML real: desafío Proof-of-Work de Mercado Libre (no es un CAPTCHA humano)
+        alibaba_ficha_real.html          # HTML real (recortado) de una ficha de producto de Alibaba
   paginas_html_crudo/       # HTML crudo de cada página visitada por collector_browser.py (no se commitea)
   capturas_exploratorias/   # muestras de capturador_exploratorio.py + manifiesto.jsonl (no se commitea)
   database/
@@ -273,22 +277,56 @@ Guarda cada HTML en `capturas_exploratorias/` y un renglón por captura en
 `capturas_exploratorias/manifiesto.jsonl` (URL, archivo, timestamp,
 si se detectó un bloqueo).
 
-**Importante sobre la detección de bloqueo**: para Alibaba se reutiliza
-`scraper.contiene_marcadores_bloqueo`, ya confirmado con HTML real. Para
-Mercado Libre **todavía no tenemos ni una muestra real de su página de
-bloqueo/CAPTCHA** — `bloqueado_ml_heuristico` es un heurístico genérico
-explícitamente provisorio (busca palabras como "captcha", "verificación de
-seguridad"). En cuanto esta misma herramienta capture alguna vez un
-bloqueo real de ML, hay que reemplazarlo por marcadores específicos, con
-el mismo proceso que ya se usó para Alibaba (ver el fixture
-`pagina_bloqueada_captcha.html` como referencia de cómo se hizo la vez
-anterior).
+**Actualización con evidencia real (primera corrida)**: lo primero que
+devuelve Mercado Libre ante una visita nueva **no es un CAPTCHA que
+necesite una persona** — es un desafío "Proof of Work" de Akamai Bot
+Manager (`es_desafio_pow_ml`, confirmado con HTML real en
+`tests/fixtures/ml_desafio_pow.html`). Ese desafío lo resuelve solo el
+JavaScript de la propia página (cualquier navegador real que ejecute JS,
+como el nuestro, lo pasa en unos segundos) y después navega sola al
+contenido real — así que la herramienta **espera unos segundos en vez de
+pedir intervención humana** (`_esperar_resolucion_desafio_pow`).
+`bloqueado_ml_heuristico` (heurístico genérico, todavía sin confirmar con
+HTML real) queda como red de seguridad para un bloqueo *distinto* de este
+desafío — si algún día aparece uno, hay que repetir el mismo proceso: mirar
+el HTML real capturado, agregar marcadores específicos, sacar el
+heurístico genérico.
 
-Si aparece un bloqueo (real o falso positivo del heurístico), la
-herramienta pausa, pide resolverlo en la ventana de Chrome, y **al
-presionar ENTER sigue sola** con el resto de las capturas — a diferencia
-de `collector_browser.py`, acá no hay un catálogo largo que proteger
-cortando la corrida, así que tiene sentido seguir en vez de abortar todo.
+Para Alibaba se reutiliza `scraper.contiene_marcadores_bloqueo`, ya
+confirmado con HTML real desde antes.
+
+Si de verdad hace falta intervención humana (`bloqueado_ml_heuristico` o
+el bloqueo de Alibaba), la herramienta pausa, pide resolverlo en la
+ventana de Chrome, y **al presionar ENTER sigue sola** con el resto de las
+capturas — a diferencia de `collector_browser.py`, acá no hay un catálogo
+largo que proteger cortando la corrida, así que tiene sentido seguir en
+vez de abortar todo.
+
+## Parser de ficha individual de Alibaba (`parser_ficha_alibaba.py`)
+
+Confirmado con HTML real (`tests/fixtures/alibaba_ficha_real.html`,
+capturado por `capturador_exploratorio.py`): la ficha de producto
+(`product-detail`) usa una plantilla completamente distinta a la del
+listado — no hay `module-data` en atributos, hay un único bloque
+`window.detailData = {...}` con todo (precio real, MOQ, sku, specs).
+
+`extraer_detail_data(html)` saca ese bloque balanceando llaves (una regex
+simple no alcanza porque hay strings con llaves adentro).
+`parsear_ficha_alibaba(html, url)` arma un dict con la forma de
+`alibaba_comparables`:
+
+- `precio_alibaba_50u` / `moneda`: de
+  `globalData.product.price.productRangePrices` — si
+  `dollarPriceRangeLow == dollarPriceRangeHigh` es un precio único y vale
+  para cualquier cantidad (confirmado: el producto de referencia,
+  Alibaba ID 1601487795601, es así). Si son distintos, el producto tiene
+  escalones de precio por cantidad y **todavía no sabemos qué campo indica
+  el escalón exacto para ~50 unidades** — se marca `precio_no_verificado`
+  en vez de adivinar.
+- `moq`: de `globalData.product.moq` / `customsMoq`.
+
+Falta conseguir (con el propio `capturador_exploratorio.py`, no a mano) un
+ejemplo real de producto con escalones de precio para completar esa parte.
 
 ## Instalación y uso
 

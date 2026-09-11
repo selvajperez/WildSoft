@@ -1,6 +1,9 @@
 import json
+from pathlib import Path
 
 import capturador_exploratorio as ce
+
+DESAFIO_POW_ML = (Path(__file__).parent / "fixtures" / "ml_desafio_pow.html").read_text(encoding="utf-8")
 
 
 def test_bloqueado_ml_heuristico_detecta_marcadores_provisorios():
@@ -10,6 +13,60 @@ def test_bloqueado_ml_heuristico_detecta_marcadores_provisorios():
 
 def test_bloqueado_ml_heuristico_no_marca_html_normal():
     assert ce.bloqueado_ml_heuristico("<html><body>Resultados de la búsqueda</body></html>") is False
+
+
+def test_es_desafio_pow_ml_detecta_html_real():
+    """
+    HTML real capturado al buscar "cepillo de limpieza" en Mercado Libre:
+    no es el resultado de búsqueda, es el desafío Proof-of-Work de Akamai
+    Bot Manager que la propia página resuelve sola con JavaScript.
+    """
+    assert ce.es_desafio_pow_ml(DESAFIO_POW_ML) is True
+
+
+def test_es_desafio_pow_ml_no_marca_html_normal():
+    assert ce.es_desafio_pow_ml("<html><body>Resultados de la búsqueda</body></html>") is False
+
+
+class _PaginaFalsa:
+    """Stub de una Page de Playwright: devuelve HTMLs distintos en cada `content()`."""
+
+    def __init__(self, secuencia_html):
+        self._secuencia = list(secuencia_html)
+        self.esperas = 0
+
+    def content(self):
+        return self._secuencia[min(self.esperas, len(self._secuencia) - 1)]
+
+    def wait_for_timeout(self, _ms):
+        self.esperas += 1
+
+
+def test_esperar_resolucion_desafio_pow_reintenta_hasta_que_se_resuelve():
+    pagina = _PaginaFalsa([DESAFIO_POW_ML, DESAFIO_POW_ML, "<html><body>resultados reales</body></html>"])
+
+    html_final = ce._esperar_resolucion_desafio_pow(pagina, intentos=5, espera_ms=1)
+
+    assert html_final == "<html><body>resultados reales</body></html>"
+    assert pagina.esperas == 2
+
+
+def test_esperar_resolucion_desafio_pow_no_hace_nada_si_no_hace_falta():
+    pagina = _PaginaFalsa(["<html><body>resultados reales</body></html>"])
+
+    html_final = ce._esperar_resolucion_desafio_pow(pagina, intentos=5, espera_ms=1)
+
+    assert html_final == "<html><body>resultados reales</body></html>"
+    assert pagina.esperas == 0
+
+
+def test_esperar_resolucion_desafio_pow_se_rinde_tras_agotar_intentos():
+    pagina = _PaginaFalsa([DESAFIO_POW_ML])
+
+    html_final = ce._esperar_resolucion_desafio_pow(pagina, intentos=3, espera_ms=1)
+
+    assert ce.es_desafio_pow_ml(html_final) is True
+    assert pagina.esperas == 3
 
 
 def test_extraer_primer_link_producto_ml_encuentra_patron_mla():
