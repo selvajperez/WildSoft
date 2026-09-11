@@ -29,6 +29,7 @@ alibaba-catalog/
     capturador_exploratorio.py  # Fase 1 del sourcing: captura automática de muestras ML + Alibaba
     parser_ficha_alibaba.py     # Fase 2 (arranque): parsea la ficha individual de Alibaba (precio real, MOQ)
     parser_ficha_ml.py          # Fase 1 (arranque): parsea la ficha individual de Mercado Libre (demanda, precio)
+    parser_busqueda_ml.py       # Fase 1: parsea el listado de búsqueda de ML (prefiltro de demanda, sin abrir fichas)
     tests/
       test_parser.py
       test_scraper.py
@@ -37,6 +38,7 @@ alibaba-catalog/
       test_capturador_exploratorio.py
       test_parser_ficha_alibaba.py
       test_parser_ficha_ml.py
+      test_parser_busqueda_ml.py
       fixtures/
         productlist_page19.html          # HTML real (recortado) de un listado válido
         productlist_page_mixto.html      # los mismos 2 + 2 productos reales "a Cotizar" (RFQ)
@@ -44,6 +46,7 @@ alibaba-catalog/
         ml_desafio_pow.html              # HTML real: desafío Proof-of-Work de Mercado Libre (no es un CAPTCHA humano)
         alibaba_ficha_real.html          # HTML real (recortado) de una ficha de producto de Alibaba
         ml_ficha_real.html               # HTML real (recortado) de una ficha de producto de Mercado Libre
+        ml_busqueda_real.html            # HTML real (recortado): 4 tarjetas representativas de una búsqueda de 60 resultados
   paginas_html_crudo/       # HTML crudo de cada página visitada por collector_browser.py (no se commitea)
   capturas_exploratorias/   # muestras de capturador_exploratorio.py + manifiesto.jsonl (no se commitea)
   database/
@@ -362,6 +365,94 @@ forma de `candidatos_ml` (+`stock_visible`, para la primera fila del
 historial). Confirmado con datos reales: `precio_ml=68780 ARS`,
 `unidades_vendidas=1000`, `stock_visible=5`,
 `evidencia_demanda="+1000 vendidos"`.
+
+## Parser del listado de búsqueda de Mercado Libre (`parser_busqueda_ml.py`)
+
+Objetivo (regla del proyecto): extraer señal de demanda de cada resultado
+**sin abrir ninguna ficha individual**, para prefiltrar antes de gastar
+tiempo/riesgo abriendo fichas una por una. Confirmado con HTML real
+(`tests/fixtures/ml_busqueda_real.html`, búsqueda "cepillo de limpieza",
+60 resultados reales).
+
+### Estructura real de cada resultado
+
+Cada resultado es un `<li class="ui-search-layout__item">` con una
+tarjeta "poly-card" (framework propio de ML). Por tarjeta:
+
+- **Título + item_id + posición**: en el `href` de `a.poly-component__title`.
+- **Precio**: `aria-label` del `span.andes-money-amount` dentro de
+  `.poly-price__current` (ej. `"111420 pesos argentinos"`) — más
+  confiable que parsear el texto visible con separadores de miles.
+- **Rating promedio** (sin cantidad de opiniones): `.poly-component__review-compacted`.
+- **Badge "MÁS VENDIDO"**: booleano, no es un conteo.
+- **Texto libre "+N vendidos"**: buscado, pero ver más abajo.
+
+### Hallazgo real importante: la URL del resultado tiene TRES formas distintas
+
+Se descubrieron corriendo el parser contra el HTML real, no adivinando de
+antemano — dos iteraciones de bugs reales, cada una perdiendo resultados
+silenciosamente:
+
+1. **Orgánico "catálogo"**: `.../nombre-del-producto/p/MLA21816514#...` —
+   link directo y limpio, se usa tal cual (recortando el `#...` de tracking).
+2. **Orgánico "publicación individual"**: `.../nombre/up/MLAU3256312831#...`
+   — mismo caso, pero segmento `/up/` (no `/p/`) y prefijo de **4 letras**
+   ("MLAU", no "MLA"). La primera versión del regex solo contemplaba
+   `/p/` + 3 letras y perdía **estos 17 resultados silenciosamente**.
+3. **Con wrapper de tracking de clicks**: no hay URL directa en el
+   `href`, solo un `item_id` en el query string
+   (`pdp_filters=item_id%3AMLA123...`). Ahí se reconstruye la URL
+   canónica (`https://articulo.mercadolibre.com.ar/<item_id>`).
+
+Una primera versión del parser (que solo buscaba el patrón de tracking,
+caso 3) extraía **12 de 60** resultados reales — perdía el 80% sin dar
+ningún error. Con los tres casos cubiertos: **60 de 60**.
+
+### Hallazgo real importante: el grid principal NO muestra "+N vendidos"
+
+De los 60 resultados reales de la búsqueda de referencia, **ninguno**
+mostró el texto "+N vendidos" en el grid principal. Ese patrón sí
+apareció, en otra captura, dentro de un carrusel de "también te puede
+interesar" en una ficha individual — un contexto distinto. El parser
+sigue buscando ese patrón por si otra búsqueda sí lo muestra (cubierto con
+un caso sintético en los tests, marcado explícitamente como no confirmado
+con HTML real todavía), pero **no se puede asumir que el listado siempre
+trae el conteo de ventas** — de los 60 resultados, la señal disponible fue
+badge "MÁS VENDIDO" (2) o rating promedio sin conteo de opiniones (18); 40
+no mostraron ninguna señal.
+
+Regla del proyecto respetada: `_normalizar_conteo_vendidos()` nunca trata
+"+500" como exactamente 500 (es una conversión aproximada), y
+`evidencia_demanda` siempre conserva el texto/badge tal cual se vio, para
+poder auditar después.
+
+### Prefiltro de demanda y guardado en `candidatos_ml`
+
+`tiene_senal_de_demanda(item)` es `True` si hay *cualquier* señal visible
+(conteo de vendidos, badge, o rating). `resultado_a_candidato(item)`
+traduce un resultado a los campos de `candidatos_ml`, aplicando el
+prefiltro: sin ninguna señal, el candidato ya entra con
+`estado="descartado_demanda_insuficiente"` y su `motivo_descarte" — así el
+pipeline nunca gasta una visita a esa ficha individual. `parser_busqueda_ml.py`
+no toca la base directamente (función pura); guardar es un `for` simple
+con `db.upsert_candidato_ml` (ver `test_guardar_resultados_del_listado_en_candidatos_ml`).
+
+### Resultado de la prueba real (búsqueda "cepillo de limpieza")
+
+| | |
+|---|---|
+| Resultados extraídos | 60 / 60 |
+| Con señal de demanda (→ `nuevo`) | 20 |
+| Sin señal (→ `descartado_demanda_insuficiente`, sin abrir su ficha) | 40 |
+| Desglose de señal | badge "MÁS VENDIDO": 2 — rating visible: 18 — conteo explícito de vendidos: 0 |
+| URLs duplicadas | 0 |
+| Precios sin detectar / nombres vacíos | 0 |
+| Falsos positivos encontrados | Ninguno una vez corregidas las 2 formas de URL faltantes (ver hallazgos arriba) |
+
+**No se avanzó con matching contra Alibaba ni con el pipeline completo**
+(regla explícita de esta etapa) hasta confirmar que este parser de
+listado extrae de forma confiable — con el 60/60 y cero duplicados/campos
+vacíos, se considera validado para seguir.
 
 ## Instalación y uso
 

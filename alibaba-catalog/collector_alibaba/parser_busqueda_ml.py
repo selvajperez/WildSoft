@@ -1,0 +1,217 @@
+"""
+Parser del listado de resultados de búsqueda de Mercado Libre.
+
+Objetivo (regla del proyecto): extraer la mayor señal de demanda posible
+SIN abrir ninguna ficha individual, para prefiltrar antes de gastar
+tiempo/riesgo abriendo fichas una por una.
+
+Confirmado con HTML real (ver tests/fixtures/ml_busqueda_real.html,
+búsqueda "cepillo de limpieza", 60 resultados reales). Cada resultado es
+un `<li class="ui-search-layout__item">` con una tarjeta "poly-card"
+(framework propio de ML). Por tarjeta, cuando están presentes:
+
+  - Título + item_id + posición: en el `href` de
+    `a.poly-component__title` (ej. "...&item_id%3AMLA123...&position=4...").
+    El `href` es un link de tracking de clicks, no la URL final del
+    producto -- se reconstruye la URL directa a partir del `item_id`
+    (`https://articulo.mercadolibre.com.ar/<item_id>`), que es estable.
+  - Precio: `span.andes-money-amount` dentro de `.poly-price__current`,
+    vía su `aria-label` ("111420 pesos argentinos") -- más confiable que
+    parsear el texto visible con separadores de miles.
+  - Rating promedio (SIN cantidad de opiniones): `.poly-component__review-compacted`.
+  - Badge "MÁS VENDIDO": booleano, no es un conteo.
+  - Texto libre "+N vendidos" / "+N mil vendidos": buscado por si
+    aparece, pero **en la búsqueda real de referencia no apareció en
+    ningún resultado del grid principal** (sí apareció, en otra captura,
+    en un carrusel de recomendados dentro de una ficha individual — un
+    contexto distinto). No asumir que siempre está.
+
+Regla del proyecto: nunca tratar "+500" como exactamente 500.
+`unidades_vendidas` es una aproximación (ver `_normalizar_conteo_vendidos`);
+`evidencia_demanda` conserva siempre el texto crudo tal cual se vio.
+"""
+
+from __future__ import annotations
+
+import re
+import urllib.parse
+
+from bs4 import BeautifulSoup
+
+MAS_VENDIDO_TEXTO = "MÁS VENDIDO"
+
+# Hay TRES formas de href en la misma búsqueda real, según el tipo de
+# resultado:
+#   - Orgánico "catálogo" (".../p/MLA21816514#..."): link directo y
+#     limpio. Se usa tal cual (recortando el fragmento de tracking
+#     después del #).
+#   - Orgánico "publicación individual" (".../up/MLAU3256312831#..."):
+#     mismo caso, pero con el segmento "/up/" (no "/p/") y un prefijo de
+#     4 letras ("MLAU", no "MLA") -- son publicaciones sin página de
+#     catálogo unificada. Una primera versión de este regex solo
+#     contemplaba "/p/" + 3 letras y perdía TODOS estos resultados
+#     silenciosamente -- confirmado corriendo contra el HTML real.
+#   - Con wrapper de tracking de clicks (resultados con
+#     is_advertising=true en el propio href): no hay URL directa en el
+#     href, solo un item_id en el query string
+#     ("...pdp_filters=item_id%3AMLA123..."). Ahí se reconstruye la URL
+#     canónica a partir del item_id.
+# Entre las dos formas orgánicas, la primera versión de este parser (que
+# solo buscaba el patrón de tracking) perdía el 80% de los resultados
+# reales; sumando "/up/" todavía faltaba un tercio de los restantes.
+_RE_ITEM_ID_DIRECTO = re.compile(r"/u?p/([A-Za-z]+\d+)")
+_RE_ITEM_ID_TRACKING = re.compile(r"item_id:([A-Za-z]+\d+)")
+_RE_POSICION = re.compile(r"[?&]position=(\d+)")
+_RE_PRECIO_ARIA = re.compile(r"([\d]+)\s*pesos argentinos", re.I)
+_RE_VENDIDOS = re.compile(r"\+\s*([\d.,]+)\s*(mil)?\s*vendidos", re.I)
+
+
+def _normalizar_conteo_vendidos(texto_crudo: str) -> int | None:
+    """
+    '+500' -> 500; '+1.000' -> 1000; '+5 mil' -> 5000. Es una
+    aproximación -- el propio texto de ML ya es aproximado ("+500" no
+    promete exactamente 500), nunca se trata como un conteo exacto real.
+    """
+    match = _RE_VENDIDOS.search(texto_crudo)
+    if not match:
+        return None
+    numero_str, mil = match.groups()
+    numero = float(numero_str.replace(".", "").replace(",", "."))
+    if mil:
+        numero *= 1000
+    return int(numero)
+
+
+def _url_canonica(item_id: str) -> str:
+    return f"https://articulo.mercadolibre.com.ar/{item_id}"
+
+
+def _extraer_item_id_y_url(href_crudo: str) -> tuple[str, str] | None:
+    """Devuelve (item_id, url_ml) probando primero el link directo, después el de tracking."""
+    href = urllib.parse.unquote(href_crudo)
+
+    match_directo = _RE_ITEM_ID_DIRECTO.search(href)
+    if match_directo:
+        item_id = match_directo.group(1).upper()
+        return item_id, href.split("#")[0]
+
+    match_tracking = _RE_ITEM_ID_TRACKING.search(href)
+    if match_tracking:
+        item_id = match_tracking.group(1).upper()
+        return item_id, _url_canonica(item_id)
+
+    return None
+
+
+def parsear_resultado(li) -> dict | None:
+    """
+    Parsea un único `<li class="ui-search-layout__item">`. Devuelve None
+    si falta lo mínimo indispensable (título + item_id) -- pasa con
+    contenido que no es un resultado de producto real (banners, etc.).
+    """
+    enlace = li.select_one("a.poly-component__title")
+    if enlace is None or not enlace.get("href"):
+        return None
+
+    extraido = _extraer_item_id_y_url(enlace["href"])
+    if extraido is None:
+        return None
+    item_id, url_ml = extraido
+
+    match_pos = _RE_POSICION.search(urllib.parse.unquote(enlace["href"]))
+    posicion = int(match_pos.group(1)) if match_pos else None
+
+    texto_tarjeta = li.get_text(" ", strip=True)
+
+    precio = None
+    precio_el = li.select_one(".poly-price__current .andes-money-amount")
+    if precio_el and precio_el.get("aria-label"):
+        match_precio = _RE_PRECIO_ARIA.search(precio_el["aria-label"])
+        if match_precio:
+            precio = float(match_precio.group(1))
+
+    rating_visible = None
+    rating_el = li.select_one(".poly-component__review-compacted .polylabel-label")
+    if rating_el:
+        try:
+            rating_visible = float(rating_el.get_text(strip=True))
+        except ValueError:
+            rating_visible = None
+
+    mas_vendido = MAS_VENDIDO_TEXTO in texto_tarjeta
+    match_vendidos = _RE_VENDIDOS.search(texto_tarjeta)
+
+    if match_vendidos:
+        evidencia_demanda = match_vendidos.group(0)
+    elif mas_vendido:
+        evidencia_demanda = MAS_VENDIDO_TEXTO
+    elif rating_visible is not None:
+        evidencia_demanda = f"rating {rating_visible} (sin cantidad de opiniones visible)"
+    else:
+        evidencia_demanda = None
+
+    return {
+        "id_ml": item_id,
+        "url_ml": url_ml,
+        "nombre": enlace.get_text(strip=True),
+        "precio_ml": precio,
+        "moneda_ml": "ARS" if precio is not None else None,
+        "posicion": posicion,
+        "rating_visible": rating_visible,
+        "mas_vendido": mas_vendido,
+        "evidencia_demanda": evidencia_demanda,
+        "unidades_vendidas": _normalizar_conteo_vendidos(texto_tarjeta),
+    }
+
+
+def parsear_listado_busqueda(html: str) -> list[dict]:
+    soup = BeautifulSoup(html, "html.parser")
+    resultados = []
+    for li in soup.select("li.ui-search-layout__item"):
+        item = parsear_resultado(li)
+        if item is not None:
+            resultados.append(item)
+    return resultados
+
+
+def resultado_a_candidato(item: dict) -> dict:
+    """
+    Traduce el dict de `parsear_resultado` a los campos de `candidatos_ml`
+    (ver database/db.py), aplicando el prefiltro de demanda: sin ninguna
+    señal visible en el listado, el candidato ya entra descartado -- así
+    el pipeline nunca gasta una visita a su ficha individual (regla del
+    proyecto: "evitar abrir fichas de productos con demanda insuficiente").
+    No hace ningún acceso a la base -- eso es responsabilidad de quien
+    llama (`db.upsert_candidato_ml`).
+    """
+    candidato = {
+        "id_ml": item["id_ml"],
+        "url_ml": item["url_ml"],
+        "nombre": item["nombre"],
+        "evidencia_demanda": item["evidencia_demanda"],
+        "unidades_vendidas": item["unidades_vendidas"],
+        "precio_ml": item["precio_ml"],
+        "moneda_ml": item["moneda_ml"],
+    }
+    if tiene_senal_de_demanda(item):
+        candidato["estado"] = "nuevo"
+        candidato["motivo_descarte"] = None
+    else:
+        candidato["estado"] = "descartado_demanda_insuficiente"
+        candidato["motivo_descarte"] = (
+            "Sin señal de demanda visible en el listado "
+            "(ni conteo de vendidos, ni badge de más vendido, ni rating)."
+        )
+    return candidato
+
+
+def tiene_senal_de_demanda(item: dict) -> bool:
+    """
+    True si hay CUALQUIER señal visible en el listado (conteo de
+    vendidos, badge "MÁS VENDIDO", o rating promedio). Es un prefiltro
+    barato antes de gastar una visita a la ficha individual -- no decide
+    por sí solo si el producto es bueno, solo si vale la pena mirarlo de
+    cerca. Un candidato sin ninguna señal acá se descarta sin abrir su
+    ficha (regla del proyecto).
+    """
+    return item["unidades_vendidas"] is not None or item["mas_vendido"] or item["rating_visible"] is not None

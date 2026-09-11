@@ -80,14 +80,15 @@ CREATE TABLE IF NOT EXISTS progreso_paginas (
 # (no en un ENUM de SQLite, que no existe) para no tener strings mágicos
 # sueltos en el código que arma el pipeline.
 ESTADOS_CANDIDATO = (
-    "nuevo",                          # detectado en ML, todavía sin comparable de Alibaba
-    "con_comparable",                 # tiene un comparable de Alibaba asociado, precio sin verificar
-    "precio_verificado",              # se abrió la ficha individual y se obtuvo un precio confiable
-    "descartado_filtro_economico",    # diferencia_inicial < USD 10
-    "descartado_no_verificado",       # precio de Alibaba no se pudo determinar de forma confiable
-    "descartado_sin_comparable",      # no se encontró un producto comparable en Alibaba
-    "segunda_etapa",                  # sobrevivió el filtro económico, en análisis de logística/margen
-    "finalista",                      # en la shortlist final
+    "nuevo",                             # detectado en ML, todavía sin comparable de Alibaba
+    "descartado_demanda_insuficiente",   # sin ninguna señal de demanda visible en el listado de ML (prefiltro barato, nunca se abrió su ficha)
+    "con_comparable",                    # tiene un comparable de Alibaba asociado, precio sin verificar
+    "precio_verificado",                 # se abrió la ficha individual y se obtuvo un precio confiable
+    "descartado_filtro_economico",       # diferencia_inicial < USD 10
+    "descartado_no_verificado",          # precio de Alibaba no se pudo determinar de forma confiable
+    "descartado_sin_comparable",         # no se encontró un producto comparable en Alibaba
+    "segunda_etapa",                     # sobrevivió el filtro económico, en análisis de logística/margen
+    "finalista",                         # en la shortlist final
 )
 
 ESQUEMA_CANDIDATOS_ML = """
