@@ -119,3 +119,82 @@ def test_obtener_historial_vacio_si_no_hay_observaciones():
     conexion = _conexion_memoria()
     candidato_id = db.upsert_candidato_ml(conexion, {"url_ml": "https://ejemplo.test/1", "nombre": "A"})
     assert db.obtener_historial(conexion, candidato_id) == []
+
+
+def _resultado_matching_match_alto():
+    return {
+        "id_ml": "MLA1",
+        "query_usada": "cepillo de limpieza",
+        "categoria": "MATCH_ALTO",
+        "motivo": "Candidato elegido: https://alibaba.test/x.html",
+        "candidato_elegido": {"url_alibaba": "https://alibaba.test/x.html", "nombre_alibaba": "Cleaning brush", "score_final": 0.9},
+        "candidatos_evaluados": [{"url_alibaba": "https://alibaba.test/x.html", "categoria": "MATCH_ALTO"}],
+        "candidatos_rankeados": [{"candidato": {"id_alibaba": "x"}, "score_ranking": 0.85}],
+    }
+
+
+def test_insertar_resultado_matching_match_alto_guarda_candidato_elegido():
+    conexion = _conexion_memoria()
+    candidato_id = db.upsert_candidato_ml(conexion, {"url_ml": "https://ejemplo.test/1", "nombre": "Cepillo"})
+
+    matching_id = db.insertar_resultado_matching(conexion, candidato_id, _resultado_matching_match_alto())
+
+    assert isinstance(matching_id, int)
+    resultado = db.obtener_ultimo_matching(conexion, candidato_id)
+    assert resultado["categoria"] == "MATCH_ALTO"
+    assert resultado["url_alibaba_elegido"] == "https://alibaba.test/x.html"
+    assert resultado["score_final"] == 0.9
+    assert resultado["candidatos_evaluados"][0]["url_alibaba"] == "https://alibaba.test/x.html"
+    assert resultado["candidatos_rankeados"][0]["score_ranking"] == 0.85
+
+
+def test_insertar_resultado_matching_sin_match_no_tiene_candidato_elegido():
+    conexion = _conexion_memoria()
+    candidato_id = db.upsert_candidato_ml(conexion, {"url_ml": "https://ejemplo.test/1", "nombre": "Cepillo"})
+
+    db.insertar_resultado_matching(conexion, candidato_id, {
+        "id_ml": "MLA1",
+        "query_usada": "cepillo de limpieza",
+        "categoria": "SIN_MATCH_CONFIABLE",
+        "motivo": "Se agotaron los candidatos del top_k.",
+        "candidato_elegido": None,
+        "candidatos_evaluados": [],
+        "candidatos_rankeados": [],
+    })
+
+    resultado = db.obtener_ultimo_matching(conexion, candidato_id)
+    assert resultado["categoria"] == "SIN_MATCH_CONFIABLE"
+    assert resultado["url_alibaba_elegido"] is None
+    assert resultado["score_final"] is None
+
+
+def test_insertar_resultado_matching_rechaza_categoria_desconocida():
+    conexion = _conexion_memoria()
+    candidato_id = db.upsert_candidato_ml(conexion, {"url_ml": "https://ejemplo.test/1", "nombre": "Cepillo"})
+
+    resultado = _resultado_matching_match_alto()
+    resultado["categoria"] = "CATEGORIA_INVENTADA"
+    with pytest.raises(ValueError):
+        db.insertar_resultado_matching(conexion, candidato_id, resultado)
+
+
+def test_matching_alibaba_es_append_only_no_pisa_corridas_anteriores():
+    conexion = _conexion_memoria()
+    candidato_id = db.upsert_candidato_ml(conexion, {"url_ml": "https://ejemplo.test/1", "nombre": "Cepillo"})
+
+    db.insertar_resultado_matching(conexion, candidato_id, _resultado_matching_match_alto())
+    time.sleep(0.01)
+    resultado_2 = _resultado_matching_match_alto()
+    resultado_2["categoria"] = "MATCH_PROBABLE"
+    db.insertar_resultado_matching(conexion, candidato_id, resultado_2)
+
+    historial = db.obtener_historial_matching(conexion, candidato_id)
+    assert len(historial) == 2
+    assert [h["categoria"] for h in historial] == ["MATCH_ALTO", "MATCH_PROBABLE"]
+    assert db.obtener_ultimo_matching(conexion, candidato_id)["categoria"] == "MATCH_PROBABLE"
+
+
+def test_obtener_ultimo_matching_devuelve_none_si_nunca_se_corrio():
+    conexion = _conexion_memoria()
+    candidato_id = db.upsert_candidato_ml(conexion, {"url_ml": "https://ejemplo.test/1", "nombre": "Cepillo"})
+    assert db.obtener_ultimo_matching(conexion, candidato_id) is None

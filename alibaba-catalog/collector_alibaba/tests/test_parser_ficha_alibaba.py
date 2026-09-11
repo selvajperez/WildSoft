@@ -34,6 +34,27 @@ def test_parsear_ficha_alibaba_sin_detail_data_marca_no_verificado():
 
     assert resultado["precio_alibaba_50u"] is None
     assert resultado["precio_no_verificado"] is True
+    assert resultado["nombre_ficha"] is None
+    assert resultado["atributos"] == {}
+    assert resultado["imagenes"] == []
+
+
+def test_parsear_ficha_alibaba_extrae_nombre_atributos_e_imagenes_reales():
+    """
+    Producto real 1601487795601 (ver docstring del módulo): trae subject,
+    specs estructuradas por el proveedor y 6 fotos reales (más un video,
+    que se descarta -- no es una imagen).
+    """
+    resultado = parsear_ficha_alibaba(FICHA_REAL, url="https://www.alibaba.com/product-detail/x_1601487795601.html")
+
+    assert resultado["nombre_ficha"] == (
+        "Washable BPA Free Clean Dish Washing Scrubber Sponge Silicone Sponge Brush Sponge Kitchen Dish Scrubber"
+    )
+    assert resultado["atributos"]["material"] == "Silicone"
+    assert resultado["atributos"]["type"] == "Cleaning Brush"
+    assert resultado["atributos"]["weight"] == "39(g)"
+    assert len(resultado["imagenes"]) == 6
+    assert all(url.startswith("https://sc04.alicdn.com/") for url in resultado["imagenes"])
 
 
 def test_parsear_ficha_alibaba_con_rango_de_precio_no_adivina():

@@ -100,6 +100,13 @@ def parsear_ficha_ml(html: str, url: str | None = None) -> dict:
         "cantidad_opiniones": None,
         "rating": None,
         "pagina_no_encontrada": es_ficha_no_encontrada(html),
+        # Campos usados por Match Mode (Fase 2), no por `candidatos_ml`: el
+        # JSON-LD trae `image` (imagen principal, confirmado real) y
+        # `description`/`brand` -- útiles como texto adicional para el
+        # matcher cuando el nombre del listado es muy corto/ambiguo.
+        "imagen_url": None,
+        "descripcion": None,
+        "marca": None,
     }
 
     producto = extraer_producto_ld_json(html)
@@ -108,6 +115,9 @@ def parsear_ficha_ml(html: str, url: str | None = None) -> dict:
         oferta = producto.get("offers") or {}
         resultado["precio_ml"] = oferta.get("price")
         resultado["moneda_ml"] = oferta.get("priceCurrency")
+        resultado["imagen_url"] = producto.get("image")
+        resultado["descripcion"] = producto.get("description")
+        resultado["marca"] = producto.get("brand")
 
         rating = producto.get("aggregateRating") or {}
         if rating:

@@ -62,6 +62,17 @@ def test_moq_con_unidades_distintas_a_pieces_no_se_normaliza():
     assert item_units["moq_texto"] == "Min. order: 50 units"
 
 
+def test_caso_real_extrae_imagen_de_la_miniatura_no_de_otros_iconos():
+    resultados = parsear_listado_busqueda(FIXTURE)
+    item = next(r for r in resultados if r["id_alibaba"] == "1601233565568")
+    assert item["imagen_url"] == "https://s.alicdn.com/@sc04/kf/Hc675c8ec732741e4b10b0db024e710daY.jpg_300x300.jpg"
+
+
+def test_todos_los_casos_reales_tienen_imagen():
+    resultados = parsear_listado_busqueda(FIXTURE)
+    assert all(r["imagen_url"] is not None for r in resultados)
+
+
 def test_posiciones_reflejan_el_orden_real_del_listado():
     resultados = parsear_listado_busqueda(FIXTURE)
     assert [r["posicion"] for r in resultados] == list(range(1, 8))

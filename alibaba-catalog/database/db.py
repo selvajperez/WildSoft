@@ -15,11 +15,22 @@ Un único archivo (`catalogo_alibaba.db` por defecto) con las tablas:
 - `historial_ml`: observaciones de una publicación de ML a lo largo del
   tiempo (precio, stock, ventas visibles) para medir rotación. Es
   append-only: nunca se actualiza ni se borra una fila existente.
+- `matching_alibaba`: resultado de Match Mode (Fase 2, ver `matcher.py`)
+  para un candidato de ML -- categoría (MATCH_ALTO/MATCH_PROBABLE/
+  SIN_MATCH_CONFIABLE), el candidato de Alibaba elegido si lo hay, y la
+  evidencia completa (todos los candidatos evaluados, no solo el
+  ganador) en columnas JSON, para poder auditar por qué se aceptó o
+  rechazó cada uno. Deliberadamente separada de `alibaba_comparables`
+  (que guarda el precio ya verificado para la etapa económica, todavía
+  sin empezar) -- son preguntas distintas: "¿es el mismo producto?" vs
+  "¿a qué precio?". Append-only, igual que `historial_ml`: correr el
+  matching de nuevo agrega una fila, no pisa la anterior.
 """
 
 from __future__ import annotations
 
 import csv
+import json
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
@@ -172,6 +183,29 @@ COLUMNAS_OBSERVACION_HISTORIAL = [
     "precio", "stock_visible", "unidades_vendidas_visible", "cantidad_opiniones", "rating", "posicion_ranking",
 ]
 
+# Categorías posibles del resultado de Match Mode -- ver matcher.py. La
+# incertidumbre es un resultado válido y explícito (SIN_MATCH_CONFIABLE),
+# nunca "el candidato más parecido aunque sea malo".
+CATEGORIAS_MATCHING = ("MATCH_ALTO", "MATCH_PROBABLE", "SIN_MATCH_CONFIABLE")
+
+ESQUEMA_MATCHING_ALIBABA = """
+CREATE TABLE IF NOT EXISTS matching_alibaba (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    candidato_id INTEGER NOT NULL REFERENCES candidatos_ml(id),
+    query_usada TEXT,
+    categoria TEXT NOT NULL,
+    url_alibaba_elegido TEXT,
+    nombre_alibaba_elegido TEXT,
+    score_final REAL,
+    motivo TEXT,
+    candidatos_evaluados_json TEXT NOT NULL,
+    candidatos_rankeados_json TEXT NOT NULL,
+    pesos_json TEXT,
+    umbrales_json TEXT,
+    fecha_matching TEXT NOT NULL
+);
+"""
+
 
 def conectar(db_path: Path | str = DB_PATH_DEFAULT) -> sqlite3.Connection:
     conexion = sqlite3.connect(db_path)
@@ -180,6 +214,7 @@ def conectar(db_path: Path | str = DB_PATH_DEFAULT) -> sqlite3.Connection:
     conexion.execute(ESQUEMA_CANDIDATOS_ML)
     conexion.execute(ESQUEMA_ALIBABA_COMPARABLES)
     conexion.execute(ESQUEMA_HISTORIAL_ML)
+    conexion.execute(ESQUEMA_MATCHING_ALIBABA)
     _migrar_columnas(conexion, "productos_alibaba", _MIGRACIONES_PRODUCTOS)
     _migrar_columnas(conexion, "candidatos_ml", _MIGRACIONES_CANDIDATOS_ML)
     _migrar_columnas(conexion, "historial_ml", _MIGRACIONES_HISTORIAL_ML)
@@ -345,3 +380,75 @@ def obtener_historial(conexion: sqlite3.Connection, candidato_id: int) -> list[d
     ).fetchall()
     conexion.row_factory = None
     return [dict(fila) for fila in filas]
+
+
+def insertar_resultado_matching(conexion: sqlite3.Connection, candidato_id: int, resultado: dict) -> int:
+    """
+    Guarda el resultado de una corrida de Match Mode (`matcher.MatchResult`,
+    ya convertido a dict -- ver `orquestador_matching.py`). Append-only:
+    correr el matching de nuevo sobre el mismo candidato agrega una fila
+    nueva, nunca pisa la anterior (permite comparar corridas si se
+    recalibran pesos/umbrales más adelante).
+
+    `resultado` espera las claves de `matcher.MatchResult` más, opcionalmente,
+    `pesos` y `umbrales` (dicts) para dejar registrado con qué configuración
+    se corrió -- ninguna de las dos es todavía un valor fijo (ajuste #5).
+    """
+    elegido = resultado.get("candidato_elegido")
+    valores = {
+        "candidato_id": candidato_id,
+        "query_usada": resultado.get("query_usada"),
+        "categoria": resultado["categoria"],
+        "url_alibaba_elegido": elegido.get("url_alibaba") if elegido else None,
+        "nombre_alibaba_elegido": elegido.get("nombre_alibaba") if elegido else None,
+        "score_final": elegido.get("score_final") if elegido else None,
+        "motivo": resultado.get("motivo"),
+        "candidatos_evaluados_json": json.dumps(resultado.get("candidatos_evaluados", []), ensure_ascii=False),
+        "candidatos_rankeados_json": json.dumps(resultado.get("candidatos_rankeados", []), ensure_ascii=False),
+        "pesos_json": json.dumps(resultado.get("pesos")) if resultado.get("pesos") is not None else None,
+        "umbrales_json": json.dumps(resultado.get("umbrales")) if resultado.get("umbrales") is not None else None,
+        "fecha_matching": datetime.now(timezone.utc).isoformat(),
+    }
+
+    if valores["categoria"] not in CATEGORIAS_MATCHING:
+        raise ValueError(f"Categoría de matching desconocida: {valores['categoria']!r}. Válidas: {CATEGORIAS_MATCHING}")
+
+    columnas = ", ".join(valores.keys())
+    placeholders = ", ".join(f":{clave}" for clave in valores)
+
+    cursor = conexion.execute(
+        f"INSERT INTO matching_alibaba ({columnas}) VALUES ({placeholders})", valores
+    )
+    conexion.commit()
+    return cursor.lastrowid
+
+
+def _fila_matching_a_dict(fila: dict) -> dict:
+    fila = dict(fila)
+    fila["candidatos_evaluados"] = json.loads(fila.pop("candidatos_evaluados_json"))
+    fila["candidatos_rankeados"] = json.loads(fila.pop("candidatos_rankeados_json"))
+    fila["pesos"] = json.loads(fila["pesos_json"]) if fila.get("pesos_json") else None
+    fila["umbrales"] = json.loads(fila["umbrales_json"]) if fila.get("umbrales_json") else None
+    fila.pop("pesos_json", None)
+    fila.pop("umbrales_json", None)
+    return fila
+
+
+def obtener_ultimo_matching(conexion: sqlite3.Connection, candidato_id: int) -> dict | None:
+    """La corrida de matching más reciente para un candidato, o None si nunca se corrió."""
+    conexion.row_factory = sqlite3.Row
+    fila = conexion.execute(
+        "SELECT * FROM matching_alibaba WHERE candidato_id = ? ORDER BY fecha_matching DESC LIMIT 1", (candidato_id,)
+    ).fetchone()
+    conexion.row_factory = None
+    return _fila_matching_a_dict(fila) if fila else None
+
+
+def obtener_historial_matching(conexion: sqlite3.Connection, candidato_id: int) -> list[dict]:
+    """Todas las corridas de matching de un candidato, de la más vieja a la más nueva."""
+    conexion.row_factory = sqlite3.Row
+    filas = conexion.execute(
+        "SELECT * FROM matching_alibaba WHERE candidato_id = ? ORDER BY fecha_matching ASC", (candidato_id,)
+    ).fetchall()
+    conexion.row_factory = None
+    return [_fila_matching_a_dict(fila) for fila in filas]

@@ -1,37 +1,79 @@
 # Estado actual del motor de sourcing MUTE (ML ↔ Alibaba)
 
-> Última actualización: sesión del 2026-09-11. Este documento es el punto
-> de entrada para retomar el proyecto — no hace falta leer todo el
-> historial de `README.md` para saber dónde estamos parados.
+> Última actualización: sesión del 2026-09-11 (implementación de Match
+> Mode). Este documento es el punto de entrada para retomar el proyecto —
+> no hace falta leer todo el historial de `README.md` para saber dónde
+> estamos parados.
 
 ## 🚦 Próximo punto de entrada (leer esto primero)
 
-**Diseñar el matching ML ↔ Alibaba antes de escribir código.**
+**Match Mode (matching ML ↔ Alibaba) está diseñado, implementado y
+probado con datos reales capturados — pero todavía NO validado con
+navegación real en vivo.** Eso es lo que sigue, antes de tocar el filtro
+económico o cualquier otra cosa nueva:
 
-La usuaria pidió explícitamente no resolver "qué dos productos son
-comparables" solo por similitud de título — hace falta pensar el criterio
-con cuidado antes de tocar `parser_busqueda_alibaba.py` o cualquier
-lógica nueva. **No avanzar con el filtro económico (×2.5 / USD 10) ni con
-ninguna funcionalidad nueva de Fase 2 hasta que ese diseño esté
-definido.**
+**Correr la batería de validación real pedida por la usuaria**, sobre su
+máquina (mismo perfil de Chrome `.perfil_chrome_collector` ya calentado):
 
-Preguntas abiertas para esa conversación de diseño (no respondidas
-todavía, a propósito):
+```powershell
+cd alibaba-catalog\collector_alibaba
+python orquestador_matching.py "https://articulo.mercadolibre.com.ar/MLA-..." --login
+# corridas siguientes ya no necesitan --login
+python orquestador_matching.py "https://articulo.mercadolibre.com.ar/MLA-..."
+```
 
-- ¿Similitud de texto entre `candidatos_ml.nombre` y `resultado.nombre`
-  de Alibaba? ¿Con qué algoritmo — y qué umbral evita falsos positivos
-  (ej. "cepillo de limpieza eléctrico" vs. "cepillo de dientes
-  eléctrico")?
-- ¿Se usa la categoría/rubro del candidato de ML como filtro previo,
-  antes de comparar títulos?
-- ¿Cuántos candidatos de Alibaba se evalúan por cada producto de ML (el
-  primero que matchea razonablemente, o varios en paralelo con un
-  score)?
-- ¿Qué pasa si ningún resultado de Alibaba parece un comparable
-  razonable — se descarta el candidato de ML, o se marca para revisión
-  manual?
-- ¿Se pondera de alguna forma `proveedor_verificado` o `es_publicidad`
-  al elegir el comparable, o son solo metadata informativa?
+`url_ml` tiene que ser la URL de un candidato **ya presente en
+`candidatos_ml` con `estado = demanda_confirmada`** (Match Mode verifica
+demanda→comparable, no descubre productos nuevos — correr primero
+`orquestador_demanda_ml.py` si hace falta un candidato nuevo).
+
+Casos a cubrir (pedido explícito de la usuaria, con al menos un caso por
+punto):
+
+1. **Varios matches claros** (2-3 candidatos de ML de distinto rubro,
+   para no calibrar todo alrededor de un solo tipo de producto).
+2. **Un caso sin match real** — un candidato de ML de un producto que casi
+   seguro no está en Alibaba tal cual (ej. algo con marca/certificación
+   local) — el resultado esperado es `SIN_MATCH_CONFIABLE` explícito, no
+   "el más parecido aunque sea malo".
+3. **Un "gemelo tramposo"**: un producto visualmente muy parecido en
+   Alibaba pero con un atributo esencial incompatible (tipo de producto,
+   material, capacidad, etc. distinto) — tiene que quedar vetado, no
+   elegido solo porque la imagen/texto puntúan alto. (La lógica de este
+   veto ya está probada con datos sintéticos en
+   `tests/test_matcher.py::test_ejecutar_matching_gemelo_tramposo_...`,
+   falta confirmarla con un caso real.)
+4. Si se consigue, **un caso con fotos distintas del mismo producto real**
+   (mismo producto, ángulos/fondos distintos) — para ver si la similitud
+   de imagen sigue siendo suficientemente alta.
+
+Para cada caso, documentar acá mismo (nueva sub-sección "Resultados de la
+validación real") o en el propio `matching_alibaba` (ya queda todo
+guardado ahí, auditable): candidato de ML, candidatos de Alibaba
+considerados (`candidatos_rankeados`/`candidatos_evaluados`, ya vienen en
+el resultado), cuál se eligió o por qué no se eligió ninguno, señales
+usadas, score/confianza, y la URL individual de Alibaba cuando hay match.
+
+**Muy probable que haga falta calibrar** (ajuste #5, a propósito dejado
+abierto):
+- Los pesos (`PesosMatching`, default texto 0.45 / imagen 0.35 /
+  atributos 0.20) y umbrales (`UmbralesMatching`, default MATCH_ALTO≥0.80,
+  MATCH_PROBABLE≥0.60) de `matcher.py`.
+- El recall de la estrategia de búsqueda v1 (título de ML limpiado, sin
+  traducir) — si en la validación real no encuentra productos que sí
+  existen en Alibaba, agregar una segunda estrategia (ej. traducida al
+  inglés) a `orquestador_matching.ESTRATEGIAS_QUERY_DEFAULT` (diseñado
+  para eso, no hace falta tocar `matcher.py`).
+- El diccionario de categorías/materiales de `atributos_matching.py`
+  (`CANON_CATEGORIA`/`CANON_MATERIAL`) es chico a propósito — un chequeo
+  ad-hoc con los dos fixtures reales de ML/Alibaba mostró que hoy no
+  distingue "cepillo eléctrico de piso" de "cepillo de mano para
+  platos" (ambos caen en el bucket genérico `cepillo`) — el texto/imagen
+  deberían compensarlo, pero es un límite conocido del diccionario v1, no
+  un bug — ver sección 7.
+
+**No avanzar con el filtro económico (×2.5 / USD 10) ni con ninguna otra
+funcionalidad nueva hasta terminar esta validación real.**
 
 ---
 
@@ -61,34 +103,122 @@ El pipeline completo:
    (append-only) y actualiza `candidatos_ml.estado` con un motivo
    explícito — nunca un descarte silencioso.
 
-## 2. Qué está terminado y validado en Alibaba (arranque de Fase 2)
+## 2. Qué está terminado en Alibaba + Match Mode (Fase 2)
 
 - **`capturador_busqueda_alibaba.py`**: captura automática (Chrome real)
   de un listado de búsqueda de Alibaba por palabra clave. **Probado con
   éxito real** (búsqueda "wireless earbuds", HTML de 1.9MB con 48
   resultados reales).
 - **`parser_busqueda_alibaba.py`**: extrae de cada resultado el
-  `id_alibaba`, `url_alibaba` (normalizada a `https://`, mismo formato
-  `.../product-detail/<slug>_<id>.html` que ya sabe leer
-  `parser_ficha_alibaba.py`), `nombre`, `precio_texto` y `moq_texto`
-  (**crudos, nunca parseados a un número** — el precio/MOQ del listado
-  no es confiable, regla ya aplicada en ML), `proveedor`,
-  `proveedor_verificado`, `es_publicidad`. Probado con 7 resultados
-  reales (fixture `alibaba_busqueda_real.html`).
-- **`parser_ficha_alibaba.py`** (de una fase anterior, sin cambios):
-  abre la ficha individual de un producto de Alibaba y extrae el precio
-  real desde `window.detailData` — nunca confía en el precio del
-  listado. Ya sabe manejar el caso de precio único (`precio_alibaba_50u`
-  confiable) vs. precio con escalones por cantidad (todavía sin
-  confirmar qué campo indica el escalón para ~50 unidades →
-  `precio_no_verificado=True` en ese caso, nunca se adivina).
+  `id_alibaba`, `url_alibaba`, `nombre`, `precio_texto`/`moq_texto`
+  (**crudos, nunca parseados a un número**), `proveedor`,
+  `proveedor_verificado`, `es_publicidad`, y ahora también `imagen_url`
+  (miniatura del listado, `img.searchx-product-e-slider__img`) — usada
+  por el ranking barato de Match Mode. Probado con los 7 resultados
+  reales de `alibaba_busqueda_real.html`.
+- **`parser_ficha_alibaba.py`**: además del precio real (sin cambios en
+  esa parte), ahora también extrae `nombre_ficha` (`subject`, más
+  confiable que el título del listado), `atributos` (dict fusionado de
+  `productBasicProperties` + `productKeyIndustryProperties`, specs reales
+  del proveedor) e `imagenes` (fotos reales en resolución `big` desde
+  `mediaItems`, descartando el video si lo hay). Probado con el fixture
+  real `alibaba_ficha_real.html` (producto 1601487795601: cepillo/esponja
+  de silicona, 6 fotos reales, atributos `type=Cleaning Brush`,
+  `material=Silicone`, `weight=39(g)`, etc.)
+- **`parser_ficha_ml.py`**: ahora también extrae `imagen_url` (JSON-LD
+  `image`, confirmado real), `descripcion` y `marca` — insumo de texto
+  extra para el matcher cuando el nombre del listado es corto/ambiguo.
+- **Match Mode implementado** — ver sección 3 para el diseño completo.
+  Probado con datos sintéticos (incluido el caso "gemelo tramposo") y
+  verificado manualmente contra los dos fixtures reales existentes
+  (ficha de ML + ficha de Alibaba) — **todavía sin la validación con
+  navegación en vivo pedida por la usuaria** (ver 🚦 arriba).
 
-**Lo que NO existe todavía**: ninguna lógica que conecte un candidato de
-ML con un resultado de Alibaba (matching), ninguna verificación
-automática de precio en cadena (buscar → elegir comparable → abrir su
-ficha), y ningún filtro económico. Ver la sección de pendientes.
+## 3. Diseño de Match Mode (aprobado por la usuaria, con 5 ajustes)
 
-## 3. Cómo funcionan las sesiones/perfiles y CAPTCHA
+**Objetivo**: dado un candidato de ML con demanda confirmada, decidir si
+existe un producto en Alibaba que sea el mismo producto (o
+sustancialmente equivalente — no "más similar entre resultados malos").
+Si no hay evidencia suficiente, el resultado explícito es
+`SIN_MATCH_CONFIABLE`, nunca un candidato débil disfrazado de match.
+
+**Dos etapas** (para no pagar el costo de abrir todas las fichas):
+
+1. **Ranking barato** (`matcher.rankear_candidatos`): usa solo lo ya
+   disponible en el listado de búsqueda de Alibaba (título + miniatura)
+   contra el nombre/imagen de ML. Se queda con el `top_k` (default 3,
+   `--top-k` configurable).
+2. **Verificación de ficha** (`matcher.verificar_candidatos`): abre la
+   ficha de cada uno de esos `top_k`, **en orden**. Si el #1 revela una
+   incompatibilidad esencial (ver abajo), se prueba el #2, después el #3
+   — recién se devuelve `SIN_MATCH_CONFIABLE` después de agotar todo el
+   `top_k` (ajuste #1 de la usuaria: nunca abrir solo el ganador del
+   ranking barato).
+
+**Tres señales**, cada una detrás de una interfaz intercambiable
+(`embeddings.py`, ajuste #4):
+
+- **Texto**: coseno entre embeddings de nombre+descripción de ML y
+  nombre de Alibaba (título de listado en el ranking, `subject` real en
+  la verificación). El embedder real (`EmbedderTextoClip`,
+  `sentence-transformers`, modelo `clip-ViT-B-32-multilingual-v1`) es
+  multilingüe — compara español (ML) contra inglés (Alibaba) sin traducir.
+- **Imagen**: coseno entre embedding de la imagen de ML y la(s) de
+  Alibaba — en la verificación se compara contra TODAS las fotos de la
+  ficha y se toma la mejor. Embedder real: `EmbedderImagenClip`
+  (`clip-ViT-B-32`, mismo espacio vectorial que el de texto). Descarga
+  con `requests` (URLs estáticas de CDN, no hace falta navegador),
+  `None` ante cualquier falla — "imagen no disponible" es un resultado
+  esperado, nunca una excepción.
+- **Atributos** (`atributos_matching.py`, ajuste #2): nada de un umbral
+  universal (ej. ">3x"). Cada TIPO de atributo (categoría, material,
+  capacidad, peso, potencia, voltaje, cantidad de piezas, dimensiones,
+  color, marca) tiene su propio comparador y tolerancia configurable, y
+  se clasifica en **esencial** (categoría/material/capacidad/potencia/
+  voltaje/cantidad_piezas/dimensiones) o **secundario** (color, marca —
+  la propia usuaria los dio como diferencia menor admisible). **Solo un
+  atributo esencial con valor confiable en AMBOS lados e incompatible
+  puede vetar un candidato**; si falta un lado o el valor no se
+  interpreta con confianza, la comparación queda "no comparable" (nunca
+  cuenta como incompatibilidad) y solo baja la cobertura/confianza del
+  score. Fuente de atributos: specs estructuradas de Alibaba
+  (`productBasicProperties`, prioritarias) + regex sobre texto libre
+  (título/descripción de ML, o lo que falte en Alibaba).
+
+**Combinación**: score ponderado (`PesosMatching`, default texto 0.45 /
+imagen 0.35 / atributos 0.20 — re-normalizado sobre texto+imagen si no
+hubo ningún atributo comparable de ningún lado). Categoría final según
+`UmbralesMatching` (default MATCH_ALTO≥0.80, MATCH_PROBABLE≥0.60) —
+**salvo que haya un veto esencial, que fuerza `SIN_MATCH_CONFIABLE` sin
+importar el score** (requisito explícito: "una similitud visual alta con
+una especificación esencial incompatible debe poder impedir un match").
+Pesos y umbrales son valores iniciales, no calibrados (ajuste #5) — se
+pasan como parámetro, no están hardcodeados.
+
+**Retrieval separado de matching** (ajuste #3): la generación de la query
+de búsqueda vive en `orquestador_matching.py`
+(`ESTRATEGIAS_QUERY_DEFAULT`, hoy solo `generar_query_busqueda_v1`: título
+de ML limpiado de stopwords, sin traducir), NO en `matcher.py`. Si una
+query no devuelve resultados, `procesar_candidato_matching` prueba la
+siguiente estrategia de la lista antes de rendirse. `matcher.ejecutar_matching`
+nunca interpreta "la búsqueda no encontró nada" como "el producto no
+existe" — lo deja explícito en el motivo (`candidatos_listado` vacío →
+`SIN_MATCH_CONFIABLE` con un mensaje que dice literalmente eso).
+
+**Auditoría completa**: `MatchResult` (`matcher.py`) guarda TODOS los
+candidatos evaluados (no solo el ganador), con su propio score,
+comparaciones de atributos, veto si lo hubo, y motivo — persistido en la
+tabla nueva `matching_alibaba` (`database/db.py`, append-only, separada a
+propósito de `alibaba_comparables`: "¿es el mismo producto?" es una
+pregunta distinta de "¿a qué precio?", que sigue siendo la etapa
+siguiente sin empezar).
+
+Precio, MOQ, `proveedor_verificado` y `es_publicidad` del listado de
+Alibaba **nunca entran en el cálculo de similitud** — son señales de
+calidad comercial para el filtro económico, no de si el producto es el
+mismo (regla explícita de la usuaria).
+
+## 4. Cómo funcionan las sesiones/perfiles y CAPTCHA
 
 - **Un solo perfil de Chrome** (`.perfil_chrome_collector/`, carpeta
   dentro de `alibaba-catalog/`) sirve para Mercado Libre y Alibaba — es
@@ -121,9 +251,8 @@ ficha), y ningún filtro económico. Ver la sección de pendientes.
   misma URL y **verifica** que el bloqueo realmente desapareció antes de
   seguir — si sigue bloqueado, vuelve a pausar en vez de avanzar. Es
   reusable para cualquier sitio vía el parámetro `sigue_bloqueado`
-  (chequeo inyectable) — con esto se corrigió un bug latente donde
-  `capturador_exploratorio.py` verificaba la resolución del bloqueo de
-  Alibaba con detectores específicos de ML, que nunca iban a matchear.
+  (chequeo inyectable) — `orquestador_matching._abrir_pagina_alibaba` lo
+  reusa igual que `capturador_busqueda_alibaba.py`.
 - **Desafío PoW de Akamai** (Mercado Libre): distinto de todo lo
   anterior — se resuelve solo con el JS de la propia página en unos
   segundos, no necesita intervención humana (`navegador_ml.es_desafio_pow_ml`
@@ -131,111 +260,131 @@ ficha), y ningún filtro económico. Ver la sección de pendientes.
 - **Pausa configurable entre fichas** (`navegador_ml.esperar_entre_fichas`,
   `--delay-min`/`--delay-max`, default 3-8s): reduce la frecuencia con la
   que aparece el bloqueo de "tráfico sospechoso" en primer lugar — mejor
-  evitarlo que resolverlo. Se disparaba después de ~20 fichas seguidas en
-  ~1 segundo cada una.
+  evitarlo que resolverlo. `orquestador_matching.py` la reusa también
+  entre fichas de Alibaba durante la verificación del `top_k`.
 
-## 4. Parsers existentes y qué extrae cada uno
+## 5. Parsers existentes y qué extrae cada uno
 
 | Archivo | Qué parsea | Campos principales |
 |---|---|---|
 | `parser.py` | Listado del catálogo completo de un proveedor Alibaba conocido (`module-data` en atributos HTML) | nombre, url, precio_min/max, moq, cantidad_vendida, imagen, categoría, `compra_directa`/`envio_calculable` |
-| `parser_ficha_alibaba.py` | Ficha individual de un producto de Alibaba (`window.detailData`) | precio_alibaba_50u (solo si es precio único, si no `precio_no_verificado=True`), moq, moneda |
-| `parser_busqueda_alibaba.py` | Listado de búsqueda de Alibaba por palabra clave (**nuevo**) | id_alibaba, url_alibaba, nombre, precio_texto (crudo), moq_texto (crudo), proveedor, proveedor_verificado, es_publicidad, posición |
-| `parser_busqueda_ml.py` | Listado de búsqueda de Mercado Libre | id_ml, url_ml, nombre, precio_ml, rating_visible, mas_vendido, unidades_vendidas (aprox.), `origen_url` ("directo"/"tracking"), prioridad ("A"/"B"/None vía `clasificar_prioridad`) |
-| `parser_ficha_ml.py` | Ficha individual de Mercado Libre (JSON-LD + `__NORDIC_RENDERING_CTX__`) | nombre, precio_ml, moneda_ml, unidades_vendidas, stock_visible, cantidad_opiniones, rating, `pagina_no_encontrada` (404 real de ML) |
+| `parser_ficha_alibaba.py` | Ficha individual de un producto de Alibaba (`window.detailData`) | precio_alibaba_50u (solo si es precio único), moq, moneda, **`nombre_ficha`, `atributos`, `imagenes`** (nuevo, para Match Mode) |
+| `parser_busqueda_alibaba.py` | Listado de búsqueda de Alibaba por palabra clave | id_alibaba, url_alibaba, nombre, precio_texto/moq_texto (crudos), proveedor, proveedor_verificado, es_publicidad, posición, **`imagen_url`** (nuevo) |
+| `parser_busqueda_ml.py` | Listado de búsqueda de Mercado Libre | id_ml, url_ml, nombre, precio_ml, rating_visible, mas_vendido, unidades_vendidas (aprox.), `origen_url`, prioridad |
+| `parser_ficha_ml.py` | Ficha individual de Mercado Libre (JSON-LD + `__NORDIC_RENDERING_CTX__`) | nombre, precio_ml, moneda_ml, unidades_vendidas, stock_visible, cantidad_opiniones, rating, `pagina_no_encontrada`, **`imagen_url`, `descripcion`, `marca`** (nuevo) |
+| `atributos_matching.py` (nuevo) | Extracción/comparación de atributos de producto (texto libre + specs estructuradas de Alibaba) | tipos numéricos (capacidad/peso/potencia/voltaje/cantidad_piezas/dimensiones, normalizados) y categóricos (categoría/material/color/marca, canonicalizados) |
+| `embeddings.py` (nuevo) | Interfaz de embeddings de texto/imagen | `EmbedderTextoClip`/`EmbedderImagenClip` (reales, carga perezosa) y `EmbedderTextoBolsaDePalabras`/`EmbedderImagenPorClaves` (fakes para tests) |
+| `matcher.py` (nuevo) | Núcleo de Match Mode: ranking + verificación + `MatchResult` auditable | ver sección 3 |
+| `orquestador_matching.py` (nuevo) | Orquesta Match Mode real: genera query, busca en Alibaba, corre el matcher, persiste | ver sección 3 |
 
-## 5. Pruebas reales realizadas y sus resultados
+## 6. Pruebas reales realizadas y sus resultados
 
 - **Medición de confiabilidad de fichas de ML** (`medicion_confiabilidad_ml.py`),
-  3 corridas reales sucesivas, cada una resolviendo el hallazgo de la
-  anterior:
-  1. 55 fichas: 43.6% de éxito total — **0% de éxito (0/31) en URLs de
-     tracking** (reconstrucción rota) vs. 100% (24/24) en URLs directas.
-  2. Tras el fix de `searchVariation`: 47 fichas, 0% de 404 pero 36.2%
-     de "otro_error" — bloqueo de tráfico sospechoso no detectado,
-     contaminando el resto de la corrida en silencio.
-  3. Tras el manejo humano reforzado + espera al render del listado:
-     **75 fichas, 100% de éxito, 0% de 404, 0% de otros errores.**
+  3 corridas reales sucesivas: terminó en **75 fichas, 100% de éxito, 0%
+  de 404, 0% de otros errores.**
 - **Experimento controlado de URL** (`experimento_url_producto_reconstruida.py`,
-  5 pares reales): confirmó que
-  `https://www.mercadolibre.com.ar/p|up/<searchVariation>?pdp_filters=item_id:<item_id>`
-  (sin slug) redirige al permalink completo con status 200 — `/p/` para
-  IDs con 3 letras de prefijo (catálogo), `/up/` para 4 letras
-  (publicación individual). 5/5 casos reales consistentes.
+  5 pares reales): confirmó el formato `/p|up/<searchVariation>?pdp_filters=item_id:<item_id>`.
 - **Captura de búsqueda de Alibaba**: 1 corrida real exitosa ("wireless
-  earbuds", 48 resultados, 7 confirmados con extracción completa en el
-  parser).
+  earbuds", 48 resultados, 7 confirmados con extracción completa).
+- **Match Mode**: verificado con los dos fixtures HTML reales ya
+  existentes (`ml_ficha_real.html` + `alibaba_ficha_real.html`, productos
+  NO relacionados entre sí — un cepillo eléctrico de piso vs. un cepillo/
+  esponja de silicona para platos) — correctamente **no** dio un match
+  alto (score de atributos con cobertura baja, sin veto por falta de
+  material del lado de ML, tal como se espera de datos reales
+  incompletos). No reemplaza la validación real pedida por la usuaria
+  (navegación en vivo, ver 🚦 arriba) — es una verificación de plomería,
+  no la demostración final.
 
-## 6. Qué queda pendiente de Fase 2
+## 7. Qué queda pendiente de Fase 2
 
 En orden, cada uno bloqueado por el anterior:
 
-1. **🚦 Diseñar el criterio de matching ML ↔ Alibaba** (ver sección de
-   arriba) — el bloqueante actual, sin resolver a propósito.
-2. Implementar el matching ya diseñado (probablemente en un nuevo
-   `matcher_alibaba.py` o similar, con tests sobre casos reales).
-3. Verificación de precio en cadena: para el/los comparable(s) elegidos,
-   abrir la ficha real con `parser_ficha_alibaba.py` (ya existe, sin
-   cambios necesarios) y guardar en `alibaba_comparables`
-   (`db.insertar_comparable_alibaba`, ya existe).
-4. Filtro económico (×2.5 de markup, USD 10 de diferencia mínima según
-   la especificación original del proyecto) — todavía sin implementar.
-5. Segunda etapa de análisis + shortlist final (`ESTADOS_CANDIDATO`
-   ya define `segunda_etapa`/`finalista`, sin lógica que los use
-   todavía).
-6. Pendiente menor, no bloqueante: confirmar el caso de precio de
-   Alibaba con escalones por cantidad (`parser_ficha_alibaba.py` ya lo
-   deja `precio_no_verificado=True` en vez de adivinar — falta un
-   ejemplo real de ese caso para completarlo).
+1. **🚦 Validación real de Match Mode con navegación en vivo** (ver
+   arriba) — el bloqueante actual.
+2. Calibrar pesos/umbrales/estrategias de query con los resultados de esa
+   validación.
+3. Si el diccionario de categorías/materiales resulta demasiado grueso en
+   la validación real (ver limitación en la sección 🚦), ampliarlo con
+   los términos que aparezcan en los casos reales — no antes, para no
+   ajustar a ciegas.
+4. Verificación de precio en cadena: para el comparable elegido por Match
+   Mode, guardar en `alibaba_comparables` (`db.insertar_comparable_alibaba`,
+   ya existe) — hoy Match Mode NO llena esa tabla, solo `matching_alibaba`.
+5. Filtro económico (×2.5 de markup, USD 10 de diferencia mínima) —
+   todavía sin implementar.
+6. Segunda etapa de análisis + shortlist final (`ESTADOS_CANDIDATO` ya
+   define `segunda_etapa`/`finalista`, sin lógica que los use todavía).
+7. Pendiente menor, no bloqueante: confirmar el caso de precio de Alibaba
+   con escalones por cantidad.
 
-## 7. Decisiones técnicas importantes y por qué
+## 8. Decisiones técnicas importantes y por qué
 
 - **Nunca confiar en el precio/MOQ del listado, solo en la ficha
   individual** — regla del proyecto desde el arranque, aplicada
-  consistentemente en ML y en Alibaba. El listado es prefiltro, la ficha
-  es la fuente de verdad.
-- **El listado de ML nunca confirma demanda por sí solo** (ajuste de
-  semántica pedido explícitamente): rating visible sin cantidad de
-  opiniones es señal débil (Prioridad B), no una confirmación.
+  consistentemente en ML y en Alibaba.
+- **El listado de ML nunca confirma demanda por sí solo.**
 - **Dedup de `candidatos_ml` por `url_ml`, no por el href crudo del
-  link de tracking**: ese href trae un parámetro cifrado que cambia en
-  cada carga de página — usarlo como clave rompería la deduplicación en
-  silencio. Por eso se optó por reconstruir una URL estable
-  (`searchVariation` + `item_id`) en vez de navegar directamente el
-  link de tracking.
+  link de tracking.**
 - **No seguir el link de tracking real de ML para resolver su
-  redirect**: esos links traen `is_advertising=true` — navegarlos
-  programáticamente podría registrar clics publicitarios reales. Se
-  prefirió construir la URL desde datos ya presentes en el propio HTML
-  del listado (`searchVariation`), sin tocar el tracker.
-- **Nunca adivinar un formato de URL sin evidencia real**: cada cambio
-  de estrategia de URL (tanto en ML como conceptualmente para Alibaba)
-  se validó primero con un experimento controlado y navegación real
-  antes de incorporarse al pipeline.
-- **Captura automática de HTML de diagnóstico** (`guardar_diagnostico`,
-  `guardar_diagnostico_busqueda`) para cualquier caso anómalo (ficha
-  indeterminada, búsqueda con 0 resultados) — nunca se le pide a la
-  usuaria que recolecte HTML a mano; el propio sistema lo guarda para
-  que Claude lo inspeccione en la siguiente iteración.
-- **Pausa humana que verifica su propia resolución** (recarga + chequea
-  de nuevo) en vez de asumir que un Enter significa "resuelto" — evita
-  perder o duplicar una ficha si la usuaria no llegó a resolver el
-  bloqueo del todo.
-- **Session-hardening manual como solución al problema de
-  automatización**: en vez de intentar evadir la detección de Playwright
-  (fuera de alcance y en contra de las reglas del proyecto de no
-  evadir/resolver CAPTCHAs automáticamente), se resolvió operativamente:
-  calentar la sesión con un Chrome lanzado a mano una sola vez.
+  redirect** (`is_advertising=true`).
+- **Nunca adivinar un formato de URL sin evidencia real.**
+- **Captura automática de HTML de diagnóstico** para cualquier caso
+  anómalo — nunca se le pide a la usuaria que recolecte HTML a mano.
+- **Pausa humana que verifica su propia resolución** en vez de asumir
+  que un Enter significa "resuelto".
+- **Session-hardening manual** como solución al problema de
+  automatización, en vez de evadir la detección de Playwright.
+- **Matching no depende principalmente del título** (requisito explícito
+  de la usuaria): texto es una de tres señales, no la única — imagen y
+  atributos estructurados pesan tanto o más, y un atributo esencial
+  incompatible puede vetar aunque el texto/imagen puntúen alto.
+- **Incompatibilidad dura solo desde certeza, nunca desde ausencia de
+  dato** (ajuste #2): si un atributo no se pudo extraer de un lado, la
+  comparación es "no comparable", no "incompatible" — evita vetos falsos
+  por datos faltantes, que son la norma más que la excepción en texto
+  libre real.
+- **top_k con reintento ordenado, no solo el ganador del ranking barato**
+  (ajuste #1): el ranking barato (solo texto+imagen de listado) es
+  aproximado a propósito — puede rankear primero un "gemelo tramposo"
+  visualmente parecido; la verificación de ficha con atributos reales es
+  la que realmente decide, probando el siguiente candidato si el primero
+  queda vetado.
+- **Retrieval (generar la query) y matching (decidir si es el mismo
+  producto) son problemas separados** (ajuste #3): viven en módulos
+  distintos, y "la búsqueda no encontró nada" nunca se traduce a "no
+  existe" en el resultado.
+- **Embeddings de texto/imagen detrás de una interfaz** (ajuste #4,
+  `embeddings.py`): permite cambiar de modelo (o de proveedor) sin tocar
+  `matcher.py`, y permite testear toda la lógica de ranking/veto/top_k
+  con fakes deterministas, sin red ni modelos pesados en la suite de
+  tests normal.
+- **Pesos, umbrales y tolerancias son parámetros, no constantes**
+  (ajuste #5): se pasan explícitamente (`PesosMatching`,
+  `UmbralesMatching`, `tolerancias_atributos`) — ninguno se calibró
+  todavía con datos reales, a propósito.
+- **Match Mode guarda su evidencia completa (`matching_alibaba`),
+  separada de `alibaba_comparables`**: "¿es el mismo producto?" y "¿a qué
+  precio?" son preguntas distintas, resueltas en etapas distintas — la
+  segunda todavía no empezó.
+- **`sentence-transformers`/Pillow con carga perezosa**: instanciar
+  `EmbedderTextoClip`/`EmbedderImagenClip` no descarga ni carga ningún
+  modelo — recién pasa en el primer `.embed(...)` real. La suite de
+  tests completa corre sin esas dependencias pesadas cargadas ni
+  necesidad de red.
 
-## 8. Estado de los tests
+## 9. Estado de los tests
 
-**147/147 tests pasan** (`pytest` desde la raíz de `alibaba-catalog/`).
-Incluye tests de catálogo (`database/tests/test_db.py`), sourcing
-(`test_db_sourcing.py`), y todos los parsers/orquestadores/herramientas
-de captura mencionados arriba — cada uno con al menos un caso basado en
-HTML real capturado, no inventado.
+**198/198 tests pasan** (`pytest` desde la raíz de `alibaba-catalog/`,
+147 previos a esta fase + 51 nuevos de Match Mode: `test_embeddings.py`,
+`test_atributos_matching.py`, `test_matcher.py`,
+`test_orquestador_matching.py`, más tests agregados a los parsers
+existentes y a `test_db_sourcing.py`). Cada test de matching usa
+embedders fake (deterministas, sin red) — la única verificación con red
+real pendiente es la validación en vivo de la sección 🚦.
 
 ```bash
 cd alibaba-catalog
+pip install -r requirements.txt   # trae numpy, sentence-transformers, Pillow (nuevo)
 pytest
 ```

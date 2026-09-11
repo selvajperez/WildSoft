@@ -31,6 +31,14 @@ aparte, no el listado principal):
     `is_ad=true`/`is_ad=false` en texto plano (no percent-encoded, se
     confirmó con HTML real) -- útil para no priorizar resultados pagos
     como si fueran orgánicos.
+  - Imagen: `img.searchx-product-e-slider__img[src]` -- la miniatura del
+    producto (la tarjeta trae varias imágenes más: flechas de navegación,
+    ícono "find similar", sellos de certificación -- todas con otras
+    clases, confirmado con HTML real). Igual que el href, puede venir
+    protocol-relative y se normaliza. Se usa para el ranking barato por
+    imagen en Match Mode (`matcher.py`), antes de abrir la ficha
+    individual (que trae fotos en mejor resolución vía `mediaItems`, ver
+    `parser_ficha_alibaba.py`).
 
 Todavía NO incluye lógica de matching/ranking contra el nombre de un
 candidato de ML, ni verificación de precio -- eso es la etapa siguiente,
@@ -71,6 +79,7 @@ def parsear_resultado(tarjeta) -> dict | None:
     moq_el = tarjeta.select_one(".searchx-moq")
     proveedor_el = tarjeta.select_one(".searchx-product-e-company")
     verificado = tarjeta.select_one(".verified-supplier-icon__wrapper") is not None
+    imagen_el = tarjeta.select_one("img.searchx-product-e-slider__img")
 
     match_publicidad = _RE_ES_PUBLICIDAD.search(str(tarjeta))
     es_publicidad = match_publicidad.group(1) == "true" if match_publicidad else None
@@ -84,6 +93,7 @@ def parsear_resultado(tarjeta) -> dict | None:
         "proveedor": proveedor_el.get_text(strip=True) if proveedor_el else None,
         "proveedor_verificado": verificado,
         "es_publicidad": es_publicidad,
+        "imagen_url": _normalizar_url(imagen_el["src"]) if imagen_el and imagen_el.get("src") else None,
     }
 
 

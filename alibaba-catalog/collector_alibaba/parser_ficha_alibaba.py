@@ -11,6 +11,27 @@ Alibaba 1601487795601, ya conocido en esta catalogación.
 Por qué esto importa para el motor de sourcing: el precio que muestra un
 resultado de búsqueda/listado NO alcanza para calcular rentabilidad (regla
 del proyecto) — hay que abrir la ficha y leer el precio real de acá.
+
+**Match Mode (Fase 2)**: el mismo bloque `globalData.product` trae, además
+de precio/MOQ, todo lo que hace falta para verificar un candidato contra
+un producto de ML (confirmado con HTML real, producto 1601487795601):
+
+  - `subject`: el título real de la ficha -- más específico/confiable que
+    el título del listado (`nombre` en `parser_busqueda_alibaba.py`), que
+    puede venir recortado o ser el de una variante distinta.
+  - `productBasicProperties` / `productKeyIndustryProperties`: listas de
+    `{attrName, attrNameId, attrValue, attrValueId}` -- especificaciones
+    estructuradas del proveedor (material, tipo, peso, medidas, etc.).
+    `productKeyIndustryProperties` en la práctica es un subconjunto de
+    `productBasicProperties` (mismos pares en el fixture real) -- se
+    mezclan en un único dict `atributos` (clave = `attrName` en
+    minúscula) sin duplicar, así el módulo de matching no tiene que saber
+    de la distinción entre las dos listas.
+  - `mediaItems`: lista de fotos (y a veces un video, con
+    `type != "image"` -- se descarta) en varias resoluciones
+    (`imageUrl.big/normal/small/thumb`). Se guarda la resolución `big` de
+    cada foto en `imagenes` -- son fotos reales del proveedor, mejor
+    insumo para similitud visual que la única miniatura del listado.
 """
 
 from __future__ import annotations
@@ -70,12 +91,46 @@ def extraer_detail_data(html: str) -> dict | None:
         return None
 
 
+def _extraer_atributos(producto: dict) -> dict[str, str]:
+    """
+    Mezcla `productBasicProperties` + `productKeyIndustryProperties` en un
+    único dict `{attrName en minúscula: attrValue}`. `productBasicProperties`
+    se aplica después para que gane si hay overlap (es la lista más
+    completa en el fixture real -- `productKeyIndustryProperties` es un
+    subconjunto ahí, pero no hay garantía de que sea así en todos los
+    productos).
+    """
+    atributos: dict[str, str] = {}
+    for lista in (producto.get("productKeyIndustryProperties"), producto.get("productBasicProperties")):
+        for item in lista or []:
+            nombre = item.get("attrName")
+            valor = item.get("attrValue")
+            if nombre and valor is not None:
+                atributos[nombre.strip().lower()] = valor
+    return atributos
+
+
+def _extraer_imagenes(producto: dict) -> list[str]:
+    """Fotos reales del producto (resolución `big`) -- descarta el video, si lo hay."""
+    imagenes = []
+    for item in producto.get("mediaItems") or []:
+        if item.get("type") != "image":
+            continue
+        url_big = (item.get("imageUrl") or {}).get("big")
+        if url_big:
+            imagenes.append(url_big)
+    return imagenes
+
+
 def parsear_ficha_alibaba(html: str, url: str | None = None) -> dict:
     """
     Devuelve un dict con la forma de `alibaba_comparables` (ver
-    database/db.py). Si no se puede extraer o interpretar el precio con
-    confianza, `precio_no_verificado=True` y `precio_alibaba_50u=None` —
-    nunca se adivina un precio.
+    database/db.py) más `nombre_ficha`, `atributos` e `imagenes` -- estos
+    tres últimos no son columnas de `alibaba_comparables`, los usa
+    `matcher.py` (Match Mode) para verificar un candidato, no el flujo de
+    verificación de precio. Si no se puede extraer o interpretar el
+    precio con confianza, `precio_no_verificado=True` y
+    `precio_alibaba_50u=None` — nunca se adivina un precio.
     """
     resultado = {
         "url_alibaba": url,
@@ -88,6 +143,9 @@ def parsear_ficha_alibaba(html: str, url: str | None = None) -> dict:
         "requiere_contacto_proveedor": False,
         "dimensiones": None,
         "peso_gramos": None,
+        "nombre_ficha": None,
+        "atributos": {},
+        "imagenes": [],
     }
 
     data = extraer_detail_data(html)
@@ -97,6 +155,10 @@ def parsear_ficha_alibaba(html: str, url: str | None = None) -> dict:
     producto = data.get("globalData", {}).get("product", {})
     custom_price = producto.get("customPrice") or {}
     rango_precio = (producto.get("price") or {}).get("productRangePrices") or {}
+
+    resultado["nombre_ficha"] = producto.get("subject")
+    resultado["atributos"] = _extraer_atributos(producto)
+    resultado["imagenes"] = _extraer_imagenes(producto)
 
     moq = producto.get("moq") or producto.get("customsMoq")
     resultado["moq"] = f"{moq} {custom_price.get('unitEven', 'pieces')}" if moq else None
