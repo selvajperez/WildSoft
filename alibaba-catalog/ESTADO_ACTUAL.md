@@ -34,12 +34,15 @@ python _validar_caso1.py           # corridas siguientes
 ```
 
 Casos a cubrir (pedido explícito de la usuaria, con al menos un caso por
-punto) — **estado actual: 2 corridos (Casos 1 y 2), punto 1 en progreso**:
+punto) — **estado actual: 3 corridos (Casos 1, 2 y 3), punto 1 casi
+completo**:
 
 1. **Varios matches claros** (2-3 candidatos de ML de distinto rubro) —
-   🔶 en progreso: Caso 1 dio `SIN_MATCH_CONFIABLE` por muy poco margen,
-   Caso 2 dio el primer `MATCH_PROBABLE` real (ver abajo) — todavía sin
-   un `MATCH_ALTO` confirmado ni un segundo rubro distinto.
+   🔶 casi completo: Caso 1 dio `SIN_MATCH_CONFIABLE` por muy poco margen,
+   Caso 2 dio `MATCH_PROBABLE` (cepillos para auto), Caso 3 dio
+   `MATCH_ALTO` (cepillos eléctricos multiuso) — dos matches reales
+   confirmados de rubros parecidos (ambos "cepillo"), todavía no de
+   rubros muy distintos entre sí.
 2. **Un caso sin match real** — sin probar todavía.
 3. **Un "gemelo tramposo"** — sin probar todavía (lógica ya validada con
    datos sintéticos en `tests/test_matcher.py`, falta un caso real).
@@ -147,11 +150,39 @@ separados.
 automático que ya tenía Alibaba también para la ficha de ML
 (`orquestador_matching.py`, etiqueta `matching_ml_ficha` en
 `capturas_exploratorias/manifiesto.jsonl` — guarda el HTML real sin
-intervención manual). El objetivo del Caso 3 es, además de sumar una
-observación independiente más, **usar ese HTML real para determinar si
-"ML no expone la imagen ahí" o si el parser busca en el lugar
-equivocado** — sin tocar `parser_ficha_ml.py` todavía, solo mirar la
-evidencia primero.
+intervención manual).
+
+#### Caso 3 (2026-09-11) — primer `MATCH_ALTO` real, con señal visual funcionando de punta a punta
+
+- **Candidato ML**: `MLA7478325` — "Cepillo Eléctrico Limpieza
+  Inalámbrico 8 En 1 Recargable Cabezales Intercambiables Mango
+  Extensible Giratorio Baño Cocina Azulejos Juntas Piso Ducha Inodoro
+  Bacha Multifunción Profunda USB" (elegido automáticamente).
+- **Esta vez la ficha de ML SÍ trajo imagen**:
+  `https://http2.mlstatic.com/D_NQ_NP_951927-MLA1140056000051_072026-O.webp`
+  — con el mismo `parser_ficha_ml.py` sin ningún cambio. Esto responde la
+  pregunta abierta del Caso 2: si el mismo código encuentra la imagen acá
+  sin tocar nada, lo más probable es que **no sea un bug del parser**,
+  sino que algunas fichas de ML genuinamente no exponen `image` en su
+  JSON-LD (dependiendo del producto/plantilla). No hizo falta ni siquiera
+  revisar el HTML crudo guardado (aunque quedó disponible) para esta
+  conclusión — si vuelve a salir `imagen_url=None` en un caso futuro, eso
+  sí lo vamos a poder confirmar con certeza porque ahora se guarda el
+  HTML real de cada ficha de ML.
+- **Decisión: `MATCH_ALTO`.** Aceptó el primer candidato del ranking —
+  candidato de Alibaba: "Hot Sale Custom Multifunctional 4 In 1 Wireless
+  Electric Magic Brush Spin Scrubber Scrub Cleaning Brush Power Scrubber"
+  (`https://www.alibaba.com/product-detail/Hot-Sale-Custom-Multifunctional-4-In_1600791676220.html`).
+  Score final **0.875** — texto 0.86, **imagen 0.82** (primera vez que la
+  señal visual aporta un valor real, no 0.0), atributos 1.00 (cobertura
+  33%, solo `categoria` comparable). Sin veto por atributo esencial.
+- **Por qué importa**: es la primera confirmación real, de punta a punta,
+  de que el pipeline de imagen funciona en la práctica -- descarga de la
+  foto real de ML vía `requests`, descarga de la foto real de Alibaba,
+  embedding CLIP de las dos, y similitud de coseno con un valor alto
+  (0.82) para dos fotos de productos genuinamente parecidos. Hasta este
+  caso, la señal de imagen solo se había probado con datos sintéticos en
+  los tests.
 
 ---
 
