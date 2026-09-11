@@ -131,6 +131,29 @@ def contenido_seguro(pagina, intentos: int = 5, espera_ms: int = 500) -> str:
     raise ultimo_error
 
 
+def goto_seguro(pagina, url: str, intentos: int = 3, espera_ms: int = 1000) -> None:
+    """
+    `page.goto()` puede tirar un error transitorio si la página anterior
+    todavía tiene una navegación propia en vuelo -- hallazgo real (Alibaba,
+    Match Mode): el listado de búsqueda dispara solo una redirección de
+    canonicalización poco después de cargar, y si ya arrancamos a navegar
+    hacia otra URL en ese momento, Playwright corta la navegación nueva
+    ("Navigation to '...' is interrupted by another navigation to '...'").
+    Genérico y sin nada específico de ningún sitio -- mismo criterio que
+    `contenido_seguro` para errores transitorios de Playwright, así lo
+    puede reusar cualquier navegación (ML, Alibaba, o lo que siga).
+    """
+    ultimo_error = None
+    for _ in range(intentos):
+        try:
+            pagina.goto(url, wait_until="domcontentloaded")
+            return
+        except PlaywrightError as exc:
+            ultimo_error = exc
+            pagina.wait_for_timeout(espera_ms)
+    raise ultimo_error
+
+
 def esperar_resolucion_desafio_pow(pagina, intentos: int = 8, espera_ms: int = 2000) -> str:
     """El desafío PoW se resuelve solo con JS real en unos segundos. Espera en pasos cortos."""
     html = contenido_seguro(pagina)
@@ -249,7 +272,7 @@ def abrir_pagina_ml(pagina, url: str, etiqueta: str, esperar_marcador: str | Non
     hallazgo real que motivó esto (contenido capturado antes de que
     termine de renderizar).
     """
-    pagina.goto(url, wait_until="domcontentloaded")
+    goto_seguro(pagina, url)
     html = contenido_seguro(pagina)
 
     if es_desafio_pow_ml(html):

@@ -186,6 +186,67 @@ def test_contenido_seguro_relanza_el_error_si_nunca_se_estabiliza():
         pass
 
 
+class _PaginaConGotoQueFallaYLuegoResponde:
+    """
+    Stub de `Page` para `goto_seguro`: falla con `PlaywrightError` un par
+    de veces (simula la navegación interrumpida real vista en Alibaba,
+    ver Match Mode) antes de "aterrizar" bien.
+    """
+
+    def __init__(self, fallos_antes_de_exito: int):
+        self.fallos_restantes = fallos_antes_de_exito
+        self.intentos = 0
+        self.esperas = 0
+
+    def goto(self, _url, wait_until=None):
+        self.intentos += 1
+        if self.fallos_restantes > 0:
+            self.fallos_restantes -= 1
+            raise PlaywrightError("Navigation to '...' is interrupted by another navigation to '...'")
+
+    def wait_for_timeout(self, _ms):
+        self.esperas += 1
+
+
+def test_goto_seguro_reintenta_ante_navegacion_interrumpida():
+    pagina = _PaginaConGotoQueFallaYLuegoResponde(fallos_antes_de_exito=2)
+
+    nav.goto_seguro(pagina, "https://x/ficha.html", intentos=3, espera_ms=1)
+
+    assert pagina.intentos == 3
+    assert pagina.esperas == 2
+
+
+def test_goto_seguro_relanza_el_error_si_se_agotan_los_intentos():
+    pagina = _PaginaConGotoQueFallaYLuegoResponde(fallos_antes_de_exito=10)
+
+    try:
+        nav.goto_seguro(pagina, "https://x/ficha.html", intentos=3, espera_ms=1)
+        assert False, "debería haber relanzado PlaywrightError"
+    except PlaywrightError:
+        pass
+
+    assert pagina.intentos == 3
+
+
+def test_abrir_pagina_ml_usa_goto_seguro():
+    class _PaginaConGoto(_PaginaFalsa):
+        def __init__(self, secuencia_html):
+            super().__init__(secuencia_html)
+            self.intentos_goto = 0
+
+        def goto(self, _url, wait_until=None):
+            self.intentos_goto += 1
+            if self.intentos_goto == 1:
+                raise PlaywrightError("Navigation to '...' is interrupted by another navigation to '...'")
+
+    pagina = _PaginaConGoto(["<html><body>resultados reales</body></html>"])
+    html = nav.abrir_pagina_ml(pagina, "https://listado.mercadolibre.com.ar/x", "búsqueda de prueba")
+
+    assert html == "<html><body>resultados reales</body></html>"
+    assert pagina.intentos_goto == 2
+
+
 def test_abrir_pagina_ml_espera_el_desafio_pow_y_devuelve_contenido_real():
     class _PaginaConGoto(_PaginaFalsa):
         def goto(self, _url, wait_until=None):

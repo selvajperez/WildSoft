@@ -41,8 +41,6 @@ from typing import Callable
 sys.path.insert(0, str(Path(__file__).parent))
 sys.path.insert(0, str(Path(__file__).parent.parent / "database"))
 
-from playwright.sync_api import Error as PlaywrightError  # noqa: E402
-
 from embeddings import EmbedderImagenClip, EmbedderTextoClip  # noqa: E402
 from matcher import (  # noqa: E402
     CandidatoAlibabaListado,
@@ -61,6 +59,7 @@ from navegador_ml import (  # noqa: E402
     contenido_seguro,
     es_primera_vez,
     esperar_entre_fichas,
+    goto_seguro,
     navegador_persistente,
     pausar_por_bloqueo_y_continuar,
 )
@@ -179,30 +178,6 @@ def procesar_candidato_matching(
     return data
 
 
-def _goto_seguro(pagina, url: str, intentos: int = 3, espera_ms: int = 1000) -> None:
-    """
-    `page.goto()` puede fallar con un error transitorio de Playwright si
-    la página anterior todavía tiene una navegación propia en vuelo --
-    hallazgo real: el listado de búsqueda de Alibaba dispara sola una
-    redirección de canonicalización (agrega `has4Tab=true&tab=all` a la
-    URL) poco después de cargar, y si ya arrancamos a navegar hacia la
-    ficha de un candidato en ese momento, Playwright corta la navegación
-    nueva ("Navigation to '...' is interrupted by another navigation to
-    '...'"). Reintenta en vez de romper la corrida -- mismo criterio que
-    `navegador_ml.contenido_seguro` para errores transitorios.
-    """
-    ultimo_error = None
-    for _ in range(intentos):
-        try:
-            pagina.goto(url, wait_until="domcontentloaded")
-            return
-        except PlaywrightError as exc:
-            ultimo_error = exc
-            logger.info("goto('%s') interrumpido por una navegación transitoria, reintentando...", url)
-            pagina.wait_for_timeout(espera_ms)
-    raise ultimo_error
-
-
 def _abrir_pagina_alibaba(pagina, url: str, etiqueta: str, tipo: str) -> str:
     """
     Equivalente a `navegador_ml.abrir_pagina_ml` pero para Alibaba (mismo
@@ -224,7 +199,7 @@ def _abrir_pagina_alibaba(pagina, url: str, etiqueta: str, tipo: str) -> str:
     exactos apareció el CAPTCHA y si tardó uno o varios reintentos en
     resolverse.
     """
-    _goto_seguro(pagina, url)
+    goto_seguro(pagina, url)
     html = contenido_seguro(pagina)
     bloqueado_inicial = bloqueado_alibaba(html)
 

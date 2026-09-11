@@ -1,13 +1,9 @@
 import json
 
-import pytest
-from playwright.sync_api import Error as PlaywrightError
-
 import db
 from embeddings import EmbedderImagenPorClaves, EmbedderTextoBolsaDePalabras
 from matcher import ProductoMLParaMatching
 from orquestador_matching import (
-    _goto_seguro,
     _listado_a_candidatos,
     generar_query_busqueda_v1,
     procesar_candidato_matching,
@@ -117,35 +113,6 @@ def test_procesar_candidato_matching_prueba_segunda_estrategia_si_la_primera_no_
     )
 
     assert queries_probadas == ["primera falla", "segunda estrategia"]
-
-
-class _PaginaFalsa:
-    """Fake de `Page` de Playwright para probar `_goto_seguro` sin navegador real."""
-
-    def __init__(self, fallos_antes_de_exito: int):
-        self.fallos_antes_de_exito = fallos_antes_de_exito
-        self.intentos = 0
-
-    def goto(self, url, wait_until=None):
-        self.intentos += 1
-        if self.intentos <= self.fallos_antes_de_exito:
-            raise PlaywrightError(f"Navigation to '{url}' is interrupted by another navigation to '...'")
-
-    def wait_for_timeout(self, ms):
-        pass
-
-
-def test_goto_seguro_reintenta_ante_navegacion_interrumpida():
-    pagina = _PaginaFalsa(fallos_antes_de_exito=2)
-    _goto_seguro(pagina, "https://x/ficha.html", intentos=3, espera_ms=0)
-    assert pagina.intentos == 3
-
-
-def test_goto_seguro_propaga_el_error_si_se_agotan_los_intentos():
-    pagina = _PaginaFalsa(fallos_antes_de_exito=5)
-    with pytest.raises(PlaywrightError):
-        _goto_seguro(pagina, "https://x/ficha.html", intentos=3, espera_ms=0)
-    assert pagina.intentos == 3
 
 
 def test_procesar_candidato_matching_sin_resultados_en_ninguna_estrategia_queda_sin_match():
