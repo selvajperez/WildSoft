@@ -5,6 +5,59 @@
 > no hace falta leer todo el historial de `README.md` para saber dónde
 > estamos parados.
 
+## 👥 Cómo se organiza el trabajo (Nube / Local / Selva)
+
+Adoptado el 2026-09-11, después de una validación real que le exigió
+demasiado a Selva como intermediaria manual entre dos sesiones de Claude.
+De acá en adelante:
+
+- **Nube** (Claude Code en claude.ai/web, sin acceso a la compu de
+  Selva): diseño, código, tests, documentación. **Nunca le pide a Selva
+  que corra algo real solo para relayarle el resultado de vuelta** — si
+  hace falta navegación real o leer la base real, eso es trabajo de Local.
+- **Local** (Claude Code corriendo en la compu de Selva, mismo
+  repositorio): toda ejecución real -- abrir Chrome, navegar a ML/
+  Alibaba, correr los orquestadores, leer/escribir `catalogo_alibaba.db`.
+  Trabaja de forma autónoma entre pausas; solo interrumpe a Selva para el
+  click de un CAPTCHA/login o una decisión de negocio real.
+- **Selva**: resuelve CAPTCHA/login cuando hace falta (eso nunca lo va a
+  hacer una IA, es una regla del proyecto) y toma las decisiones de
+  negocio (qué producto importar, qué riesgo aceptar, cuándo pasar de
+  fase). **No transporta resultados, logs, comandos ni archivos entre
+  sesiones** -- ese trabajo lo hacen GitHub + este archivo.
+
+### Reglas obligatorias
+
+1. **Antes de empezar a trabajar, toda sesión (Nube o Local) lee este
+   archivo completo**, en particular "🚦 Próximo punto de entrada" --
+   es la única fuente de verdad sobre en qué estado está el proyecto.
+   Este archivo tiene que alcanzar por sí solo para que una sesión nueva
+   retome el proyecto sin que Selva tenga que reconstruirle el contexto.
+2. **Después de cualquier cambio de código o corrida real relevante, la
+   sesión que lo hizo actualiza este archivo y lo pushea antes de
+   terminar** -- nunca deja el estado real solo en su propia cabeza, en
+   un log, o en un archivo de resultados que ninguna otra sesión vaya a
+   leer.
+3. Si una sesión detecta que la otra trabajó en paralelo sin coordinarse
+   (ya pasó una vez, ver Fase A/B más abajo), hace `git pull`, revisa qué
+   se hizo, y lo deja explícito acá -- nunca lo descarta ni lo duplica
+   sin decirlo.
+
+### Para arrancar una sesión nueva (Nube o Local)
+
+No hace falta clonar nada nuevo ni crear otro repositorio -- mismo
+repositorio, misma carpeta, misma rama para las dos:
+
+- **Carpeta local de Selva**: `alibaba-catalog/` dentro del repo
+  `WildSoft` (en su compu, `...\WildSoft\AlibabaComparador\alibaba-catalog`).
+- **Rama de trabajo**: `claude/alibaba-mercado-libre-comparator-x0imwm`
+  (la única que se usa en este proyecto).
+- Para una sesión Local nueva: abrir Claude Code apuntando a esa misma
+  carpeta que Selva ya tiene clonada -- no hace falta "empezar" nada,
+  el historial completo ya está ahí.
+- Lo primero que cualquier sesión nueva hace, Nube o Local: `git pull` y
+  leer este archivo completo antes de tocar código.
+
 ## 🚦 Próximo punto de entrada (leer esto primero)
 
 **Fase A (calibración dirigida por los 5 casos reales) y Fase B (corrida
