@@ -38,6 +38,8 @@ def test_parsear_ficha_ml_completo():
     assert resultado["stock_visible"] == 5
     assert resultado["evidencia_demanda"] == "+1000 vendidos"
     assert resultado["url_ml"] == "https://www.mercadolibre.com.ar/.../MLA2023730583"
+    assert resultado["cantidad_opiniones"] == 273
+    assert resultado["rating"] == 4.2
 
 
 def test_parsear_ficha_ml_sin_ventas_usa_opiniones_como_evidencia():
@@ -52,6 +54,8 @@ def test_parsear_ficha_ml_sin_ventas_usa_opiniones_como_evidencia():
 
     assert resultado["unidades_vendidas"] is None
     assert resultado["evidencia_demanda"] == "42 opiniones, rating 4.5"
+    assert resultado["cantidad_opiniones"] == 42
+    assert resultado["rating"] == 4.5
 
 
 def test_parsear_ficha_ml_sin_datos_devuelve_todo_none():

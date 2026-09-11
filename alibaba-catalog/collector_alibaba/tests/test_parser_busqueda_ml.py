@@ -2,9 +2,9 @@ from pathlib import Path
 
 from parser_busqueda_ml import (
     _normalizar_conteo_vendidos,
+    clasificar_prioridad,
     parsear_listado_busqueda,
     resultado_a_candidato,
-    tiene_senal_de_demanda,
 )
 
 FIXTURE = (Path(__file__).parent / "fixtures" / "ml_busqueda_real.html").read_text(encoding="utf-8")
@@ -15,7 +15,7 @@ def test_parsear_listado_busqueda_extrae_los_4_casos_reales():
     assert len(resultados) == 4
 
 
-def test_caso_real_con_badge_mas_vendido_y_link_de_tracking():
+def test_caso_real_con_badge_mas_vendido_es_prioridad_a():
     resultados = parsear_listado_busqueda(FIXTURE)
     item = next(r for r in resultados if r["id_ml"] == "MLA1399281097")
 
@@ -25,6 +25,7 @@ def test_caso_real_con_badge_mas_vendido_y_link_de_tracking():
     assert item["url_ml"] == "https://articulo.mercadolibre.com.ar/MLA1399281097"
     assert item["precio_ml"] == 3999.0
     assert item["posicion"] == 1
+    assert clasificar_prioridad(item) == "A"
 
 
 def test_caso_real_con_link_de_tracking_sin_ninguna_senal():
@@ -32,19 +33,25 @@ def test_caso_real_con_link_de_tracking_sin_ninguna_senal():
     item = next(r for r in resultados if r["id_ml"] == "MLA2789721006")
 
     assert item["evidencia_demanda"] is None
-    assert tiene_senal_de_demanda(item) is False
+    assert clasificar_prioridad(item) is None
     # aun sin señal de demanda, la URL se reconstruye igual desde el item_id
     assert item["url_ml"] == "https://articulo.mercadolibre.com.ar/MLA2789721006"
 
 
-def test_caso_real_con_rating_visible_sin_cantidad_de_opiniones():
+def test_caso_real_con_rating_visible_es_prioridad_b_no_demanda_confirmada():
+    """
+    Ajuste de semántica: el rating visible (sin cantidad de opiniones) ya
+    NO cuenta como demanda confirmada -- es prioridad B (señal débil),
+    solo determina el orden en que se abren las fichas, no si el
+    candidato es válido.
+    """
     resultados = parsear_listado_busqueda(FIXTURE)
     item = next(r for r in resultados if r["id_ml"] == "MLA2040677716")
 
     assert item["rating_visible"] == 4.7
     assert item["mas_vendido"] is False
     assert item["evidencia_demanda"] == "rating 4.7 (sin cantidad de opiniones visible)"
-    assert tiene_senal_de_demanda(item) is True
+    assert clasificar_prioridad(item) == "B"
 
 
 def test_caso_real_con_link_directo_de_catalogo_sin_senal():
@@ -55,7 +62,7 @@ def test_caso_real_con_link_directo_de_catalogo_sin_senal():
     assert item["url_ml"] == (
         "https://www.mercadolibre.com.ar/limpiavidrio-mango-aluminio-extensible-70cm-doble-cabeza/p/MLA21816514"
     )
-    assert tiene_senal_de_demanda(item) is False
+    assert clasificar_prioridad(item) is None
 
 
 def test_normalizar_conteo_vendidos_no_asume_el_numero_exacto():
@@ -96,15 +103,26 @@ def test_parsear_listado_busqueda_ignora_li_sin_item_id_reconocible():
     assert parsear_listado_busqueda(html) == []
 
 
-def test_resultado_a_candidato_con_senal_queda_nuevo():
+def test_resultado_a_candidato_prioridad_a_queda_nuevo():
+    resultados = parsear_listado_busqueda(FIXTURE)
+    con_badge = next(r for r in resultados if r["id_ml"] == "MLA1399281097")
+
+    candidato = resultado_a_candidato(con_badge)
+
+    assert candidato["estado"] == "nuevo"
+    assert candidato["prioridad_listado"] == "A"
+    assert candidato["motivo_descarte"] is None
+    assert candidato["url_ml"] == con_badge["url_ml"]
+
+
+def test_resultado_a_candidato_prioridad_b_tambien_queda_nuevo_pero_marcada_como_debil():
     resultados = parsear_listado_busqueda(FIXTURE)
     con_rating = next(r for r in resultados if r["id_ml"] == "MLA2040677716")
 
     candidato = resultado_a_candidato(con_rating)
 
     assert candidato["estado"] == "nuevo"
-    assert candidato["motivo_descarte"] is None
-    assert candidato["url_ml"] == con_rating["url_ml"]
+    assert candidato["prioridad_listado"] == "B"
 
 
 def test_resultado_a_candidato_sin_senal_queda_descartado_sin_abrir_ficha():

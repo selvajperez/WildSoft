@@ -57,9 +57,10 @@ def extraer_stock_y_ventas(html: str) -> tuple[int | None, int | None]:
 def parsear_ficha_ml(html: str, url: str | None = None) -> dict:
     """
     Devuelve un dict con la forma de `candidatos_ml` (ver database/db.py)
-    más `stock_visible` (no es columna de `candidatos_ml`, se usa para
-    armar la primera fila de `historial_ml` al momento de crear el
-    candidato).
+    más `stock_visible`, `cantidad_opiniones` y `rating` -- no son
+    columnas de `candidatos_ml`, se usan para armar una fila de
+    `historial_ml` cada vez que se abre la ficha (ver
+    `orquestador_demanda_ml.py`).
     """
     resultado = {
         "url_ml": url,
@@ -69,6 +70,8 @@ def parsear_ficha_ml(html: str, url: str | None = None) -> dict:
         "precio_ml": None,
         "moneda_ml": None,
         "stock_visible": None,
+        "cantidad_opiniones": None,
+        "rating": None,
     }
 
     producto = extraer_producto_ld_json(html)
@@ -80,6 +83,8 @@ def parsear_ficha_ml(html: str, url: str | None = None) -> dict:
 
         rating = producto.get("aggregateRating") or {}
         if rating:
+            resultado["cantidad_opiniones"] = rating.get("reviewCount")
+            resultado["rating"] = rating.get("ratingValue")
             resultado["evidencia_demanda"] = (
                 f"{rating.get('reviewCount', 0)} opiniones, rating {rating.get('ratingValue')}"
             )

@@ -53,18 +53,27 @@ COLUMNAS_PRODUCTO = [
     "peso_gramos", "compra_directa", "envio_calculable",
 ]
 
-# Columnas agregadas después de la creación inicial de la tabla: en una base
-# ya existente (CREATE TABLE IF NOT EXISTS no las agrega retroactivamente),
-# hace falta un ALTER TABLE explícito para no perder los datos ya guardados.
+# Columnas agregadas después de la creación inicial de una tabla: en una
+# base ya existente (CREATE TABLE IF NOT EXISTS no las agrega
+# retroactivamente), hace falta un ALTER TABLE explícito para no perder
+# los datos ya guardados.
 _MIGRACIONES_PRODUCTOS = {
     "compra_directa": "ALTER TABLE productos_alibaba ADD COLUMN compra_directa INTEGER",
     "envio_calculable": "ALTER TABLE productos_alibaba ADD COLUMN envio_calculable INTEGER",
 }
 
+_MIGRACIONES_CANDIDATOS_ML = {
+    "prioridad_listado": "ALTER TABLE candidatos_ml ADD COLUMN prioridad_listado TEXT",
+}
 
-def _migrar_columnas_faltantes(conexion: sqlite3.Connection) -> None:
-    columnas_existentes = {fila[1] for fila in conexion.execute("PRAGMA table_info(productos_alibaba)")}
-    for columna, sentencia in _MIGRACIONES_PRODUCTOS.items():
+_MIGRACIONES_HISTORIAL_ML = {
+    "rating": "ALTER TABLE historial_ml ADD COLUMN rating REAL",
+}
+
+
+def _migrar_columnas(conexion: sqlite3.Connection, tabla: str, migraciones: dict[str, str]) -> None:
+    columnas_existentes = {fila[1] for fila in conexion.execute(f"PRAGMA table_info({tabla})")}
+    for columna, sentencia in migraciones.items():
         if columna not in columnas_existentes:
             conexion.execute(sentencia)
     conexion.commit()
@@ -80,15 +89,18 @@ CREATE TABLE IF NOT EXISTS progreso_paginas (
 # (no en un ENUM de SQLite, que no existe) para no tener strings mágicos
 # sueltos en el código que arma el pipeline.
 ESTADOS_CANDIDATO = (
-    "nuevo",                             # detectado en ML, todavía sin comparable de Alibaba
-    "descartado_demanda_insuficiente",   # sin ninguna señal de demanda visible en el listado de ML (prefiltro barato, nunca se abrió su ficha)
-    "con_comparable",                    # tiene un comparable de Alibaba asociado, precio sin verificar
-    "precio_verificado",                 # se abrió la ficha individual y se obtuvo un precio confiable
-    "descartado_filtro_economico",       # diferencia_inicial < USD 10
-    "descartado_no_verificado",          # precio de Alibaba no se pudo determinar de forma confiable
-    "descartado_sin_comparable",         # no se encontró un producto comparable en Alibaba
-    "segunda_etapa",                     # sobrevivió el filtro económico, en análisis de logística/margen
-    "finalista",                         # en la shortlist final
+    "nuevo",                              # detectado en ML con prioridad A o B en el listado, ficha todavía sin abrir
+    "descartado_demanda_insuficiente",    # sin ninguna señal de demanda visible en el listado de ML (prefiltro barato, nunca se abrió su ficha)
+    "demanda_confirmada",                 # se abrió la ficha individual de ML y la demanda supera el umbral configurado
+    "descartado_demanda_no_confirmada",   # se abrió la ficha individual de ML pero no alcanzó el umbral configurado
+    "indeterminado_ficha",                # se abrió la ficha individual de ML pero no se pudo extraer nada confiable
+    "con_comparable",                     # tiene un comparable de Alibaba asociado, precio sin verificar
+    "precio_verificado",                  # se abrió la ficha individual de Alibaba y se obtuvo un precio confiable
+    "descartado_filtro_economico",        # diferencia_inicial < USD 10
+    "descartado_no_verificado",           # precio de Alibaba no se pudo determinar de forma confiable
+    "descartado_sin_comparable",          # no se encontró un producto comparable en Alibaba
+    "segunda_etapa",                      # sobrevivió el filtro económico, en análisis de logística/margen
+    "finalista",                          # en la shortlist final
 )
 
 ESQUEMA_CANDIDATOS_ML = """
@@ -101,6 +113,7 @@ CREATE TABLE IF NOT EXISTS candidatos_ml (
     unidades_vendidas INTEGER,
     precio_ml REAL,
     moneda_ml TEXT,
+    prioridad_listado TEXT,
     estado TEXT NOT NULL DEFAULT 'nuevo',
     motivo_descarte TEXT,
     fecha_detectado TEXT NOT NULL,
@@ -108,9 +121,14 @@ CREATE TABLE IF NOT EXISTS candidatos_ml (
 );
 """
 
+# prioridad_listado: 'A' (señal fuerte: badge "más vendido" o conteo
+# explícito de vendidos), 'B' (señal débil: rating u otra señal parcial),
+# o None (sin ninguna señal). Es solo un prefiltro/orden de prioridad para
+# decidir qué fichas abrir primero -- NO es una validación de demanda
+# (ver parser_busqueda_ml.clasificar_prioridad).
 COLUMNAS_CANDIDATO_ML = [
     "id_ml", "url_ml", "nombre", "evidencia_demanda", "unidades_vendidas",
-    "precio_ml", "moneda_ml", "estado", "motivo_descarte",
+    "precio_ml", "moneda_ml", "prioridad_listado", "estado", "motivo_descarte",
 ]
 
 ESQUEMA_ALIBABA_COMPARABLES = """
@@ -145,12 +163,13 @@ CREATE TABLE IF NOT EXISTS historial_ml (
     stock_visible INTEGER,
     unidades_vendidas_visible INTEGER,
     cantidad_opiniones INTEGER,
+    rating REAL,
     posicion_ranking INTEGER
 );
 """
 
 COLUMNAS_OBSERVACION_HISTORIAL = [
-    "precio", "stock_visible", "unidades_vendidas_visible", "cantidad_opiniones", "posicion_ranking",
+    "precio", "stock_visible", "unidades_vendidas_visible", "cantidad_opiniones", "rating", "posicion_ranking",
 ]
 
 
@@ -161,7 +180,9 @@ def conectar(db_path: Path | str = DB_PATH_DEFAULT) -> sqlite3.Connection:
     conexion.execute(ESQUEMA_CANDIDATOS_ML)
     conexion.execute(ESQUEMA_ALIBABA_COMPARABLES)
     conexion.execute(ESQUEMA_HISTORIAL_ML)
-    _migrar_columnas_faltantes(conexion)
+    _migrar_columnas(conexion, "productos_alibaba", _MIGRACIONES_PRODUCTOS)
+    _migrar_columnas(conexion, "candidatos_ml", _MIGRACIONES_CANDIDATOS_ML)
+    _migrar_columnas(conexion, "historial_ml", _MIGRACIONES_HISTORIAL_ML)
     return conexion
 
 

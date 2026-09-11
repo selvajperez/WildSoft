@@ -26,19 +26,23 @@ alibaba-catalog/
     collector.py           # orquesta por HTTP puro: recorre la paginación real y guarda en la base
     collector_browser.py   # orquesta con Chrome real (Playwright): alternativa cuando el sitio bloquea el HTTP puro
     diagnostico_precio.py  # busca un producto en el HTML crudo archivado y muestra su JSON sin normalizar
+    navegador_ml.py             # sesión Playwright/Chrome real compartida (login, PoW de Akamai, pausa por bloqueo) usada por capturador_exploratorio.py y orquestador_demanda_ml.py
     capturador_exploratorio.py  # Fase 1 del sourcing: captura automática de muestras ML + Alibaba
     parser_ficha_alibaba.py     # Fase 2 (arranque): parsea la ficha individual de Alibaba (precio real, MOQ)
     parser_ficha_ml.py          # Fase 1 (arranque): parsea la ficha individual de Mercado Libre (demanda, precio)
-    parser_busqueda_ml.py       # Fase 1: parsea el listado de búsqueda de ML (prefiltro de demanda, sin abrir fichas)
+    parser_busqueda_ml.py       # Fase 1: parsea el listado de búsqueda de ML (prioridad A/B/sin señal, nunca demanda confirmada)
+    orquestador_demanda_ml.py   # Fase 1: busca, prioriza y abre fichas individuales hasta confirmar demanda real (configurable)
     tests/
       test_parser.py
       test_scraper.py
       test_collector_browser.py
       test_diagnostico_precio.py
+      test_navegador_ml.py
       test_capturador_exploratorio.py
       test_parser_ficha_alibaba.py
       test_parser_ficha_ml.py
       test_parser_busqueda_ml.py
+      test_orquestador_demanda_ml.py
       fixtures/
         productlist_page19.html          # HTML real (recortado) de un listado válido
         productlist_page_mixto.html      # los mismos 2 + 2 productos reales "a Cotizar" (RFQ)
@@ -232,10 +236,17 @@ archivo `.db`, sin tocar `productos_alibaba`/`progreso_paginas`):
 
 - **`candidatos_ml`**: una fila por publicación de Mercado Libre con
   evidencia de demanda. Se deduplica por `url_ml` (`upsert_candidato_ml`).
-  `estado` recorre el pipeline (`ESTADOS_CANDIDATO` en `db.py`): `nuevo` →
-  `con_comparable` → `precio_verificado` → `segunda_etapa` → `finalista`,
-  o alguno de los `descartado_*` con su `motivo_descarte`.
-  `fecha_detectado` se preserva entre actualizaciones (no se pisa).
+  `prioridad_listado` (`"A"`/`"B"`/`NULL`) guarda con qué prioridad salió
+  del listado (ver `parser_busqueda_ml.clasificar_prioridad` más abajo) —
+  es solo el orden en que se abren las fichas, no una confirmación de
+  demanda. `estado` recorre el pipeline (`ESTADOS_CANDIDATO` en `db.py`):
+  `nuevo` → `demanda_confirmada` → `con_comparable` → `precio_verificado`
+  → `segunda_etapa` → `finalista`, o alguno de los `descartado_*`
+  (incluye `descartado_demanda_insuficiente`, del prefiltro de listado, y
+  `descartado_demanda_no_confirmada`, de la ficha individual) o
+  `indeterminado_ficha` (la ficha no se pudo leer con confianza), cada uno
+  con su `motivo_descarte` explícito. `fecha_detectado` se preserva entre
+  actualizaciones (no se pisa).
 - **`alibaba_comparables`**: el producto de Alibaba elegido como
   comparable de un candidato (`candidato_id`), con el precio **verificado
   en la ficha individual** (`precio_alibaba_50u`) — nunca el de la
@@ -243,13 +254,15 @@ archivo `.db`, sin tocar `productos_alibaba`/`progreso_paginas`):
   flags de la regla "si no se puede determinar el precio con confianza,
   excluir de esta corrida".
 - **`historial_ml`**: observaciones de un candidato en el tiempo (precio,
-  stock visible, ventas visibles, ranking). **Append-only**:
-  `registrar_observacion_historial` siempre inserta una fila nueva, nunca
-  actualiza una existente — es la base para medir rotación real
-  comparando observaciones sucesivas, no un snapshot que se pisa.
+  stock visible, ventas visibles, cantidad de opiniones, `rating`,
+  ranking). **Append-only**: `registrar_observacion_historial` siempre
+  inserta una fila nueva, nunca actualiza una existente — es la base para
+  medir rotación real comparando observaciones sucesivas, no un snapshot
+  que se pisa.
 
-Todavía no hay collector que llene estas tablas (eso es la fase 1 en
-adelante) — por ahora es el esquema + las funciones de acceso, ya
+`candidatos_ml`/`historial_ml` ya se llenan con datos reales — ver
+`orquestador_demanda_ml.py` más abajo. `alibaba_comparables` sigue siendo
+solo esquema + funciones de acceso (fase 2, todavía no empezada), ya
 testeadas con SQLite en memoria (`database/tests/test_db_sourcing.py`).
 
 ## Captura automática de muestras (`capturador_exploratorio.py`)
@@ -426,14 +439,24 @@ Regla del proyecto respetada: `_normalizar_conteo_vendidos()` nunca trata
 `evidencia_demanda` siempre conserva el texto/badge tal cual se vio, para
 poder auditar después.
 
-### Prefiltro de demanda y guardado en `candidatos_ml`
+### Prefiltro de prioridad (NO es confirmación de demanda) y guardado en `candidatos_ml`
 
-`tiene_senal_de_demanda(item)` es `True` si hay *cualquier* señal visible
-(conteo de vendidos, badge, o rating). `resultado_a_candidato(item)`
-traduce un resultado a los campos de `candidatos_ml`, aplicando el
-prefiltro: sin ninguna señal, el candidato ya entra con
-`estado="descartado_demanda_insuficiente"` y su `motivo_descarte" — así el
-pipeline nunca gasta una visita a esa ficha individual. `parser_busqueda_ml.py`
+Ajuste de semántica importante: **el listado nunca confirma demanda por sí
+solo**, solo establece una prioridad de revisión. `clasificar_prioridad(item)`
+devuelve:
+
+- `"A"` (señal fuerte): badge "MÁS VENDIDO" o conteo explícito de "+N
+  vendidos".
+- `"B"` (señal débil): rating promedio visible, sin cantidad de opiniones
+  — antes se trataba como demanda confirmada; ya no.
+- `None`: ninguna señal visible. Se descarta sin abrir la ficha
+  (`estado="descartado_demanda_insuficiente"`).
+
+`resultado_a_candidato(item)` traduce un resultado a los campos de
+`candidatos_ml`, guardando la prioridad en `prioridad_listado` ("A"/"B"
+quedan en `estado="nuevo"`, pendientes de que se abra su ficha;
+`None` ya entra descartado, con su `motivo_descarte`, para que el
+pipeline nunca gaste una visita a esa ficha individual). `parser_busqueda_ml.py`
 no toca la base directamente (función pura); guardar es un `for` simple
 con `db.upsert_candidato_ml` (ver `test_guardar_resultados_del_listado_en_candidatos_ml`).
 
@@ -442,9 +465,10 @@ con `db.upsert_candidato_ml` (ver `test_guardar_resultados_del_listado_en_candid
 | | |
 |---|---|
 | Resultados extraídos | 60 / 60 |
-| Con señal de demanda (→ `nuevo`) | 20 |
+| Prioridad A (badge/conteo) | 2 |
+| Prioridad B (rating visible) | 18 |
 | Sin señal (→ `descartado_demanda_insuficiente`, sin abrir su ficha) | 40 |
-| Desglose de señal | badge "MÁS VENDIDO": 2 — rating visible: 18 — conteo explícito de vendidos: 0 |
+| Conteo explícito de vendidos en el grid | 0 (no confirmado en este grid, ver hallazgo arriba) |
 | URLs duplicadas | 0 |
 | Precios sin detectar / nombres vacíos | 0 |
 | Falsos positivos encontrados | Ninguno una vez corregidas las 2 formas de URL faltantes (ver hallazgos arriba) |
@@ -452,7 +476,96 @@ con `db.upsert_candidato_ml` (ver `test_guardar_resultados_del_listado_en_candid
 **No se avanzó con matching contra Alibaba ni con el pipeline completo**
 (regla explícita de esta etapa) hasta confirmar que este parser de
 listado extrae de forma confiable — con el 60/60 y cero duplicados/campos
-vacíos, se considera validado para seguir.
+vacíos, se considera validado para seguir con la apertura de fichas
+individuales (`orquestador_demanda_ml.py`, siguiente sección).
+
+## Confirmación de demanda abriendo fichas individuales (`orquestador_demanda_ml.py`)
+
+El listado (sección anterior) es solo prefiltro y orden de prioridad —
+**la demanda recién se confirma al abrir la ficha individual**, contra un
+umbral configurable. `orquestador_demanda_ml.py` es el punto de entrada de
+esta etapa: busca en Mercado Libre, guarda todos los resultados en
+`candidatos_ml` con su `prioridad_listado`, y abre fichas **primero las de
+Prioridad A, después las de Prioridad B** (las "sin señal" nunca se
+abren), hasta lo que ocurra primero de:
+
+- alcanzar `--objetivo` candidatos con demanda confirmada, o
+- agotar `--max-fichas` fichas abiertas en esta búsqueda.
+
+Por cada ficha abierta:
+
+1. Se extrae con `parser_ficha_ml.parsear_ficha_ml`: precio actual, +N
+   vendidos, cantidad de opiniones, rating, stock visible.
+2. Se guarda **siempre** una fila nueva en `historial_ml`
+   (`registrar_observacion_historial`, append-only — nunca pisa una
+   observación anterior).
+3. `_determinar_resultado_ficha` decide el estado final contra
+   `--umbral-vendidas` (unidades vendidas confirmadas en la ficha, no en
+   el listado):
+   - `demanda_confirmada`: vendidas ≥ umbral.
+   - `descartado_demanda_no_confirmada`: vendidas < umbral.
+   - `indeterminado_ficha`: la ficha no expone ventas (o no se pudo leer
+     nada confiable) — no se puede confirmar ni descartar con la
+     configuración actual.
+4. `db.actualizar_estado_candidato` guarda ese estado **con un motivo
+   explícito siempre presente** (nunca hay un descarte silencioso — ver
+   `test_procesar_busqueda_ml_registra_motivo_explicito_por_candidato`).
+
+La lógica de decisión (`_determinar_resultado_ficha`) y la orquestación
+completa (`procesar_busqueda_ml`) están separadas de la parte que
+efectivamente abre páginas: reciben `obtener_html_busqueda`/`abrir_ficha`
+como funciones inyectadas, así se puede probar todo el flujo con HTML ya
+capturado sin necesitar un navegador real. `ejecutar_busqueda_real` es el
+único punto que arma esas funciones con Playwright/Chrome real
+(reutilizando `navegador_ml.py`, la misma sesión persistente y el mismo
+manejo del desafío PoW de Akamai que ya usaba `capturador_exploratorio.py`).
+
+```bash
+python collector_alibaba/orquestador_demanda_ml.py "cepillo de limpieza"
+python collector_alibaba/orquestador_demanda_ml.py "candado bicicleta" --max-fichas 10 --objetivo 3 --umbral-vendidas 100
+python collector_alibaba/orquestador_demanda_ml.py "cepillo de limpieza" --login   # forzar login manual de nuevo
+```
+
+### Validación con datos reales (antes de avanzar a matching Alibaba)
+
+Se probó `procesar_busqueda_ml` con las 4 tarjetas reales del fixture
+(`ml_busqueda_real.html`: 1 Prioridad A, 1 Prioridad B, 2 sin señal) y con
+la única ficha real capturada hasta ahora (`ml_ficha_real.html`, item
+MLA2023730583: 1000 vendidas, stock 5, rating 4.2, 273 opiniones) —
+inyectada como stand-in de cualquier ficha que se abra, porque todavía no
+hay fichas reales capturadas de los candidatos concretos de esa búsqueda
+(limitación documentada explícitamente en `test_orquestador_demanda_ml.py`,
+no escondida). Con esa entrada:
+
+- Prioridad A se abre siempre antes que B (confirmado forzando
+  `max_fichas_por_busqueda=1`: la única ficha abierta es la del badge
+  "MÁS VENDIDO").
+- `--objetivo` y `--max-fichas` cortan la corrida en el punto correcto
+  (`detenido_por` queda en `"candidatos_objetivo_alcanzado"` o
+  `"max_fichas_alcanzado"` según cuál se agote primero).
+- Con `--umbral-vendidas` alto (5000, por encima de las 1000 reales de la
+  ficha) los candidatos quedan `descartado_demanda_no_confirmada` en vez
+  de `demanda_confirmada` — el umbral configurable funciona.
+- La fila de `historial_ml` guardada coincide exactamente con los datos
+  reales de la ficha: `(68780.0, 5, 1000, 273, 4.2)`.
+- Corriendo contra el listado real completo (60 resultados, no solo las 4
+  del fixture) con la configuración default
+  (`max_fichas_por_busqueda=15, candidatos_objetivo=5, umbral_unidades_vendidas=50`):
+  de 2 Prioridad A + 18 Prioridad B disponibles, se abrieron solo 5 fichas
+  (las 2 de A + las primeras 3 de B) y se detuvo por
+  `"candidatos_objetivo_alcanzado"` — nunca abrió las 15 restantes de
+  Prioridad B, confirmando que el corte configurable evita navegación
+  innecesaria tal como pide la regla del proyecto.
+
+**Pendiente para terminar de validar esta etapa**: correr
+`ejecutar_busqueda_real` de verdad (Chrome real, no HTML inyectado) para
+que cada candidato abra **su propia** ficha real en vez de reusar la
+misma — el HTML de la búsqueda y de la ficha usados en los tests son 100%
+reales, pero la limitación conocida es que un solo ejemplo de ficha real
+se reusó como stand-in de los 5 candidatos abiertos en la prueba end to
+end. Recién con eso confirmado con múltiples fichas reales distintas se
+considera esta etapa lista para pasar al matching contra Alibaba (fase 2,
+todavía no empezada).
 
 ## Instalación y uso
 

@@ -29,6 +29,17 @@ un `<li class="ui-search-layout__item">` con una tarjeta "poly-card"
 Regla del proyecto: nunca tratar "+500" como exactamente 500.
 `unidades_vendidas` es una aproximación (ver `_normalizar_conteo_vendidos`);
 `evidencia_demanda` conserva siempre el texto crudo tal cual se vio.
+
+IMPORTANTE (ajuste de semántica): el listado es solo un prefiltro y un
+orden de prioridad, NUNCA una validación definitiva de demanda.
+`clasificar_prioridad()` separa los resultados en:
+  - Prioridad 'A' (señal fuerte): badge "MÁS VENDIDO" o conteo explícito
+    de vendidos.
+  - Prioridad 'B' (señal débil): rating visible u otra señal parcial --
+    ya NO cuenta como demanda confirmada por sí sola.
+  - Sin señal (None): se descarta sin abrir la ficha.
+La demanda recién se confirma al abrir la ficha individual (ver
+`orquestador_demanda_ml.py`), contra un umbral configurable.
 """
 
 from __future__ import annotations
@@ -174,16 +185,42 @@ def parsear_listado_busqueda(html: str) -> list[dict]:
     return resultados
 
 
+def clasificar_prioridad(item: dict) -> str | None:
+    """
+    Clasifica un resultado del listado en una prioridad de revisión, NO en
+    una demanda confirmada -- el listado es solo un prefiltro/orden para
+    decidir qué fichas abrir primero. La demanda real se confirma recién
+    al abrir la ficha individual (regla del proyecto).
+
+    - 'A' (señal fuerte): badge "MÁS VENDIDO" o conteo explícito de
+      vendidos. Son señales que el propio ML expone como indicador de
+      volumen real.
+    - 'B' (señal débil): rating promedio visible, sin cantidad de
+      opiniones. Un producto puede tener rating alto con muy pocas
+      compras -- no es evidencia de volumen, solo de que hay *alguna*
+      actividad.
+    - None: ninguna señal visible. Se descarta sin abrir la ficha.
+    """
+    if item["unidades_vendidas"] is not None or item["mas_vendido"]:
+        return "A"
+    if item["rating_visible"] is not None:
+        return "B"
+    return None
+
+
 def resultado_a_candidato(item: dict) -> dict:
     """
     Traduce el dict de `parsear_resultado` a los campos de `candidatos_ml`
-    (ver database/db.py), aplicando el prefiltro de demanda: sin ninguna
-    señal visible en el listado, el candidato ya entra descartado -- así
-    el pipeline nunca gasta una visita a su ficha individual (regla del
-    proyecto: "evitar abrir fichas de productos con demanda insuficiente").
-    No hace ningún acceso a la base -- eso es responsabilidad de quien
-    llama (`db.upsert_candidato_ml`).
+    (ver database/db.py), aplicando la clasificación de prioridad: sin
+    ninguna señal visible en el listado, el candidato ya entra descartado
+    -- así el pipeline nunca gasta una visita a su ficha individual (regla
+    del proyecto: "evitar abrir fichas de productos con demanda
+    insuficiente"). Con prioridad A o B, queda "nuevo" a la espera de que
+    el orquestador de la siguiente etapa decida abrir su ficha (ver
+    `orquestador_demanda_ml.py`). No hace ningún acceso a la base -- eso
+    es responsabilidad de quien llama (`db.upsert_candidato_ml`).
     """
+    prioridad = clasificar_prioridad(item)
     candidato = {
         "id_ml": item["id_ml"],
         "url_ml": item["url_ml"],
@@ -192,8 +229,9 @@ def resultado_a_candidato(item: dict) -> dict:
         "unidades_vendidas": item["unidades_vendidas"],
         "precio_ml": item["precio_ml"],
         "moneda_ml": item["moneda_ml"],
+        "prioridad_listado": prioridad,
     }
-    if tiene_senal_de_demanda(item):
+    if prioridad is not None:
         candidato["estado"] = "nuevo"
         candidato["motivo_descarte"] = None
     else:
@@ -203,15 +241,3 @@ def resultado_a_candidato(item: dict) -> dict:
             "(ni conteo de vendidos, ni badge de más vendido, ni rating)."
         )
     return candidato
-
-
-def tiene_senal_de_demanda(item: dict) -> bool:
-    """
-    True si hay CUALQUIER señal visible en el listado (conteo de
-    vendidos, badge "MÁS VENDIDO", o rating promedio). Es un prefiltro
-    barato antes de gastar una visita a la ficha individual -- no decide
-    por sí solo si el producto es bueno, solo si vale la pena mirarlo de
-    cerca. Un candidato sin ninguna señal acá se descarta sin abrir su
-    ficha (regla del proyecto).
-    """
-    return item["unidades_vendidas"] is not None or item["mas_vendido"] or item["rating_visible"] is not None

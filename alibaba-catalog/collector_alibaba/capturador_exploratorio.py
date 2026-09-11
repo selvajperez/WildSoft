@@ -11,12 +11,14 @@ usuaria resuelve el CAPTCHA a mano, la captura sigue sola con el siguiente
 objetivo en vez de cortar toda la corrida (no hay progreso "de catálogo"
 que proteger, es una recolección de muestras puntuales).
 
+La lógica de navegador (detección del desafío PoW de ML, reintento de
+`content()`, pausa ante bloqueo real) vive en `navegador_ml.py`,
+compartida con `orquestador_demanda_ml.py`.
+
 Captura tres objetivos de referencia (parametrizables, con default para
 poder correrlo sin pasarle nada):
     1. Una búsqueda en Mercado Libre.
-    2. La ficha del primer resultado de esa búsqueda (best-effort: la
-       extracción del link todavía no está confirmada contra HTML real
-       de ML, así que si no encuentra nada, lo loguea y sigue).
+    2. La ficha del primer resultado de esa búsqueda.
     3. Una ficha de producto de Alibaba (usa una URL real ya conocida del
        catálogo scrapeado en esta sesión).
 
@@ -44,15 +46,18 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from playwright.sync_api import Error as PlaywrightError  # noqa: E402
-from playwright.sync_api import sync_playwright  # noqa: E402
-
 from scraper import contiene_marcadores_bloqueo as bloqueado_alibaba  # noqa: E402
 
-# Mismo perfil que collector_browser.py: un solo login manual sirve para
-# Alibaba y Mercado Libre (es solo un directorio de datos de Chrome, no hay
-# conflicto entre sesiones de distintos dominios).
-PERFIL_DEDICADO = Path(__file__).parent.parent / ".perfil_chrome_collector"
+import navegador_ml  # noqa: E402
+from navegador_ml import (  # noqa: E402
+    PERFIL_DEDICADO,
+    abrir_pagina_ml,
+    confirmar_login_manual,
+    contenido_seguro,
+    es_primera_vez,
+    navegador_persistente,
+    pausar_por_bloqueo_y_continuar,
+)
 
 DIR_CAPTURAS = Path(__file__).parent.parent / "capturas_exploratorias"
 MANIFIESTO = DIR_CAPTURAS / "manifiesto.jsonl"
@@ -77,86 +82,14 @@ logging.basicConfig(
 logger = logging.getLogger("capturador_exploratorio")
 
 
-# --- Detección de bloqueo -----------------------------------------------
-#
-# Para Alibaba reutilizamos el detector ya probado con HTML real
-# (scraper.contiene_marcadores_bloqueo).
-#
-# Para Mercado Libre confirmamos con una captura real (ver
-# tests/fixtures/ml_desafio_pow.html) que lo primero que aparece NO es un
-# CAPTCHA que requiera a una persona: es un desafío "Proof of Work" de
-# Akamai Bot Manager que el propio JavaScript de la página resuelve solo
-# (cualquier navegador real que ejecute JS, como el nuestro, lo pasa en
-# unos segundos) y después navega sola al contenido real. Por eso NO se
-# pausa para pedir intervención humana ante esto: se espera a que se
-# resuelva. Si después de esperar seguimos en esta misma página, recién
-# ahí puede hacer falta un CAPTCHA real -- pero eso todavía no lo vimos
-# con HTML real, así que `bloqueado_ml_heuristico` sigue siendo un
-# heurístico genérico y explícitamente provisorio para ese caso.
-_MARCADORES_DESAFIO_POW_ML = (
-    "micro-landing-container",
-    "verifychallenge",
-    "snoopy-generation-web",
-)
-
-_MARCADORES_BLOQUEO_ML_PROVISORIOS = (
-    "captcha",
-    "verificación de seguridad",
-    "verifica que no sos un robot",
-    "unusual traffic",
-    "recaptcha",
-)
-
-
-def es_desafio_pow_ml(html: str) -> bool:
-    cuerpo = html.lower()
-    return any(marcador in cuerpo for marcador in _MARCADORES_DESAFIO_POW_ML)
-
-
-def bloqueado_ml_heuristico(html: str) -> bool:
-    cuerpo = html.lower()
-    return any(marcador in cuerpo for marcador in _MARCADORES_BLOQUEO_ML_PROVISORIOS)
-
-
-def _esperar_resolucion_desafio_pow(pagina, intentos: int = 8, espera_ms: int = 2000) -> str:
-    """
-    El desafío PoW se resuelve solo con JS real en unos segundos. Espera
-    en pasos cortos en vez de un único timeout largo, para no perder
-    tiempo si se resuelve rápido.
-    """
-    html = _contenido_seguro(pagina)
-    for _ in range(intentos):
-        if not es_desafio_pow_ml(html):
-            break
-        pagina.wait_for_timeout(espera_ms)
-        html = _contenido_seguro(pagina)
-    return html
-
-
-def _contenido_seguro(pagina, intentos: int = 5, espera_ms: int = 500) -> str:
-    """
-    `page.content()` de Playwright puede tirar un error transitorio si se
-    llama justo mientras la página está navegando (pasa seguido acá: el
-    desafío PoW de ML redirige sola apenas se resuelve). Reintenta en vez
-    de romper la captura.
-    """
-    ultimo_error = None
-    for _ in range(intentos):
-        try:
-            return pagina.content()
-        except PlaywrightError as exc:
-            ultimo_error = exc
-            pagina.wait_for_timeout(espera_ms)
-    raise ultimo_error
-
-
 def _extraer_primer_link_producto_ml(html: str) -> str | None:
     """
-    Best-effort: los ids de publicación de ML tienen el patrón MLA-<dígitos>
-    en la URL. No está confirmado contra HTML real todavía -- si no
-    encuentra nada, quien llama debe loguearlo y seguir, no fallar.
+    Best-effort: busca cualquiera de las 3 formas reales de link de
+    producto confirmadas en parser_busqueda_ml.py (directo /p/, directo
+    /up/, o con wrapper de tracking). Si no encuentra nada, quien llama
+    debe loguearlo y seguir, no fallar.
     """
-    match = re.search(r'href="(https://[^"]*mercadolibre\.com\.ar/[^"]*MLA-?\d+[^"]*)"', html)
+    match = re.search(r'href="(https://[^"]*mercadolibre\.com\.ar/[^"]*(?:/u?p/[A-Za-z]+\d+|item_id%3A[A-Za-z]+\d+)[^"]*)"', html)
     return match.group(1) if match else None
 
 
@@ -184,55 +117,15 @@ def _guardar_html(etiqueta: str, html: str) -> Path:
     return archivo
 
 
-# --- Login / pausa por bloqueo (mismo patrón que collector_browser.py) ----
-
-def _confirmar_login_manual() -> None:
-    print("\n" + "=" * 70)
-    print("Se abrió Chrome con el perfil dedicado del proyecto.")
-    print("Iniciá sesión manualmente en Mercado Libre y/o Alibaba en esa")
-    print("ventana, si hace falta. La sesión queda guardada para las")
-    print("próximas corridas (de esta herramienta y de collector_browser.py).")
-    print("=" * 70)
-    input("Cuando termines, volvé a esta terminal y presioná ENTER para continuar...")
-
-
-def _pausar_por_bloqueo_y_continuar(pagina, url: str, etiqueta: str) -> str:
-    """
-    A diferencia de collector_browser.py, acá NO se corta la corrida: se
-    pausa, se espera que la usuaria resuelva el CAPTCHA a mano en la
-    ventana visible, y al presionar ENTER se recarga la página y se sigue
-    con la captura (y con el resto de los objetivos) automáticamente.
-    """
-    logger.warning("Posible bloqueo/CAPTCHA detectado en '%s' (%s).", etiqueta, url)
-    print("\n" + "!" * 70)
-    print(f"Posible CAPTCHA / bloqueo detectado en: {etiqueta}")
-    print(f"URL: {url}")
-    print("No se resuelve ni se evade automáticamente. Resolvelo vos en la")
-    print("ventana de Chrome (si hace falta) y volvé acá.")
-    print("Cuando esté resuelto, presioná ENTER: la captura va a continuar sola.")
-    print("!" * 70 + "\n")
-    input()
-    pagina.reload(wait_until="domcontentloaded")
-    return _contenido_seguro(pagina)
-
-
 # --- Capturas individuales -------------------------------------------------
 
 def _capturar_busqueda_ml(pagina, busqueda: str) -> str:
     url = f"{URL_BASE_ML}/{urllib.parse.quote(busqueda.replace(' ', '-'))}"
     logger.info("Abriendo búsqueda de Mercado Libre: %s", url)
-    pagina.goto(url, wait_until="domcontentloaded")
-    html = _contenido_seguro(pagina)
-
-    if es_desafio_pow_ml(html):
-        logger.info("Desafío PoW de Mercado Libre detectado; esperando resolución automática...")
-        html = _esperar_resolucion_desafio_pow(pagina)
-
-    if bloqueado_ml_heuristico(html):
-        html = _pausar_por_bloqueo_y_continuar(pagina, url, "búsqueda Mercado Libre")
+    html = abrir_pagina_ml(pagina, url, "búsqueda Mercado Libre")
 
     archivo = _guardar_html("ml_busqueda", html)
-    _registrar_captura("ml_busqueda", url, archivo, bloqueado_ml_heuristico(html))
+    _registrar_captura("ml_busqueda", url, archivo, navegador_ml.bloqueado_ml_heuristico(html))
     logger.info("Búsqueda ML guardada en %s", archivo)
     return html
 
@@ -240,36 +133,25 @@ def _capturar_busqueda_ml(pagina, busqueda: str) -> str:
 def _capturar_ficha_ml(pagina, html_busqueda: str) -> None:
     link = _extraer_primer_link_producto_ml(html_busqueda)
     if not link:
-        logger.warning(
-            "No se pudo extraer un link de producto del HTML de búsqueda de ML "
-            "(patrón todavía no confirmado contra HTML real). Se omite la ficha ML."
-        )
+        logger.warning("No se pudo extraer un link de producto del HTML de búsqueda de ML. Se omite la ficha ML.")
         _registrar_captura("ml_ficha", "(no encontrado)", None, False)
         return
 
     logger.info("Abriendo ficha de Mercado Libre: %s", link)
-    pagina.goto(link, wait_until="domcontentloaded")
-    html = _contenido_seguro(pagina)
-
-    if es_desafio_pow_ml(html):
-        logger.info("Desafío PoW de Mercado Libre detectado; esperando resolución automática...")
-        html = _esperar_resolucion_desafio_pow(pagina)
-
-    if bloqueado_ml_heuristico(html):
-        html = _pausar_por_bloqueo_y_continuar(pagina, link, "ficha Mercado Libre")
+    html = abrir_pagina_ml(pagina, link, "ficha Mercado Libre")
 
     archivo = _guardar_html("ml_ficha", html)
-    _registrar_captura("ml_ficha", link, archivo, bloqueado_ml_heuristico(html))
+    _registrar_captura("ml_ficha", link, archivo, navegador_ml.bloqueado_ml_heuristico(html))
     logger.info("Ficha ML guardada en %s", archivo)
 
 
 def _capturar_ficha_alibaba(pagina, url: str) -> None:
     logger.info("Abriendo ficha de Alibaba: %s", url)
     pagina.goto(url, wait_until="domcontentloaded")
-    html = _contenido_seguro(pagina)
+    html = contenido_seguro(pagina)
 
     if bloqueado_alibaba(html):
-        html = _pausar_por_bloqueo_y_continuar(pagina, url, "ficha Alibaba")
+        html = pausar_por_bloqueo_y_continuar(pagina, url, "ficha Alibaba")
 
     archivo = _guardar_html("alibaba_ficha", html)
     _registrar_captura("alibaba_ficha", url, archivo, bloqueado_alibaba(html))
@@ -281,26 +163,18 @@ def capturar_muestras(
     url_alibaba: str = URL_ALIBABA_REFERENCIA,
     forzar_login: bool = False,
 ) -> None:
-    es_primera_vez = not PERFIL_DEDICADO.exists()
+    primera_vez = es_primera_vez()
 
-    with sync_playwright() as p:
-        contexto = p.chromium.launch_persistent_context(
-            user_data_dir=str(PERFIL_DEDICADO),
-            channel="chrome",
-            headless=False,
-        )
-        try:
-            pagina = contexto.pages[0] if contexto.pages else contexto.new_page()
+    with navegador_persistente() as contexto:
+        pagina = contexto.pages[0] if contexto.pages else contexto.new_page()
 
-            if es_primera_vez or forzar_login:
-                pagina.goto(URL_BASE_ML, wait_until="domcontentloaded")
-                _confirmar_login_manual()
+        if primera_vez or forzar_login:
+            pagina.goto(URL_BASE_ML, wait_until="domcontentloaded")
+            confirmar_login_manual()
 
-            html_busqueda = _capturar_busqueda_ml(pagina, busqueda_ml)
-            _capturar_ficha_ml(pagina, html_busqueda)
-            _capturar_ficha_alibaba(pagina, url_alibaba)
-        finally:
-            contexto.close()
+        html_busqueda = _capturar_busqueda_ml(pagina, busqueda_ml)
+        _capturar_ficha_ml(pagina, html_busqueda)
+        _capturar_ficha_alibaba(pagina, url_alibaba)
 
     logger.info("Captura terminada. Ver %s y el manifiesto en %s", DIR_CAPTURAS, MANIFIESTO)
 
