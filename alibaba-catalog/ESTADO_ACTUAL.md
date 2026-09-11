@@ -7,26 +7,26 @@
 
 ## 🚦 Próximo punto de entrada (leer esto primero)
 
-**La batería de validación real de Match Mode está cerrada (5 casos
-reales).** Confirmó que el pipeline completo funciona de punta a punta
-con navegación real (ficha ML → búsqueda Alibaba → ranking → verificación
-de top_k → decisión), incluida la señal de imagen real (CLIP + descarga
-real de fotos). También encontró un **falso positivo real y concreto**
-(Caso 5, ver abajo) que expone un hueco de diseño genuino: el matcher no
-tiene forma de representar "identidad/licencia/originalidad/
-personalización" como atributo esencial.
+**Fase A (calibración dirigida por los 5 casos reales) y Fase B (corrida
+automática en lote) ya están implementadas y con tests -- lo que sigue es
+CORRER el lote real y revisar los resultados**, no escribir más código
+todavía.
 
-**Próximo paso (todavía sin empezar, propuesto al final de esta
-sección)**: (1) calibrar puntualmente los hallazgos de los Casos 1-5
--- el más importante es el del Caso 5, no son ajustes cosméticos --, y
-recién después (2) convertir el flujo actual (un candidato a la vez, con
-scripts `_validar_casoN.py` ad-hoc) en una corrida automática sobre
-varios candidatos de `demanda_confirmada` de una sola vez. **Todavía no
-se implementó nada de esto** -- se corta acá para que la usuaria decida
-el orden/alcance antes de tocar `matcher.py`/`atributos_matching.py`.
+```powershell
+cd alibaba-catalog\collector_alibaba
+python orquestador_matching_lote.py --login   # solo si hace falta loguearse de nuevo
+python orquestador_matching_lote.py           # 10 candidatos por default
+```
 
-**No avanzar con el filtro económico (×2.5 / USD 10) hasta terminar esta
-calibración dirigida.**
+Selecciona sola hasta 10 candidatos `demanda_confirmada` (variados por
+tipo de producto cuando es posible), abre un único Chrome para los 10,
+sigue adelante si un candidato puntual falla, y al final imprime un
+resumen con conteos por categoría y una lista de "dudosos" (MATCH_PROBABLE
+o candidatos vetados) para revisar a mano. Ver la sección "Fase B" más
+abajo para el detalle de diseño.
+
+**No avanzar con el filtro económico (×2.5 / USD 10) hasta revisar los
+resultados de esta corrida en lote.**
 
 **Nota operativa importante, encontrada durante la validación**: el perfil
 de Chrome (`.perfil_chrome_collector`) puede acumular "mala reputación"
@@ -47,76 +47,81 @@ a correr el script. Ver sección 4 para el detalle.
 | 4 | Set 4 cepillos "Oh My Shop" | `SIN_MATCH_CONFIABLE` (0.56-0.60) | Inconcluso -- no probó un negativo genuino (selección por fallback) |
 | 5 | Camiseta oficial Boca Juniors | `MATCH_PROBABLE` (0.75) | **NO -- falso positivo real.** Esperado: `SIN_MATCH_CONFIABLE` |
 
-### Hallazgos consolidados de calibración (ninguno corregido todavía)
+### Fase A -- calibración dirigida por evidencia real (✅ implementada)
 
-En orden de impacto:
+Los 5 hallazgos de la batería, en el orden confirmado por la usuaria
+(1 → 2 → 3 → 4 → 5), cada uno corregido y con regresión sobre los 5
+casos reales (`tests/test_matcher_regresion_casos_reales.py`, usa los
+textos y scores de texto/imagen REALES ya medidos, no fakes):
 
-1. **🔴 Prioridad alta -- el matcher no representa identidad/licencia/
-   originalidad/personalización como atributo esencial** (Caso 5). Una
-   camiseta con licencia oficial de club y una fábrica que imprime
-   cualquier logo a pedido puntuaron `MATCH_PROBABLE` (0.75) porque texto
-   e imagen dominaron sin que hubiera ningún atributo esencial disponible
-   para frenar el score (0% de cobertura de atributos). Hace falta un
-   tipo de atributo nuevo en `atributos_matching.py` (ej. `identidad`/
-   `originalidad`) que reconozca señales textuales como "oficial",
-   "licencia", "original" de un lado vs. "custom", "personalizable",
-   "logo printing", "réplica" del otro, y lo trate como esencial --
-   consistente con el resto del diseño (solo vetar con confianza real,
-   nunca por ausencia de dato).
-2. **`CANON_CATEGORIA` no reconoce "camiseta"/"jersey"/"remera"** -- en
-   el Caso 5 ni siquiera se intentó comparar categoría (0 comparaciones
-   de atributos más allá de "material", que tampoco tenía dato). Un
-   diccionario de categorías más amplio, con más evidencia real, es
-   candidato a ampliarse junto con el punto anterior.
-3. **Imagen de ML ausente en 3 de 5 casos reales** (`imagen_url=None`) --
-   confirmado que no es un bug del parser (Caso 3 encontró la imagen sin
-   tocar nada), depende del producto/plantilla de ficha. Cuando falta,
-   el 35% de peso de imagen se pierde sin re-normalizar (a diferencia de
-   cuando falta cobertura de atributos, que sí se re-normaliza en
-   `matcher._combinar_score`) -- candidato a revisar: ¿debería la
-   ausencia de imagen de un lado re-normalizar el peso igual que la
-   ausencia de atributos?
-4. **Cantidad de piezas no reconocida en variantes comunes**: "Set 4"
-   (sin "de"), "Set of 3" (inglés) y "N accesorios" no matchean los
-   patrones actuales (`pack of N`/`set de N`/`juego de N`/`N pcs/piezas/
-   unidades/units`) -- se vieron diferencias reales de cantidad
-   (Caso 1: "9 accesorios"; Caso 4: "Set 4" vs. "Set of 3") que nunca se
-   llegaron a comparar.
-5. Menor: el heurístico de selección de casos de prueba (`_validar_caso4.py`)
-   tiene huecos de reconocimiento de marcas -- afecta solo a las
-   herramientas de validación, no al matcher en sí.
+1. **Atributo esencial nuevo: `identidad`** (`atributos_matching.py`,
+   `CANON_IDENTIDAD`) -- distingue `licenciado_oficial` de
+   `generico_personalizable` a partir de señales textuales ("oficial",
+   "licencia oficial" vs. "custom", "personalizable", "logo printing",
+   "réplica"). Corrige el falso positivo real del Caso 5.
+2. **`CANON_CATEGORIA` ampliado** con camiseta/jersey/remera/playera/
+   polera/shirt/t-shirt.
+3. **Cantidad de piezas ampliada**: ahora reconoce "Set N" (sin
+   preposición), "Set of N" (inglés) y "N accesorios", además de los
+   patrones que ya existían.
+4. **`_combinar_score` re-normaliza cuando falta imagen de un lado**
+   (`imagen_disponible`), igual que ya hacía con la cobertura de
+   atributos -- la ausencia de imagen ya no cuenta como "muy distinta"
+   a valor 0.0 con el peso completo.
+5. **Tope de confianza para `MATCH_ALTO`** (`_categorizar`): al recalcular
+   los 5 casos reales con los puntos 1-4 aplicados, apareció sobre-confianza
+   real -- texto muy similar + un solo atributo débil alcanzaba MATCH_ALTO
+   apenas se excluía el peso de la imagen ausente. Fix: `MATCH_ALTO` exige
+   que las TRES señales se hayan podido comparar de verdad (imagen
+   disponible en ambos lados Y cobertura de atributos > 0); con menos
+   señales, el techo queda en `MATCH_PROBABLE` aunque el score numérico
+   sea alto.
 
-### Próximo paso propuesto (sin implementar todavía)
+**Resultado de la regresión sobre los 5 casos reales** (categoría antes →
+después de la Fase A):
 
-**Fase A -- calibración dirigida por evidencia real** (en este orden, cada
-uno con sus propios tests antes de tocar producción):
-1. Agregar el atributo esencial de identidad/licencia/personalización
-   (hallazgo #1) -- el único que cambia una decisión de manera
-   cualitativa (evita un falso positivo real, no solo ajusta un score).
-2. Ampliar `CANON_CATEGORIA` con los términos que ya aparecieron en casos
-   reales (camiseta/jersey/remera, y lo que surja).
-3. Ampliar el reconocimiento de cantidad de piezas ("Set N", "Set of N").
-4. Revisar si la ausencia de imagen de un lado debería re-normalizar el
-   peso igual que la ausencia de atributos.
-5. Recién ahí, con los 5 casos ya corridos + cualquier caso adicional
-   post-fix, discutir si pesos/umbral (0.60) siguen siendo razonables o
-   hace falta recalibrarlos -- con números, no a ojo.
+| # | Antes | Después | Motivo del cambio |
+|---|---|---|---|
+| 1 | `SIN_MATCH_CONFIABLE` (0.59) | `MATCH_PROBABLE` | Ya no penaliza la imagen ausente como "muy distinta"; el tope de A5 evita que llegue a ALTO con evidencia delgada |
+| 2 | `MATCH_PROBABLE` (0.61) | `MATCH_PROBABLE` | Mismo candidato, mismo resultado (el score interno subió, la categoría no cambia) |
+| 3 | `MATCH_ALTO` (0.88) | `MATCH_ALTO` | Sin cambios -- tenía imagen real disponible |
+| 4 | `SIN_MATCH_CONFIABLE` | `MATCH_PROBABLE` (candidato #2) | El candidato #1 ahora se vetea por cantidad de piezas (4 vs. 3); el matcher prueba el #2 (ajuste #1) y ese sí alcanza el umbral |
+| 5 | `MATCH_PROBABLE` (0.75, falso positivo) | `SIN_MATCH_CONFIABLE` | Vetado por `identidad` -- el fix que motivó toda la Fase A |
 
-**Fase B -- corrida automática de múltiples candidatos**: reemplazar el
-patrón actual (`_validar_casoN.py`, un candidato elegido a mano por
-heurístico, uno por uno) por un orquestador que recorra varios/todos los
-candidatos `demanda_confirmada` en una sola corrida, reusando sin
-duplicar lo ya construido y validado (`goto_seguro`, el registro de
-diagnóstico, `procesar_candidato_matching`, la pausa/espera ante bloqueo)
--- persistiendo cada resultado en `matching_alibaba` como ya hace hoy.
-Tiene sentido recién después de la Fase A: correr en lote sobre una
-lógica todavía con el hueco del Caso 5 sin corregir multiplicaría el
-mismo falso positivo en vez de darnos datos nuevos.
+### Fase B -- corrida automática de múltiples candidatos (✅ implementada, sin correr todavía)
 
-**Pendiente de decisión de la usuaria**: confirmar el orden de la Fase A
-(¿los 5 puntos en ese orden, o priorizar distinto?) y si la Fase B debe
-correr sobre TODOS los `demanda_confirmada` restantes o un subconjunto
-acotado la primera vez.
+`orquestador_matching_lote.py` reemplaza el patrón de scripts
+`_validar_casoN.py` (que ya no se van a seguir creando, como se pidió):
+
+- **Selección automática** (`seleccionar_candidatos_lote`): hasta 10
+  candidatos `demanda_confirmada`, priorizando variedad de tipo de
+  producto (reusa el mismo `CANON_CATEGORIA` del matcher -- nunca más de
+  2 candidatos de la misma categoría reconocida en la primera pasada,
+  completa con lo que quede si no hay variedad suficiente). La usuaria no
+  elige ni interviene en la selección.
+- **Un solo proceso continuo**: candidato ML → búsqueda Alibaba → fichas
+  → matching → decisión → persistencia → siguiente candidato, todo sobre
+  el mismo Chrome y el mismo par de embedders CLIP (no se recarga el
+  modelo por candidato).
+- **Sigue ante errores, conserva progreso**: un error en un candidato
+  puntual se registra (`procesar_lote`) y el lote continúa -- nunca se
+  corta todo el proceso. El progreso ya queda conservado por el mismo
+  mecanismo de siempre: `procesar_candidato_matching` persiste en
+  `matching_alibaba` y actualiza `candidatos_ml.estado` recién al
+  terminar cada candidato, así que uno que falla a mitad de camino sigue
+  en `demanda_confirmada` y una corrida posterior del lote lo vuelve a
+  elegir solo -- no hace falta ningún checkpoint aparte.
+- **Solo se pausa ante un CAPTCHA/bloqueo real** que de verdad necesite
+  una persona -- mismo `pausar_por_bloqueo_y_continuar` de siempre.
+- **Resumen final**: conteos por categoría + lista de "dudosos"
+  (`MATCH_PROBABLE`, o candidatos que quedaron vetados en el camino) para
+  revisión manual -- nunca se asume que todo lo que no dio error está
+  necesariamente bien.
+
+**Pendiente**: correr `orquestador_matching_lote.py` de verdad (ver 🚦
+arriba) y revisar el resumen + los casos dudosos antes de decidir
+cualquier otra cosa (más calibración, ampliar la muestra de ML, o recién
+ahí considerar el filtro económico).
 
 ### Validación real — resultados por caso
 
@@ -648,15 +653,13 @@ En orden, cada uno bloqueado por el anterior:
 
 ## 9. Estado de los tests
 
-**201/201 tests pasan** (`pytest` desde la raíz de `alibaba-catalog/`,
-147 previos a esta fase + 54 nuevos de Match Mode: `test_embeddings.py`,
-`test_atributos_matching.py`, `test_matcher.py`,
-`test_orquestador_matching.py`, más tests agregados a los parsers
-existentes, a `test_db_sourcing.py` y a `test_navegador_ml.py`
-(`goto_seguro`, ver sección 8). Cada test de matching usa embedders fake
-(deterministas, sin red) — la validación en vivo real (sección 🚦) ya
-arrancó y confirmó que el pipeline funciona con navegación real (Caso 1),
-sigue con más casos.
+**232/232 tests pasan** (`pytest` desde la raíz de `alibaba-catalog/`).
+Incluye la validación real (5 casos reales, ver 🚦), la Fase A de
+calibración con regresión sobre esos 5 casos reales
+(`test_matcher_regresion_casos_reales.py`, usa scores de texto/imagen
+REALES ya medidos con CLIP, no fakes) y la Fase B
+(`test_orquestador_matching_lote.py`). El resto de los tests de matching
+usa embedders fake (deterministas, sin red).
 
 ```bash
 cd alibaba-catalog
