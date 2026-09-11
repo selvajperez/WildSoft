@@ -64,6 +64,7 @@ from navegador_ml import (  # noqa: E402
     navegador_persistente,
     pausar_por_bloqueo_y_continuar,
 )
+from capturador_exploratorio import _guardar_html, _registrar_captura  # noqa: E402
 from parser_busqueda_alibaba import parsear_listado_busqueda  # noqa: E402
 from parser_ficha_ml import parsear_ficha_ml  # noqa: E402
 from scraper import contiene_marcadores_bloqueo as bloqueado_alibaba  # noqa: E402
@@ -202,7 +203,7 @@ def _goto_seguro(pagina, url: str, intentos: int = 3, espera_ms: int = 1000) -> 
     raise ultimo_error
 
 
-def _abrir_pagina_alibaba(pagina, url: str, etiqueta: str) -> str:
+def _abrir_pagina_alibaba(pagina, url: str, etiqueta: str, tipo: str) -> str:
     """
     Equivalente a `navegador_ml.abrir_pagina_ml` pero para Alibaba (mismo
     patrón real ya validado en `capturador_busqueda_alibaba.py`): navega,
@@ -210,11 +211,31 @@ def _abrir_pagina_alibaba(pagina, url: str, etiqueta: str) -> str:
     Alibaba, pausa (nunca resuelve/evade) hasta que se resuelva a mano.
     Se define acá en vez de en `navegador_ml.py` para no tocar ese módulo
     ya validado por fuera de lo estrictamente necesario.
+
+    **Registro de diagnóstico** (pedido explícito durante la validación
+    real: dejar evidencia de cada intento, bloqueado o no, para poder
+    comparar corridas): cada navegación queda guardada -- HTML +
+    entrada en `capturas_exploratorias/manifiesto.jsonl` (reusa
+    `_guardar_html`/`_registrar_captura` de `capturador_exploratorio.py`,
+    el mismo mecanismo que ya usan las demás herramientas del proyecto,
+    así todo el historial de capturas queda en un solo lugar). Si hubo
+    bloqueo, se registra el intento bloqueado Y el resultado ya resuelto
+    por separado -- permite ver, mirando el manifiesto, en qué momentos
+    exactos apareció el CAPTCHA y si tardó uno o varios reintentos en
+    resolverse.
     """
     _goto_seguro(pagina, url)
     html = contenido_seguro(pagina)
-    if bloqueado_alibaba(html):
+    bloqueado_inicial = bloqueado_alibaba(html)
+
+    archivo = _guardar_html(tipo, html)
+    _registrar_captura(tipo, url, archivo, bloqueado_inicial)
+
+    if bloqueado_inicial:
         html = pausar_por_bloqueo_y_continuar(pagina, url, etiqueta, sigue_bloqueado=bloqueado_alibaba, sitio="Alibaba")
+        archivo_resuelto = _guardar_html(f"{tipo}_resuelto", html)
+        _registrar_captura(f"{tipo}_resuelto", url, archivo_resuelto, bloqueado_alibaba(html))
+
     return html
 
 
@@ -272,12 +293,14 @@ def ejecutar_matching_real(
         logger.info("Producto ML para matching: %s (imagen: %s)", producto_ml.nombre, producto_ml.imagen_url)
 
         def obtener_html_busqueda(query: str) -> str:
-            return _abrir_pagina_alibaba(pagina, _url_busqueda_alibaba(query), f"búsqueda Alibaba '{query}'")
+            return _abrir_pagina_alibaba(
+                pagina, _url_busqueda_alibaba(query), f"búsqueda Alibaba '{query}'", tipo="matching_alibaba_busqueda"
+            )
 
         def abrir_ficha(url: str) -> str:
             espera = esperar_entre_fichas(delay_min, delay_max)
             logger.info("Esperando %.1fs antes de abrir la ficha de Alibaba %s.", espera, url)
-            return _abrir_pagina_alibaba(pagina, url, f"ficha Alibaba {url}")
+            return _abrir_pagina_alibaba(pagina, url, f"ficha Alibaba {url}", tipo="matching_alibaba_ficha")
 
         resultado = procesar_candidato_matching(
             candidato["id"], producto_ml, conexion, obtener_html_busqueda, abrir_ficha,
