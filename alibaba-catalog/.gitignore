@@ -5,6 +5,7 @@ collector_alibaba/capturador_exploratorio.log
 collector_alibaba/orquestador_demanda_ml.log
 collector_alibaba/medicion_confiabilidad_ml.log
 collector_alibaba/experimento_url_producto_reconstruida.log
+collector_alibaba/capturador_busqueda_alibaba.log
 medicion_confiabilidad_ml/
 .perfil_chrome_collector/
 paginas_html_crudo/

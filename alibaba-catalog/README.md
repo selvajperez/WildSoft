@@ -820,8 +820,46 @@ búsquedas, sesión logueada en frío, `--delay-min 4 --delay-max 10`) dio:
 Con esto, la etapa de confirmación de demanda en Mercado Libre (Fase 1)
 se considera **validada** — confiabilidad perfecta en una corrida real
 completa, sin pérdidas por URL rota ni por bloqueo silencioso. Recién
-ahora corresponde avanzar a la Fase 2 (matching contra Alibaba), que
-todavía no arrancó.
+ahora corresponde avanzar a la Fase 2 (matching contra Alibaba).
+
+## Fase 2: matching contra Alibaba (recién arrancando)
+
+Con la Fase 1 validada, el siguiente paso es buscar, para cada candidato
+de ML con demanda confirmada, un producto comparable en Alibaba. Falta
+una pieza que hasta ahora no existía: `collector.py`/`parser.py` solo
+recorren el catálogo **completo de un proveedor puntual ya conocido**
+(paginación fija) — no saben buscar por palabra clave.
+
+`capturador_busqueda_alibaba.py` es el primer paso, evidencia-primero
+(misma regla que toda la Fase 1: nunca escribir un parser sin HTML real
+para inspeccionar). Usa la URL pública de búsqueda de Alibaba
+(`https://www.alibaba.com/trade/search?SearchText=<query>` — punto de
+partida razonable, igual que `listado.mercadolibre.com.ar/<query>` lo
+fue para ML, a confirmar con la captura real) y el mismo Chrome real +
+perfil persistente que el resto del proyecto. Reutiliza
+`scraper.contiene_marcadores_bloqueo` (detección de bloqueo de Alibaba,
+ya confirmada desde la Fase 0) y guarda la captura en el mismo
+manifiesto que `capturador_exploratorio.py`
+(`capturas_exploratorias/manifiesto.jsonl`).
+
+```bash
+python collector_alibaba/capturador_busqueda_alibaba.py "wireless earbuds"
+python collector_alibaba/capturador_busqueda_alibaba.py "cleaning brush" --login
+```
+
+De paso, al generalizar la pausa por bloqueo para poder reusarla acá, se
+encontró y corrigió un bug latente: `capturador_exploratorio.py` ya
+pausaba por bloqueo en la ficha de Alibaba, pero verificaba si se había
+resuelto con los detectores **específicos de ML** — como esos marcadores
+nunca aparecen en una página de bloqueo de Alibaba, la habría dado por
+resuelta sin verificar nada real. `pausar_por_bloqueo_y_continuar` ahora
+acepta `sigue_bloqueado` (chequeo inyectable) y `sitio` (para el mensaje
+impreso), sin cambiar el comportamiento default para ML.
+
+**Pendiente**: correr la captura con una búsqueda real (puede pedir
+login/resolver un bloqueo en Alibaba), inspeccionar el HTML real del
+listado, y recién ahí escribir el parser de búsqueda de Alibaba — nunca
+antes.
 
 ## Instalación y uso
 
