@@ -181,8 +181,26 @@ def _combinar_score(
     return sum(valor * peso for _, valor, peso in señales) / total_pesos
 
 
-def _categorizar(score: float, umbrales: UmbralesMatching) -> str:
-    if score >= umbrales.match_alto:
+def _categorizar(score: float, imagen_disponible: bool, cobertura_atributos: float, umbrales: UmbralesMatching) -> str:
+    """
+    MATCH_ALTO exige que las TRES señales se hayan podido comparar de
+    verdad -- imagen disponible en ambos lados Y al menos un atributo
+    esencial con cobertura real -- no solo que el score pondera alto.
+
+    Calibración encontrada con evidencia real (Fase A, item 5, ver
+    ESTADO_ACTUAL.md): al re-normalizar el peso cuando falta la imagen
+    (ver `_combinar_score`), un texto muy similar más un único atributo
+    débil (ej. solo "categoria" coincide, sin material/dimensiones/etc.)
+    alcanzaba MATCH_ALTO apenas se excluía el peso de la imagen ausente
+    -- una confianza que la evidencia disponible no sostenía (recalculado
+    sobre los 5 casos reales de la validación: dos candidatos sin imagen
+    que antes quedaban en SIN_MATCH_CONFIABLE por poco pasaban a
+    MATCH_ALTO con un score de ~0.91 basado en un solo atributo débil).
+    Con menos de las tres señales disponibles, el techo queda en
+    MATCH_PROBABLE -- sigue siendo un match, pero no de máxima confianza.
+    """
+    si_alcanza_alto = score >= umbrales.match_alto and imagen_disponible and cobertura_atributos > 0
+    if si_alcanza_alto:
         return "MATCH_ALTO"
     if score >= umbrales.match_probable:
         return "MATCH_PROBABLE"
@@ -279,7 +297,7 @@ def verificar_candidatos(
             categoria = "SIN_MATCH_CONFIABLE"
             motivo = f"Vetado por atributo esencial incompatible ('{veto.tipo}': {veto.detalle})."
         else:
-            categoria = _categorizar(score_final, umbrales)
+            categoria = _categorizar(score_final, imagen_disponible, cobertura, umbrales)
             motivo = (
                 f"Score combinado {score_final:.2f} -- texto {texto_score:.2f}, imagen {imagen_score:.2f}, "
                 f"atributos {atributos_score:.2f} (cobertura {cobertura:.0%})."
