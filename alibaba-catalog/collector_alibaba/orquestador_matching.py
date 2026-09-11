@@ -259,47 +259,75 @@ def ejecutar_matching_real(
             pagina.goto(URL_ALIBABA_HOME, wait_until="domcontentloaded")
             confirmar_login_manual()
 
-        html_ficha_ml = abrir_pagina_ml(pagina, url_ml, f"ficha ML {candidato['id_ml']}")
-
-        # Mismo registro de diagnóstico que ya usa el lado de Alibaba
-        # (ver _abrir_pagina_alibaba): guarda el HTML real y una entrada en
-        # el manifiesto para poder revisar después, con evidencia real, por
-        # qué imagen_url/descripcion vienen None en algunos casos -- sin
-        # esto no hay forma de distinguir "ML no expone la imagen acá" de
-        # "el parser está buscando en el lugar equivocado" (pregunta
-        # explícita de la usuaria, todavía sin responder).
-        bloqueado_ml = es_bloqueo_trafico_sospechoso_ml(html_ficha_ml) or bloqueado_ml_heuristico(html_ficha_ml)
-        archivo_ficha_ml = _guardar_html("matching_ml_ficha", html_ficha_ml)
-        _registrar_captura("matching_ml_ficha", url_ml, archivo_ficha_ml, bloqueado_ml)
-
-        datos_ml = parsear_ficha_ml(html_ficha_ml, url=url_ml)
-        producto_ml = ProductoMLParaMatching(
-            id_ml=candidato["id_ml"] or "",
-            nombre=datos_ml.get("nombre") or candidato["nombre"] or "",
-            descripcion=datos_ml.get("descripcion"),
-            imagen_url=datos_ml.get("imagen_url"),
-        )
-        logger.info("Producto ML para matching: %s (imagen: %s)", producto_ml.nombre, producto_ml.imagen_url)
-
-        def obtener_html_busqueda(query: str) -> str:
-            return _abrir_pagina_alibaba(
-                pagina, _url_busqueda_alibaba(query), f"búsqueda Alibaba '{query}'", tipo="matching_alibaba_busqueda"
-            )
-
-        def abrir_ficha(url: str) -> str:
-            espera = esperar_entre_fichas(delay_min, delay_max)
-            logger.info("Esperando %.1fs antes de abrir la ficha de Alibaba %s.", espera, url)
-            return _abrir_pagina_alibaba(pagina, url, f"ficha Alibaba {url}", tipo="matching_alibaba_ficha")
-
-        resultado = procesar_candidato_matching(
-            candidato["id"], producto_ml, conexion, obtener_html_busqueda, abrir_ficha,
-            EmbedderTextoClip(), EmbedderImagenClip(),
-            generadores_query=generadores_query, top_k=top_k, pesos=pesos, umbrales=umbrales,
-            tolerancias_atributos=tolerancias_atributos,
+        resultado = _procesar_candidato_en_pagina(
+            pagina, candidato, conexion, EmbedderTextoClip(), EmbedderImagenClip(),
+            top_k=top_k, pesos=pesos, umbrales=umbrales, tolerancias_atributos=tolerancias_atributos,
+            generadores_query=generadores_query, delay_min=delay_min, delay_max=delay_max,
         )
 
     logger.info("Matching de %s terminado: %s", url_ml, resultado["categoria"])
     return resultado
+
+
+def _procesar_candidato_en_pagina(
+    pagina,
+    candidato: dict,
+    conexion,
+    embedder_texto,
+    embedder_imagen,
+    top_k: int = TOP_K_DEFAULT,
+    pesos: PesosMatching | None = None,
+    umbrales: UmbralesMatching | None = None,
+    tolerancias_atributos: dict[str, float] | None = None,
+    generadores_query: list[Callable[[str], str]] | None = None,
+    delay_min: float = DELAY_MIN_SEG_DEFAULT,
+    delay_max: float = DELAY_MAX_SEG_DEFAULT,
+) -> dict:
+    """
+    Corre Match Mode completo para un candidato sobre una `pagina` de
+    Playwright YA ABIERTA (perfil ya logueado) -- extraído de
+    `ejecutar_matching_real` para que tanto ese punto de entrada (un
+    candidato) como `ejecutar_lote_real` (varios candidatos, Fase B)
+    reusen exactamente la misma secuencia real sin duplicarla, y para que
+    el lote reuse los mismos `embedder_texto`/`embedder_imagen` (evita
+    recargar el modelo CLIP en cada candidato).
+    """
+    url_ml = candidato["url_ml"]
+    html_ficha_ml = abrir_pagina_ml(pagina, url_ml, f"ficha ML {candidato['id_ml']}")
+
+    # Mismo registro de diagnóstico que ya usa el lado de Alibaba (ver
+    # _abrir_pagina_alibaba): guarda el HTML real y una entrada en el
+    # manifiesto para poder revisar después, con evidencia real, por qué
+    # imagen_url/descripcion vienen None en algunos casos.
+    bloqueado_ml = es_bloqueo_trafico_sospechoso_ml(html_ficha_ml) or bloqueado_ml_heuristico(html_ficha_ml)
+    archivo_ficha_ml = _guardar_html("matching_ml_ficha", html_ficha_ml)
+    _registrar_captura("matching_ml_ficha", url_ml, archivo_ficha_ml, bloqueado_ml)
+
+    datos_ml = parsear_ficha_ml(html_ficha_ml, url=url_ml)
+    producto_ml = ProductoMLParaMatching(
+        id_ml=candidato["id_ml"] or "",
+        nombre=datos_ml.get("nombre") or candidato["nombre"] or "",
+        descripcion=datos_ml.get("descripcion"),
+        imagen_url=datos_ml.get("imagen_url"),
+    )
+    logger.info("Producto ML para matching: %s (imagen: %s)", producto_ml.nombre, producto_ml.imagen_url)
+
+    def obtener_html_busqueda(query: str) -> str:
+        return _abrir_pagina_alibaba(
+            pagina, _url_busqueda_alibaba(query), f"búsqueda Alibaba '{query}'", tipo="matching_alibaba_busqueda"
+        )
+
+    def abrir_ficha(url: str) -> str:
+        espera = esperar_entre_fichas(delay_min, delay_max)
+        logger.info("Esperando %.1fs antes de abrir la ficha de Alibaba %s.", espera, url)
+        return _abrir_pagina_alibaba(pagina, url, f"ficha Alibaba {url}", tipo="matching_alibaba_ficha")
+
+    return procesar_candidato_matching(
+        candidato["id"], producto_ml, conexion, obtener_html_busqueda, abrir_ficha,
+        embedder_texto, embedder_imagen,
+        generadores_query=generadores_query, top_k=top_k, pesos=pesos, umbrales=umbrales,
+        tolerancias_atributos=tolerancias_atributos,
+    )
 
 
 def main() -> None:
