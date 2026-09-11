@@ -33,6 +33,8 @@ alibaba-catalog/
     parser_busqueda_ml.py       # Fase 1: parsea el listado de búsqueda de ML (prioridad A/B/sin señal, nunca demanda confirmada)
     orquestador_demanda_ml.py   # Fase 1: busca, prioriza y abre fichas individuales hasta confirmar demanda real (configurable)
     medicion_confiabilidad_ml.py  # Diagnóstico: mide % de éxito/404 al abrir fichas, separado por origen de URL -- no toca candidatos_ml
+    capturador_busqueda_alibaba.py  # Fase 2: captura automática de un listado de búsqueda de Alibaba (primer paso, evidencia real)
+    parser_busqueda_alibaba.py      # Fase 2: parsea el listado de búsqueda de Alibaba (título/precio/MOQ/proveedor, sin matching todavía)
     tests/
       test_parser.py
       test_scraper.py
@@ -40,9 +42,11 @@ alibaba-catalog/
       test_diagnostico_precio.py
       test_navegador_ml.py
       test_capturador_exploratorio.py
+      test_capturador_busqueda_alibaba.py
       test_parser_ficha_alibaba.py
       test_parser_ficha_ml.py
       test_parser_busqueda_ml.py
+      test_parser_busqueda_alibaba.py
       test_orquestador_demanda_ml.py
       test_medicion_confiabilidad_ml.py
       fixtures/
@@ -55,6 +59,7 @@ alibaba-catalog/
         ml_busqueda_real.html            # HTML real (recortado): 4 tarjetas representativas de una búsqueda de 60 resultados
         ml_ficha_no_encontrada_real.html # HTML real (recortado): 404 real de ML para una URL de ficha reconstruida inválida
         ml_bloqueo_trafico_sospechoso_real.html # HTML real (recortado): bloqueo de "tráfico sospechoso" que pide loguearse
+        alibaba_busqueda_real.html       # HTML real (recortado): 7 tarjetas reales de un listado de búsqueda de Alibaba
   paginas_html_crudo/       # HTML crudo de cada página visitada por collector_browser.py (no se commitea)
   capturas_exploratorias/   # muestras de capturador_exploratorio.py + manifiesto.jsonl (no se commitea)
   database/
@@ -856,10 +861,42 @@ resuelta sin verificar nada real. `pausar_por_bloqueo_y_continuar` ahora
 acepta `sigue_bloqueado` (chequeo inyectable) y `sitio` (para el mensaje
 impreso), sin cambiar el comportamiento default para ML.
 
-**Pendiente**: correr la captura con una búsqueda real (puede pedir
-login/resolver un bloqueo en Alibaba), inspeccionar el HTML real del
-listado, y recién ahí escribir el parser de búsqueda de Alibaba — nunca
-antes.
+**Captura real confirmada** (búsqueda "wireless earbuds"): igual que con
+Mercado Libre, el slider de Alibaba (`punish-component`/`awsc/captcha`,
+ya conocido desde la Fase 0) rechazaba la resolución dentro de la
+ventana controlada por Playwright, por la misma razón que el reCAPTCHA
+de ML — se solucionó igual: resolverlo una vez en el mismo perfil de
+Chrome pero abierto manualmente (sin Playwright), y dejar que la corrida
+automática reutilice la sesión ya "calentada".
+
+Con el HTML real capturado (`tests/fixtures/alibaba_busqueda_real.html`,
+7 resultados reales) se escribió `parser_busqueda_alibaba.py`. Cada
+resultado vive en un `<div class="fy26-product-card-wrapper">` con
+`data-ctrdot="<id>"` dentro del contenedor `data-content="abox-ProductNormalList"`
+(clases "searchx-*" estables, no hasheadas como otro carrusel de
+sugerencias aparte de la misma página). Se extrae:
+
+- `id_alibaba` / `url_alibaba` (normalizada de protocol-relative a
+  `https://`, mismo formato `.../product-detail/<slug>_<id>.html` que ya
+  sabe leer `parser_ficha_alibaba.py`).
+- `nombre`, `precio_texto` (crudo, ej. `"$2.10-2.40"` — **nunca**
+  parseado a un número: regla del proyecto, el precio del listado no es
+  confiable, hay que verificarlo en la ficha), `moq_texto` (crudo,
+  unidades variables: "pieces", "set", "units").
+- `proveedor`, `proveedor_verificado` (booleano).
+- `es_publicidad` (booleano — el propio HTML expone `is_ad=true/false`
+  en texto plano dentro del tracking de cada tarjeta).
+
+Todavía **no** hay lógica de matching contra el nombre de un candidato
+de ML, ni verificación de precio en la ficha individual — eso es la
+etapa siguiente, sin empezar.
+
+**Pendiente**: diseñar el matching (¿similitud de texto contra el
+`nombre` de `candidatos_ml`? ¿búsqueda con las palabras clave del
+candidato?), abrir la ficha del/de los comparables elegidos con
+`parser_ficha_alibaba.py` para verificar el precio real, y aplicar el
+filtro económico (×2.5 de markup, USD 10 de diferencia mínima) definido
+desde el arranque del proyecto.
 
 ## Instalación y uso
 
