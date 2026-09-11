@@ -804,6 +804,25 @@ poder diagnosticarlo sin pedirle a nadie que lo recolecte a mano.
 **Pendiente**: correr la medición una vez más con esta espera ya
 incorporada para confirmar que el listado deja de capturarse vacío.
 
+### Confirmación final: 75/75 fichas, 100% de éxito
+
+Con las tres correcciones de esta etapa juntas — URL de tracking
+construida desde `searchVariation`, manejo humano robusto del bloqueo, y
+la espera al renderizado del listado — una corrida real completa (5
+búsquedas, sesión logueada en frío, `--delay-min 4 --delay-max 10`) dio:
+
+| | Intentadas | Abiertas OK | 404 | Otros errores |
+|---|---|---|---|---|
+| **Total** | 75 | 75 (100%) | 0 (0%) | 0 (0%) |
+| URLs directas | 41 | 41 (100%) | 0 | 0 |
+| URLs de tracking (reconstruidas) | 34 | 34 (100%) | 0 | 0 |
+
+Con esto, la etapa de confirmación de demanda en Mercado Libre (Fase 1)
+se considera **validada** — confiabilidad perfecta en una corrida real
+completa, sin pérdidas por URL rota ni por bloqueo silencioso. Recién
+ahora corresponde avanzar a la Fase 2 (matching contra Alibaba), que
+todavía no arrancó.
+
 ## Instalación y uso
 
 ```bash
