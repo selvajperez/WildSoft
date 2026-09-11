@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import medicion_confiabilidad_ml
 from medicion_confiabilidad_ml import _clasificar_intento, agregar_resumen, medir_busqueda
 
 BUSQUEDA_REAL = (Path(__file__).parent / "fixtures" / "ml_busqueda_real.html").read_text(encoding="utf-8")
@@ -66,6 +67,44 @@ def test_medir_busqueda_clasifica_cada_intento_correctamente():
     assert por_id["MLA2040677716"]["resultado"] == "404"
     assert por_id["MLA2040677716"]["origen_url"] == "tracking"
     assert por_id["MLA2040677716"]["prioridad_listado"] == "B"
+
+
+def test_medir_busqueda_guarda_diagnostico_solo_de_otro_error():
+    """
+    Hallazgo real (corrida del 2026-09-11): a mitad de una medición larga
+    Mercado Libre empezó a pedir loguearse de nuevo, y TODAS las fichas
+    posteriores (directas y de tracking por igual) quedaron "otro_error"
+    -- no relacionado con la URL. `guardar_diagnostico` tiene que
+    invocarse para poder diagnosticar esos casos con HTML real.
+    """
+    llamadas = []
+
+    def _abrir_ficha_bloqueada(_url: str, _etiqueta: str) -> str:
+        return "<html><body>parece que hay que iniciar sesión de nuevo</body></html>"
+
+    intentos = medir_busqueda(
+        "cepillo de limpieza", _abrir_busqueda_real, _abrir_ficha_bloqueada, max_fichas_por_busqueda=15,
+        guardar_diagnostico=lambda id_ml, html: llamadas.append((id_ml, html)),
+    )
+
+    assert all(i["resultado"] == "otro_error" for i in intentos)
+    assert len(llamadas) == len(intentos) == 2
+    assert llamadas[0][0] == "MLA1399281097"
+    assert "iniciar sesión" in llamadas[0][1]
+
+
+def test_medir_busqueda_sin_guardar_diagnostico_no_falla():
+    intentos = medir_busqueda("cepillo de limpieza", _abrir_busqueda_real, _abrir_ficha_mixta, max_fichas_por_busqueda=15)
+    assert len(intentos) == 2  # no revienta sin guardar_diagnostico, aunque haya un 404 de por medio
+
+
+def test_guardar_html_diagnostico_escribe_el_archivo_con_prefijo_otro_error(tmp_path, monkeypatch):
+    monkeypatch.setattr(medicion_confiabilidad_ml, "DIR_DIAGNOSTICO_FICHAS", tmp_path / "diagnostico_fichas_ml")
+
+    archivo = medicion_confiabilidad_ml._guardar_html_diagnostico("MLA123", "<html>contenido</html>")
+
+    assert archivo.name == "otro_error_MLA123.html"
+    assert archivo.read_text(encoding="utf-8") == "<html>contenido</html>"
 
 
 def test_medir_busqueda_respeta_max_fichas_por_busqueda():

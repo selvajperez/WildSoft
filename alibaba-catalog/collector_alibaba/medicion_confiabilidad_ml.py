@@ -71,6 +71,12 @@ MAX_FICHAS_POR_BUSQUEDA_DEFAULT = 15
 
 DIR_REPORTES = Path(__file__).parent.parent / "medicion_confiabilidad_ml"
 
+# Mismo directorio que usa orquestador_demanda_ml.py para las fichas
+# indeterminadas -- acá también para "otro_error", mismo propósito:
+# tener HTML real para diagnosticar sin pedirle a nadie que lo recolecte
+# a mano.
+DIR_DIAGNOSTICO_FICHAS = Path(__file__).parent.parent / "diagnostico_fichas_ml"
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
@@ -91,17 +97,34 @@ def _clasificar_intento(datos_ficha: dict) -> str:
     return "otro_error"
 
 
+def _guardar_html_diagnostico(id_ml: str, html: str) -> Path:
+    """
+    Guarda el HTML crudo de una ficha que quedó "otro_error" -- ni 404 ni
+    datos extraídos -- para diagnosticar la causa (ej. un bloqueo/pedido
+    de login que el heurístico actual no detecta) sin pedirle a nadie que
+    lo recolecte a mano.
+    """
+    DIR_DIAGNOSTICO_FICHAS.mkdir(parents=True, exist_ok=True)
+    archivo = DIR_DIAGNOSTICO_FICHAS / f"otro_error_{id_ml}.html"
+    archivo.write_text(html, encoding="utf-8")
+    logger.warning("Ficha %s con otro_error -- HTML guardado en %s para diagnóstico.", id_ml, archivo)
+    return archivo
+
+
 def medir_busqueda(
     busqueda: str,
     obtener_html_busqueda: Callable[[str], str],
     abrir_ficha: Callable[[str, str], str],
     max_fichas_por_busqueda: int,
+    guardar_diagnostico: Callable[[str, str], None] | None = None,
 ) -> list[dict]:
     """
     Abre TODAS las fichas Prioridad A/B de una búsqueda (A primero, igual
     que `orquestador_demanda_ml.py`), hasta `max_fichas_por_busqueda`, sin
     ningún criterio de corte por "candidatos ya confirmados" -- acá el
-    objetivo es medir, no curar candidatos.
+    objetivo es medir, no curar candidatos. `guardar_diagnostico`, si se
+    pasa, se invoca para cada ficha que quede "otro_error" (no toca disco
+    por defecto, así los tests no tienen efectos secundarios de archivo).
     """
     html_busqueda = obtener_html_busqueda(_url_busqueda(busqueda))
     resultados = parsear_listado_busqueda(html_busqueda)
@@ -114,6 +137,9 @@ def medir_busqueda(
         html_ficha = abrir_ficha(item["url_ml"], f"ficha {item['id_ml']}")
         datos_ficha = parsear_ficha_ml(html_ficha, url=item["url_ml"])
         resultado = _clasificar_intento(datos_ficha)
+
+        if resultado == "otro_error" and guardar_diagnostico is not None:
+            guardar_diagnostico(item["id_ml"], html_ficha)
 
         intentos.append({
             "busqueda": busqueda,
@@ -156,7 +182,10 @@ def ejecutar_medicion_real(
         for busqueda in busquedas:
             logger.info("=== Midiendo búsqueda: %s ===", busqueda)
             todos_los_intentos.extend(
-                medir_busqueda(busqueda, obtener_html_busqueda, abrir_ficha, max_fichas_por_busqueda)
+                medir_busqueda(
+                    busqueda, obtener_html_busqueda, abrir_ficha, max_fichas_por_busqueda,
+                    guardar_diagnostico=_guardar_html_diagnostico,
+                )
             )
 
     return todos_los_intentos
