@@ -28,6 +28,7 @@ alibaba-catalog/
     diagnostico_precio.py  # busca un producto en el HTML crudo archivado y muestra su JSON sin normalizar
     capturador_exploratorio.py  # Fase 1 del sourcing: captura automática de muestras ML + Alibaba
     parser_ficha_alibaba.py     # Fase 2 (arranque): parsea la ficha individual de Alibaba (precio real, MOQ)
+    parser_ficha_ml.py          # Fase 1 (arranque): parsea la ficha individual de Mercado Libre (demanda, precio)
     tests/
       test_parser.py
       test_scraper.py
@@ -35,12 +36,14 @@ alibaba-catalog/
       test_diagnostico_precio.py
       test_capturador_exploratorio.py
       test_parser_ficha_alibaba.py
+      test_parser_ficha_ml.py
       fixtures/
         productlist_page19.html          # HTML real (recortado) de un listado válido
         productlist_page_mixto.html      # los mismos 2 + 2 productos reales "a Cotizar" (RFQ)
         pagina_bloqueada_captcha.html    # HTML real (recortado) de la página de bloqueo CAPTCHA
         ml_desafio_pow.html              # HTML real: desafío Proof-of-Work de Mercado Libre (no es un CAPTCHA humano)
         alibaba_ficha_real.html          # HTML real (recortado) de una ficha de producto de Alibaba
+        ml_ficha_real.html               # HTML real (recortado) de una ficha de producto de Mercado Libre
   paginas_html_crudo/       # HTML crudo de cada página visitada por collector_browser.py (no se commitea)
   capturas_exploratorias/   # muestras de capturador_exploratorio.py + manifiesto.jsonl (no se commitea)
   database/
@@ -333,6 +336,32 @@ simple no alcanza porque hay strings con llaves adentro).
 
 Falta conseguir (con el propio `capturador_exploratorio.py`, no a mano) un
 ejemplo real de producto con escalones de precio para completar esa parte.
+
+## Parser de ficha individual de Mercado Libre (`parser_ficha_ml.py`)
+
+Confirmado con HTML real (`tests/fixtures/ml_ficha_real.html`, item
+MLA2023730583, capturado automáticamente por `capturador_exploratorio.py`
+en la segunda corrida — la primera se había quedado en el desafío PoW).
+Dos fuentes en la misma página:
+
+- **`application/ld+json` con `@type: "Product"`** (marcado schema.org
+  estándar, pensado para SEO — no depende de la estructura interna de
+  ML): `name`, `offers.price`, `offers.priceCurrency`,
+  `aggregateRating.reviewCount`/`ratingValue`. Fuente principal, la más
+  estable de las dos. `extraer_producto_ld_json()`.
+- **Contexto interno de renderizado** (`__NORDIC_RENDERING_CTX__`): de
+  ahí sale `sold_quantity` (unidades vendidas — la señal de demanda más
+  importante según las reglas del proyecto) y `quantity` (stock visible
+  actual, para `historial_ml`). No están en el JSON-LD estándar. Más
+  frágil por ser interno: `extraer_stock_y_ventas()` usa una regex
+  puntual y devuelve `(None, None)` si no matchea, en vez de romper el
+  resto del parseo.
+
+`parsear_ficha_ml(html, url)` combina las dos fuentes en un dict con la
+forma de `candidatos_ml` (+`stock_visible`, para la primera fila del
+historial). Confirmado con datos reales: `precio_ml=68780 ARS`,
+`unidades_vendidas=1000`, `stock_visible=5`,
+`evidencia_demanda="+1000 vendidos"`.
 
 ## Instalación y uso
 
