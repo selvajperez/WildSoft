@@ -39,12 +39,23 @@ import re
 from dataclasses import dataclass, field
 
 TIPOS_NUMERICOS = {"capacidad", "peso", "potencia", "voltaje", "cantidad_piezas"}
-TIPOS_CATEGORICOS = {"categoria", "material", "color", "marca"}
+TIPOS_CATEGORICOS = {"categoria", "material", "color", "marca", "identidad"}
 
 # Atributos esenciales: una incompatibilidad confirmada acá puede vetar un
 # candidato. Atributos secundarios: nunca vetan, la propia usuaria dio
 # color/marca/empaque como ejemplo de diferencia menor admisible.
-ESENCIALES = {"categoria", "material", "capacidad", "potencia", "voltaje", "cantidad_piezas", "dimensiones"}
+#
+# "identidad" (agregado tras el Caso 5 real de la validación, ver
+# ESTADO_ACTUAL.md): distingue mercadería con licencia oficial
+# ("licenciado_oficial") de manufactura genérica personalizable
+# ("generico_personalizable") -- sin esto, una camiseta con licencia
+# oficial de club y una fábrica que imprime cualquier logo a pedido
+# puntuaban MATCH_PROBABLE por texto+imagen solos, un falso positivo real
+# confirmado. Esencial por el mismo motivo que categoria/material: son
+# productos distintos aunque se vean casi idénticos en foto.
+ESENCIALES = {
+    "categoria", "material", "capacidad", "potencia", "voltaje", "cantidad_piezas", "dimensiones", "identidad",
+}
 SECUNDARIOS = {"color", "marca"}
 
 TOLERANCIAS_DEFAULT = {
@@ -98,6 +109,28 @@ CANON_CATEGORIA: dict[str, str] = {
     "earbuds": "auriculares", "earphone": "auriculares", "headphone": "auriculares", "auriculares": "auriculares",
     "watch": "reloj", "reloj": "reloj",
     "toy": "juguete", "juguete": "juguete",
+    # Agregados tras el Caso 5 real (camiseta de fútbol) -- ver ESTADO_ACTUAL.md.
+    "t-shirt": "camiseta", "tshirt": "camiseta", "jersey": "camiseta", "shirt": "camiseta",
+    "camiseta": "camiseta", "remera": "camiseta", "playera": "camiseta", "polera": "camiseta",
+}
+
+# Identidad/licencia/originalidad del producto -- ver el comentario en
+# ESENCIALES sobre por qué se agregó. No es lo mismo que "categoria"
+# (ambos productos pueden ser genuinamente camisetas) ni que "marca"
+# (secundaria, admite diferencias) -- es específicamente si el producto
+# es la mercadería con licencia oficial o una versión genérica
+# personalizable, algo que Alibaba (manufactura sin licencia de marca)
+# estructuralmente no puede ofrecer como "el mismo producto".
+CANON_IDENTIDAD: dict[str, str] = {
+    "licencia oficial": "licenciado_oficial", "producto oficial": "licenciado_oficial",
+    "oficial licenciado": "licenciado_oficial", "con licencia": "licenciado_oficial",
+    "licenciado": "licenciado_oficial", "oficial": "licenciado_oficial",
+    "logo printing": "generico_personalizable", "logo de tu preferencia": "generico_personalizable",
+    "cualquier logo": "generico_personalizable", "personalizable": "generico_personalizable",
+    "personalizado": "generico_personalizable", "customized": "generico_personalizable",
+    "custom": "generico_personalizable", "réplica": "generico_personalizable",
+    "replica": "generico_personalizable", "no oficial": "generico_personalizable",
+    "sin licencia": "generico_personalizable",
 }
 
 CANON_MATERIAL: dict[str, str] = {
@@ -159,8 +192,16 @@ _RE_PESO = re.compile(
 _RE_POTENCIA = re.compile(r"(\d+(?:[.,]\d+)?)\s*w(?:atts?)?\b", re.IGNORECASE)
 _RE_VOLTAJE = re.compile(r"(\d+(?:[.,]\d+)?)\s*v(?:olts?)?\b", re.IGNORECASE)
 
-_RE_CANTIDAD_PIEZAS = re.compile(r"(\d+)\s*[-\s]?(?:pcs|pieces?|piezas?|unidades?|units?)\b", re.IGNORECASE)
-_RE_PACK_OF = re.compile(r"pack of (\d+)|set de (\d+)|juego de (\d+)", re.IGNORECASE)
+_RE_CANTIDAD_PIEZAS = re.compile(
+    r"(\d+)\s*[-\s]?(?:pcs|pieces?|piezas?|unidades?|units?|accesorios?)\b", re.IGNORECASE
+)
+# "pack of N" / "set de N" / "juego de N" (con preposición) y también
+# "set N" / "set of N" (sin preposición, español o inglés) -- hallazgo
+# real del Caso 4 ("Set 4" de ML vs. "Set of 3" del candidato de Alibaba,
+# ninguna de las dos matcheaba antes). Ver ESTADO_ACTUAL.md.
+_RE_PACK_OF = re.compile(
+    r"pack of (\d+)|set de (\d+)|juego de (\d+)|set of (\d+)|\bset (\d+)\b", re.IGNORECASE
+)
 
 _FACTORES_DIMENSION_A_CM = {
     "cm": 1.0, "mm": 0.1,
@@ -282,6 +323,10 @@ def extraer_atributos_texto_libre(texto: str | None) -> dict[str, AtributoExtrai
     color = _canonicalizar(texto, CANON_COLOR)
     if color:
         atributos["color"] = AtributoExtraido("color", texto, categoria_canon=color)
+
+    identidad = _canonicalizar(texto, CANON_IDENTIDAD)
+    if identidad:
+        atributos["identidad"] = AtributoExtraido("identidad", texto, categoria_canon=identidad)
 
     return atributos
 

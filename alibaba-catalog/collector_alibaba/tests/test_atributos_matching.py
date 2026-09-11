@@ -139,6 +139,79 @@ def test_comparar_atributos_color_distinto_nunca_es_veto_aunque_sea_incompatible
     assert incompatibilidad_esencial(comparaciones) is None
 
 
+def test_extraer_identidad_licenciado_oficial():
+    atributos = extraer_atributos_texto_libre("Camiseta Oficial Boca Juniors Ranglan 2026 + Short")
+    assert atributos["identidad"].categoria_canon == "licenciado_oficial"
+
+
+def test_extraer_identidad_generico_personalizable():
+    atributos = extraer_atributos_texto_libre(
+        "Custom Cross-Border Football Shorts and Jerseys with Logo Printing Soccer Club Uniforms"
+    )
+    assert atributos["identidad"].categoria_canon == "generico_personalizable"
+
+
+def test_identidad_incompatible_es_veto_esencial_caso_5_real():
+    """
+    Caso 5 real de la validación (ver ESTADO_ACTUAL.md): una camiseta con
+    licencia oficial de club contra una fábrica que imprime cualquier
+    logo a pedido puntuaba MATCH_PROBABLE por texto+imagen solos, sin que
+    ningún atributo esencial pudiera vetarlo -- este es el fix.
+    """
+    ml = extraer_atributos_texto_libre("Camiseta Oficial Boca Juniors Ranglan 2026 + Short")
+    alibaba = extraer_atributos_texto_libre(
+        "Custom Cross-Border Football Shorts and Jerseys with Logo Printing Soccer Club Uniforms for Various Football Matches"
+    )
+    comparaciones = comparar_atributos(ml, alibaba)
+    veto = incompatibilidad_esencial(comparaciones)
+    assert veto is not None
+    assert veto.tipo == "identidad"
+
+
+def test_identidad_sin_mencion_de_ningun_lado_no_es_veto():
+    ml = extraer_atributos_texto_libre("Cepillo de silicona para limpieza de platos")
+    alibaba = extraer_atributos_texto_libre("Silicone cleaning brush for dish")
+    comparaciones = comparar_atributos(ml, alibaba)
+    assert incompatibilidad_esencial(comparaciones) is None
+
+
+def test_categoria_reconoce_camiseta_jersey_y_variantes_regionales():
+    assert extraer_atributos_texto_libre("Camiseta de fútbol")["categoria"].categoria_canon == "camiseta"
+    assert extraer_atributos_texto_libre("Football jersey for sale")["categoria"].categoria_canon == "camiseta"
+    assert extraer_atributos_texto_libre("Remera de algodón")["categoria"].categoria_canon == "camiseta"
+    assert extraer_atributos_texto_libre("Playera de manga corta")["categoria"].categoria_canon == "camiseta"
+
+
+def test_extraer_cantidad_piezas_set_n_sin_preposicion():
+    atributos = extraer_atributos_texto_libre("Set 4 Cepillos Limpieza Duraderos")
+    assert atributos["cantidad_piezas"].valor_numerico == 4.0
+
+
+def test_extraer_cantidad_piezas_set_of_n_ingles():
+    atributos = extraer_atributos_texto_libre("Cleaning Brush Set of 3")
+    assert atributos["cantidad_piezas"].valor_numerico == 3.0
+
+
+def test_extraer_cantidad_piezas_n_accesorios():
+    atributos = extraer_atributos_texto_libre("Cepillo Limpiador Eléctrico 9 accesorios Multifuncion Piso")
+    assert atributos["cantidad_piezas"].valor_numerico == 9.0
+
+
+def test_cantidad_piezas_set_4_vs_set_of_3_detecta_incompatibilidad_caso_4_real():
+    """
+    Caso 4 real (ver ESTADO_ACTUAL.md): "Set 4" de ML vs. "Set of 3" del
+    candidato top de Alibaba nunca se llegaban a comparar antes de este
+    fix -- cantidad_piezas tiene tolerancia 0.0 (una cantidad de piezas
+    distinta es otro producto), así que ahora sí debe vetar.
+    """
+    ml = extraer_atributos_texto_libre("Set 4 Cepillos Limpieza Oh My Shop Surcos Hendiduras Cerdas Duraderas")
+    alibaba = extraer_atributos_texto_libre("Cleaning Brush Set of 3")
+    comparaciones = comparar_atributos(ml, alibaba)
+    veto = incompatibilidad_esencial(comparaciones)
+    assert veto is not None
+    assert veto.tipo == "cantidad_piezas"
+
+
 def test_score_atributos_sin_comparaciones_evaluables_es_neutral():
     a = {"categoria": AtributoExtraido("categoria", "brush", categoria_canon="cepillo")}
     comparaciones = comparar_atributos(a, {})
