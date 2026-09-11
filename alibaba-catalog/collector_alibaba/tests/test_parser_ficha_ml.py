@@ -1,8 +1,16 @@
 from pathlib import Path
 
-from parser_ficha_ml import extraer_producto_ld_json, extraer_stock_y_ventas, parsear_ficha_ml
+from parser_ficha_ml import (
+    es_ficha_no_encontrada,
+    extraer_producto_ld_json,
+    extraer_stock_y_ventas,
+    parsear_ficha_ml,
+)
 
 FICHA_REAL = (Path(__file__).parent / "fixtures" / "ml_ficha_real.html").read_text(encoding="utf-8")
+FICHA_NO_ENCONTRADA_REAL = (
+    Path(__file__).parent / "fixtures" / "ml_ficha_no_encontrada_real.html"
+).read_text(encoding="utf-8")
 
 
 def test_extraer_producto_ld_json_de_ficha_real():
@@ -65,3 +73,28 @@ def test_parsear_ficha_ml_sin_datos_devuelve_todo_none():
     assert resultado["precio_ml"] is None
     assert resultado["unidades_vendidas"] is None
     assert resultado["evidencia_demanda"] is None
+    assert resultado["pagina_no_encontrada"] is False
+
+
+# --- 404 real de Mercado Libre (hallazgo de la corrida real del 2026-09-10) --
+#
+# 5 de 14 fichas abiertas en una búsqueda real resultaron ser este 404 --
+# no un producto sin datos, sino que la URL reconstruida a partir del
+# item_id de un link de tracking del listado no era válida para esos
+# items. Confirmado con HTML real (ver docstring de parser_ficha_ml.py).
+
+def test_es_ficha_no_encontrada_detecta_el_404_real():
+    assert es_ficha_no_encontrada(FICHA_NO_ENCONTRADA_REAL) is True
+
+
+def test_es_ficha_no_encontrada_es_false_para_una_ficha_real_normal():
+    assert es_ficha_no_encontrada(FICHA_REAL) is False
+
+
+def test_parsear_ficha_ml_marca_pagina_no_encontrada_en_el_404_real():
+    resultado = parsear_ficha_ml(FICHA_NO_ENCONTRADA_REAL, url="https://articulo.mercadolibre.com.ar/MLA1758275889")
+
+    assert resultado["pagina_no_encontrada"] is True
+    # sigue sin nada útil, como cualquier página sin datos -- lo que la distingue es el flag
+    assert resultado["precio_ml"] is None
+    assert resultado["unidades_vendidas"] is None

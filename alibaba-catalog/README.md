@@ -568,21 +568,33 @@ indeterminado_ficha=9, detenido_por="candidatos_objetivo_alcanzado"`. El
 orden de apertura (A antes que B) y el corte al llegar a 5 confirmados
 funcionan igual que en la prueba con datos inyectados.
 
-**Hallazgo real que quedó pendiente de diagnosticar**: 9 de las 14 fichas
-abiertas (64%) quedaron `indeterminado_ficha` — ni precio ni unidades
-vendidas extraídas — mucho más alto de lo esperado, dado que el JSON-LD
-`Product` debería estar presente en casi cualquier ficha real (es marcado
-estándar de SEO). Como el proyecto no permite pedirle a la usuaria que
-recolecte HTML a mano para diagnosticar esto, `ejecutar_busqueda_real`
-ahora guarda automáticamente el HTML crudo de toda ficha que quede
-`indeterminado_ficha` en `diagnostico_fichas_ml/<id_ml>.html`
+**Hallazgo real, diagnosticado con HTML real capturado automáticamente**:
+9 de las 14 fichas abiertas (64%) quedaron `indeterminado_ficha` — ni
+precio ni unidades vendidas extraídas. Con el HTML crudo que
+`ejecutar_busqueda_real` guarda automáticamente en
+`diagnostico_fichas_ml/<id_ml>.html` para toda ficha indeterminada
 (`_guardar_html_diagnostico`, inyectado como `guardar_diagnostico` en
-`procesar_busqueda_ml` para no tocar disco en los tests). Falta correr de
-nuevo y revisar esos HTML reales para confirmar la causa (¿variantes sin
-un único bloque `Product`? ¿bloqueo silencioso no cubierto por
-`bloqueado_ml_heuristico`? ¿otra plantilla de ficha?) antes de confiar en
-la tasa de indeterminados de esta etapa y pasar al matching contra
-Alibaba.
+`procesar_busqueda_ml` para no tocar disco en los tests), se confirmó la
+causa real de al menos 5 de esos 9 casos: son un **404 real de Mercado
+Libre** (`<main class="ui-pdp-not-found">`, título "Parece que esta
+página no existe" — ver `tests/fixtures/ml_ficha_no_encontrada_real.html`,
+HTML real trimeado), no una ficha sin datos. El propio
+`<noscript><meta http-equiv="refresh" content="...go=https%3A%2F%2Farticulo.mercadolibre.com.ar%2FMLA...">`
+de la página de error confirma que la URL pedida fue justo la
+reconstruida por `parser_busqueda_ml._url_canonica` a partir del
+`item_id` de un link de tracking del listado (caso 3, ver esa sección) —
+esa reconstrucción funciona para algunos items (ej. `MLA1399281097`,
+confirmado con 1000 vendidas en esta misma corrida) pero no para todos.
+
+`parser_ficha_ml.es_ficha_no_encontrada()` detecta este 404 específico y
+`_determinar_resultado_ficha` ahora guarda un motivo explícito y
+distinguible ("La ficha devolvió un 404 real de Mercado Libre...") en vez
+del genérico "no se pudo extraer nada" — no soluciona la URL rota (eso
+requeriría confirmar con más evidencia real qué formato sí funciona para
+esos item_id, algo que no se puede adivinar sin arriesgar otro dato
+inventado), pero la hace visible, medible y distinguible de otras causas
+de indeterminación (bloqueo, cambio de plantilla, etc.) en las próximas
+corridas.
 
 ## Instalación y uso
 

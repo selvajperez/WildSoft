@@ -91,6 +91,14 @@ def _determinar_resultado_ficha(datos_ficha: dict, umbral_unidades_vendidas: int
     """
     vendidas = datos_ficha.get("unidades_vendidas")
 
+    if datos_ficha.get("pagina_no_encontrada"):
+        return (
+            "indeterminado_ficha",
+            "La ficha devolvió un 404 real de Mercado Libre (\"esta página no existe\") -- "
+            "probablemente la URL reconstruida a partir de un link de tracking del listado "
+            "no es válida para este item (ver parser_ficha_ml.es_ficha_no_encontrada).",
+        )
+
     if datos_ficha.get("precio_ml") is None and vendidas is None:
         return "indeterminado_ficha", "No se pudo extraer nada confiable de la ficha individual."
 

@@ -4,6 +4,21 @@ Parser de la ficha individual de producto de Mercado Libre.
 Confirmado con HTML real (ver `tests/fixtures/ml_ficha_real.html`,
 capturado por `capturador_exploratorio.py` — item MLA2023730583).
 
+**Hallazgo real (corrida de `orquestador_demanda_ml.py` del 2026-09-10)**:
+5 de 14 fichas abiertas en una búsqueda real resultaron ser un 404 real de
+Mercado Libre (`<main class="ui-pdp-not-found">`, título "Parece que esta
+página no existe" — ver `tests/fixtures/ml_ficha_no_encontrada_real.html`,
+HTML real trimeado). Causa probable: la URL reconstruida en
+`parser_busqueda_ml._url_canonica` a partir del `item_id` de un link de
+tracking (caso 3, ver ese módulo) no es válida para todos los item_id —
+confirmado con el propio `<noscript><meta http-equiv="refresh"
+content="...go=https%3A%2F%2Farticulo.mercadolibre.com.ar%2FMLA...">` de
+la página, que muestra que esa fue justo la URL pedida. `es_ficha_no_encontrada()`
+detecta este caso para que `orquestador_demanda_ml.py` guarde un motivo
+explícito y distinguible en vez de un genérico "no se pudo extraer nada" —
+no soluciona la URL rota (eso requeriría confirmar con más evidencia real
+qué formato sí funciona), solo la hace visible y diagnosticable.
+
 Dos fuentes distintas en la misma página:
 
 1. Bloques `<script type="application/ld+json">` con marcado schema.org
@@ -35,6 +50,18 @@ def extraer_producto_ld_json(html: str) -> dict | None:
         if data.get("@type") == "Product":
             return data
     return None
+
+
+_MARCADOR_FICHA_NO_ENCONTRADA = 'class="ui-pdp-not-found"'
+
+
+def es_ficha_no_encontrada(html: str) -> bool:
+    """
+    True si la página es el 404 real de Mercado Libre para una ficha
+    (`<main class="ui-pdp-not-found">`), no un producto normal sin datos.
+    Confirmado con HTML real -- ver el docstring del módulo.
+    """
+    return _MARCADOR_FICHA_NO_ENCONTRADA in html
 
 
 _RE_QUANTITY_SOLD = re.compile(r'"quantity":(\d+),"sold_quantity":(\d+)')
@@ -72,6 +99,7 @@ def parsear_ficha_ml(html: str, url: str | None = None) -> dict:
         "stock_visible": None,
         "cantidad_opiniones": None,
         "rating": None,
+        "pagina_no_encontrada": es_ficha_no_encontrada(html),
     }
 
     producto = extraer_producto_ld_json(html)

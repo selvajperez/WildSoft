@@ -40,6 +40,22 @@ def test_determinar_resultado_ficha_indeterminado_si_no_se_extrajo_nada():
     assert "no se pudo extraer" in motivo.lower()
 
 
+def test_determinar_resultado_ficha_distingue_el_404_real_de_ml():
+    """
+    Hallazgo real (corrida del 2026-09-10): 5/14 fichas eran un 404 real
+    de ML, no una página sin datos -- la URL reconstruida a partir de un
+    item_id de tracking no era válida para esos items. El motivo tiene
+    que distinguir este caso del genérico "no se pudo extraer nada".
+    """
+    estado, motivo = _determinar_resultado_ficha(
+        {"precio_ml": None, "unidades_vendidas": None, "pagina_no_encontrada": True},
+        umbral_unidades_vendidas=50,
+    )
+    assert estado == "indeterminado_ficha"
+    assert "404" in motivo
+    assert "no se pudo extraer nada" not in motivo.lower()
+
+
 # --- procesar_busqueda_ml con datos reales inyectados -----------------------
 #
 # La búsqueda real (4 casos reales: 1 prioridad A, 1 prioridad B, 2 sin
