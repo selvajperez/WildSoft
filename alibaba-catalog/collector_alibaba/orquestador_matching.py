@@ -55,8 +55,10 @@ from navegador_ml import (  # noqa: E402
     DELAY_MAX_SEG_DEFAULT,
     DELAY_MIN_SEG_DEFAULT,
     abrir_pagina_ml,
+    bloqueado_ml_heuristico,
     confirmar_login_manual,
     contenido_seguro,
+    es_bloqueo_trafico_sospechoso_ml,
     es_primera_vez,
     esperar_entre_fichas,
     goto_seguro,
@@ -258,6 +260,18 @@ def ejecutar_matching_real(
             confirmar_login_manual()
 
         html_ficha_ml = abrir_pagina_ml(pagina, url_ml, f"ficha ML {candidato['id_ml']}")
+
+        # Mismo registro de diagnóstico que ya usa el lado de Alibaba
+        # (ver _abrir_pagina_alibaba): guarda el HTML real y una entrada en
+        # el manifiesto para poder revisar después, con evidencia real, por
+        # qué imagen_url/descripcion vienen None en algunos casos -- sin
+        # esto no hay forma de distinguir "ML no expone la imagen acá" de
+        # "el parser está buscando en el lugar equivocado" (pregunta
+        # explícita de la usuaria, todavía sin responder).
+        bloqueado_ml = es_bloqueo_trafico_sospechoso_ml(html_ficha_ml) or bloqueado_ml_heuristico(html_ficha_ml)
+        archivo_ficha_ml = _guardar_html("matching_ml_ficha", html_ficha_ml)
+        _registrar_captura("matching_ml_ficha", url_ml, archivo_ficha_ml, bloqueado_ml)
+
         datos_ml = parsear_ficha_ml(html_ficha_ml, url=url_ml)
         producto_ml = ProductoMLParaMatching(
             id_ml=candidato["id_ml"] or "",
