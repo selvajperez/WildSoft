@@ -151,7 +151,7 @@ def _capturar_ficha_alibaba(pagina, url: str) -> None:
     html = contenido_seguro(pagina)
 
     if bloqueado_alibaba(html):
-        html = pausar_por_bloqueo_y_continuar(pagina, url, "ficha Alibaba")
+        html = pausar_por_bloqueo_y_continuar(pagina, url, "ficha Alibaba", sigue_bloqueado=bloqueado_alibaba, sitio="Alibaba")
 
     archivo = _guardar_html("alibaba_ficha", html)
     _registrar_captura("alibaba_ficha", url, archivo, bloqueado_alibaba(html))

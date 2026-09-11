@@ -43,6 +43,7 @@ import random
 import time
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Callable
 
 from playwright.sync_api import Error as PlaywrightError
 from playwright.sync_api import sync_playwright
@@ -172,7 +173,13 @@ def confirmar_login_manual() -> None:
     input("Cuando termines, volvé a esta terminal y presioná ENTER para continuar...")
 
 
-def pausar_por_bloqueo_y_continuar(pagina, url: str, etiqueta: str) -> str:
+def pausar_por_bloqueo_y_continuar(
+    pagina,
+    url: str,
+    etiqueta: str,
+    sigue_bloqueado: Callable[[str], bool] | None = None,
+    sitio: str = "Mercado Libre",
+) -> str:
     """
     No corta la corrida ni cierra Chrome, y no resuelve ni evade el
     bloqueo. Pausa indefinidamente (sin timeout corto) a que la usuaria
@@ -182,11 +189,24 @@ def pausar_por_bloqueo_y_continuar(pagina, url: str, etiqueta: str) -> str:
     en vez de avanzar o darlo por resuelto. Como retoma la misma URL,
     quien llama continúa exactamente con esa ficha, nunca la pierde ni
     la procesa dos veces.
+
+    `sigue_bloqueado(html) -> bool`, si se pasa, reemplaza el chequeo
+    default (específico de ML: `es_bloqueo_trafico_sospechoso_ml`/
+    `bloqueado_ml_heuristico`) -- necesario para reusar esta misma pausa
+    con otro sitio (ej. Alibaba, con `scraper.contiene_marcadores_bloqueo`),
+    que muestra una página de bloqueo completamente distinta: sin esto,
+    la verificación pensaría "ya se resolvió" apenas los marcadores de ML
+    no aparezcan, sin importar si el otro sitio sigue bloqueado de
+    verdad. `sitio` solo cambia el nombre en el mensaje impreso.
     """
+    if sigue_bloqueado is None:
+        def sigue_bloqueado(html: str) -> bool:
+            return es_bloqueo_trafico_sospechoso_ml(html) or bloqueado_ml_heuristico(html)
+
     while True:
         logger.warning("Bloqueo/CAPTCHA detectado en '%s' (%s). Pausando para intervención humana.", etiqueta, url)
         print("\n" + "!" * 70)
-        print("Mercado Libre requiere intervención humana. Resolvé el login/CAPTCHA")
+        print(f"{sitio} requiere intervención humana. Resolvé el login/CAPTCHA")
         print("en la ventana de Chrome y luego presioná Enter para continuar.")
         print(f"Página en curso: {etiqueta}")
         print(f"URL: {url}")
@@ -196,7 +216,7 @@ def pausar_por_bloqueo_y_continuar(pagina, url: str, etiqueta: str) -> str:
         pagina.reload(wait_until="domcontentloaded")
         html = contenido_seguro(pagina)
 
-        if not (es_bloqueo_trafico_sospechoso_ml(html) or bloqueado_ml_heuristico(html)):
+        if not sigue_bloqueado(html):
             logger.info("Bloqueo resuelto en '%s'. Continuando.", etiqueta)
             return html
 
