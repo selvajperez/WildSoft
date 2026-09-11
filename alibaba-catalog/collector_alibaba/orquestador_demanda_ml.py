@@ -24,6 +24,14 @@ abre páginas: `procesar_busqueda_ml` recibe `obtener_html_busqueda` y
 reales ya capturados sin necesitar un navegador. `ejecutar_busqueda_real`
 es el punto de entrada que arma esas funciones con Playwright de verdad.
 
+Cuando una ficha queda `indeterminado_ficha` (ni precio ni ventas
+extraídos), `ejecutar_busqueda_real` guarda automáticamente su HTML crudo
+en `diagnostico_fichas_ml/<id_ml>.html` -- sin esto no hay forma de saber
+por qué falló el parseo sin pedirle a la usuaria que navegue manualmente
+a buscarlo, algo que el proyecto evita a propósito. `procesar_busqueda_ml`
+recibe esto también inyectado (`guardar_diagnostico`, opcional) para no
+tocar disco en los tests.
+
 Uso:
     python orquestador_demanda_ml.py "cepillo de limpieza"
     python orquestador_demanda_ml.py "candado bicicleta" --max-fichas 10 --objetivo 3 --umbral-vendidas 100
@@ -52,12 +60,27 @@ MAX_FICHAS_POR_BUSQUEDA_DEFAULT = 15
 CANDIDATOS_OBJETIVO_DEFAULT = 5
 UMBRAL_UNIDADES_VENDIDAS_DEFAULT = 50
 
+DIR_DIAGNOSTICO_FICHAS = Path(__file__).parent.parent / "diagnostico_fichas_ml"
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
     handlers=[logging.StreamHandler(), logging.FileHandler(Path(__file__).parent / "orquestador_demanda_ml.log")],
 )
 logger = logging.getLogger("orquestador_demanda_ml")
+
+
+def _guardar_html_diagnostico(id_ml: str, html: str) -> Path:
+    """
+    Guarda el HTML crudo de una ficha que quedó `indeterminado_ficha` --
+    ni precio ni ventas extraídos -- para poder diagnosticar por qué
+    falló el parseo sin pedirle a nadie que la vuelva a buscar a mano.
+    """
+    DIR_DIAGNOSTICO_FICHAS.mkdir(parents=True, exist_ok=True)
+    archivo = DIR_DIAGNOSTICO_FICHAS / f"{id_ml}.html"
+    archivo.write_text(html, encoding="utf-8")
+    logger.warning("Ficha %s indeterminada -- HTML guardado en %s para diagnóstico.", id_ml, archivo)
+    return archivo
 
 
 def _determinar_resultado_ficha(datos_ficha: dict, umbral_unidades_vendidas: int) -> tuple[str, str]:
@@ -101,6 +124,7 @@ def procesar_busqueda_ml(
     max_fichas_por_busqueda: int = MAX_FICHAS_POR_BUSQUEDA_DEFAULT,
     candidatos_objetivo: int = CANDIDATOS_OBJETIVO_DEFAULT,
     umbral_unidades_vendidas: int = UMBRAL_UNIDADES_VENDIDAS_DEFAULT,
+    guardar_diagnostico: Callable[[str, str], None] | None = None,
 ) -> dict:
     """
     Ejecuta la Fase 1 completa para una búsqueda: lista -> prioriza ->
@@ -111,6 +135,9 @@ def procesar_busqueda_ml(
     `obtener_html_busqueda(url) -> html` y `abrir_ficha(url, etiqueta) -> html`
     son funciones inyectadas para no atar esta lógica a un navegador real
     -- permite probar el flujo completo con HTML ya capturado.
+    `guardar_diagnostico(id_ml, html)`, si se pasa, se invoca para cada
+    ficha que queda `indeterminado_ficha` (no toca disco por defecto, así
+    los tests no tienen efectos secundarios de archivo).
     """
     resumen = {
         "busqueda": busqueda,
@@ -170,6 +197,9 @@ def procesar_busqueda_ml(
         estado, motivo = _determinar_resultado_ficha(datos_ficha, umbral_unidades_vendidas)
         db.actualizar_estado_candidato(conexion, candidato_id, estado, motivo)
 
+        if estado == "indeterminado_ficha" and guardar_diagnostico is not None:
+            guardar_diagnostico(item["id_ml"], html_ficha)
+
         resumen[estado] += 1
         resumen["detalle"].append({
             "id_ml": item["id_ml"], "nombre": item["nombre"], "estado": estado, "motivo": motivo,
@@ -211,6 +241,7 @@ def ejecutar_busqueda_real(
             max_fichas_por_busqueda=max_fichas_por_busqueda,
             candidatos_objetivo=candidatos_objetivo,
             umbral_unidades_vendidas=umbral_unidades_vendidas,
+            guardar_diagnostico=_guardar_html_diagnostico,
         )
 
     logger.info("Búsqueda '%s' terminada: %s", busqueda, resumen)

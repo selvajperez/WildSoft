@@ -6,5 +6,6 @@ collector_alibaba/orquestador_demanda_ml.log
 .perfil_chrome_collector/
 paginas_html_crudo/
 capturas_exploratorias/
+diagnostico_fichas_ml/
 __pycache__/
 *.pyc

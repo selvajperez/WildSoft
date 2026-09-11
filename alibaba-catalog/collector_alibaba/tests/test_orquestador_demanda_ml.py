@@ -4,6 +4,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "database"))
 import db  # noqa: E402
 
+import orquestador_demanda_ml  # noqa: E402
 from orquestador_demanda_ml import _determinar_resultado_ficha, procesar_busqueda_ml  # noqa: E402
 
 BUSQUEDA_REAL = (Path(__file__).parent / "fixtures" / "ml_busqueda_real.html").read_text(encoding="utf-8")
@@ -159,3 +160,49 @@ def test_procesar_busqueda_ml_registra_motivo_explicito_por_candidato():
 
     for entrada in resumen["detalle"]:
         assert entrada["motivo"]  # nunca vacío/None -- siempre hay una explicación guardable
+
+
+def test_procesar_busqueda_ml_guarda_diagnostico_solo_de_fichas_indeterminadas():
+    """
+    `guardar_diagnostico` es opcional e inyectado -- por defecto (None) no
+    toca disco, y solo se invoca para fichas `indeterminado_ficha` (nunca
+    para confirmadas o descartadas por umbral). Con el fixture real, la
+    única ficha inyectada siempre confirma demanda, así que acá se prueba
+    con una ficha sintética sin precio ni ventas para ejercitar la rama.
+    """
+    conexion = _conexion_memoria()
+    llamadas = []
+
+    def _abrir_ficha_indeterminada(_url: str, _etiqueta: str) -> str:
+        return "<html><body>página sin ld+json ni datos de ventas</body></html>"
+
+    resumen = procesar_busqueda_ml(
+        "cepillo de limpieza", conexion, _abrir_busqueda_real, _abrir_ficha_indeterminada,
+        max_fichas_por_busqueda=15, candidatos_objetivo=5,
+        guardar_diagnostico=lambda id_ml, html: llamadas.append((id_ml, html)),
+    )
+
+    assert resumen["indeterminado_ficha"] == 2  # las 2 fichas abiertas (prioridad A + B) quedan indeterminadas
+    assert len(llamadas) == 2
+    assert llamadas[0][0] == "MLA1399281097"
+    assert "sin ld+json" in llamadas[0][1]
+
+
+def test_guardar_html_diagnostico_escribe_el_archivo_por_id_ml(tmp_path, monkeypatch):
+    monkeypatch.setattr(orquestador_demanda_ml, "DIR_DIAGNOSTICO_FICHAS", tmp_path / "diagnostico_fichas_ml")
+
+    archivo = orquestador_demanda_ml._guardar_html_diagnostico("MLA123", "<html>contenido</html>")
+
+    assert archivo.name == "MLA123.html"
+    assert archivo.read_text(encoding="utf-8") == "<html>contenido</html>"
+
+
+def test_procesar_busqueda_ml_sin_guardar_diagnostico_no_falla():
+    conexion = _conexion_memoria()
+
+    resumen = procesar_busqueda_ml(
+        "cepillo de limpieza", conexion, _abrir_busqueda_real, _abrir_ficha_real,
+        max_fichas_por_busqueda=15, candidatos_objetivo=5,
+    )
+
+    assert resumen["indeterminado_ficha"] == 0  # nada que guardar en este caso, y no rompe igual

@@ -557,15 +557,32 @@ no escondida). Con esa entrada:
   Prioridad B, confirmando que el corte configurable evita navegación
   innecesaria tal como pide la regla del proyecto.
 
-**Pendiente para terminar de validar esta etapa**: correr
-`ejecutar_busqueda_real` de verdad (Chrome real, no HTML inyectado) para
-que cada candidato abra **su propia** ficha real en vez de reusar la
-misma — el HTML de la búsqueda y de la ficha usados en los tests son 100%
-reales, pero la limitación conocida es que un solo ejemplo de ficha real
-se reusó como stand-in de los 5 candidatos abiertos en la prueba end to
-end. Recién con eso confirmado con múltiples fichas reales distintas se
-considera esta etapa lista para pasar al matching contra Alibaba (fase 2,
-todavía no empezada).
+### Corrida real con Chrome (`ejecutar_busqueda_real`) — primera evidencia con fichas distintas
+
+Confirmado: `python orquestador_demanda_ml.py "cepillo de limpieza" --max-fichas 15 --objetivo 5 --umbral-vendidas 50`
+corrió con Chrome real y abrió **14 fichas realmente distintas** (cada una
+con su propio `id_ml` y nombre), no la misma reusada como en la prueba
+automatizada. Resultado: `extraidos=60, prioridad_a=1, prioridad_b=17,
+sin_senal=42, fichas_abiertas=14, demanda_confirmada=5,
+indeterminado_ficha=9, detenido_por="candidatos_objetivo_alcanzado"`. El
+orden de apertura (A antes que B) y el corte al llegar a 5 confirmados
+funcionan igual que en la prueba con datos inyectados.
+
+**Hallazgo real que quedó pendiente de diagnosticar**: 9 de las 14 fichas
+abiertas (64%) quedaron `indeterminado_ficha` — ni precio ni unidades
+vendidas extraídas — mucho más alto de lo esperado, dado que el JSON-LD
+`Product` debería estar presente en casi cualquier ficha real (es marcado
+estándar de SEO). Como el proyecto no permite pedirle a la usuaria que
+recolecte HTML a mano para diagnosticar esto, `ejecutar_busqueda_real`
+ahora guarda automáticamente el HTML crudo de toda ficha que quede
+`indeterminado_ficha` en `diagnostico_fichas_ml/<id_ml>.html`
+(`_guardar_html_diagnostico`, inyectado como `guardar_diagnostico` en
+`procesar_busqueda_ml` para no tocar disco en los tests). Falta correr de
+nuevo y revisar esos HTML reales para confirmar la causa (¿variantes sin
+un único bloque `Product`? ¿bloqueo silencioso no cubierto por
+`bloqueado_ml_heuristico`? ¿otra plantilla de ficha?) antes de confiar en
+la tasa de indeterminados de esta etapa y pasar al matching contra
+Alibaba.
 
 ## Instalación y uso
 
