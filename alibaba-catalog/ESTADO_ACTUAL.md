@@ -34,12 +34,12 @@ python _validar_caso1.py           # corridas siguientes
 ```
 
 Casos a cubrir (pedido explícito de la usuaria, con al menos un caso por
-punto) — **estado actual: 1/4 corrido**:
+punto) — **estado actual: 2 corridos (Casos 1 y 2), punto 1 en progreso**:
 
 1. **Varios matches claros** (2-3 candidatos de ML de distinto rubro) —
-   ✅ **Caso 1 corrido** (ver abajo), resultado `SIN_MATCH_CONFIABLE` por
-   muy poco margen — no es un match claro todavía confirmado, hace falta
-   al menos otro caso de este punto.
+   🔶 en progreso: Caso 1 dio `SIN_MATCH_CONFIABLE` por muy poco margen,
+   Caso 2 dio el primer `MATCH_PROBABLE` real (ver abajo) — todavía sin
+   un `MATCH_ALTO` confirmado ni un segundo rubro distinto.
 2. **Un caso sin match real** — sin probar todavía.
 3. **Un "gemelo tramposo"** — sin probar todavía (lógica ya validada con
    datos sintéticos en `tests/test_matcher.py`, falta un caso real).
@@ -105,9 +105,53 @@ más casos):
    patrón más adelante, con más evidencia real de qué palabras usa la
    gente para esto.
 
-**Caso 2 en curso** — mismo mecanismo automático, otro candidato de
-`demanda_confirmada` (el primero ya cambió de estado tras el Caso 1, así
-que `_validar_caso1.py` elige uno distinto solo).
+#### Caso 2 (2026-09-11) — primer `MATCH_PROBABLE` real, sin señal visual
+
+- **Candidato ML**: `MLA28873639` — "Cepillo De Mano Calabro Suave Para
+  Lavar Autos Ruedas Y Carrocería" (elegido automáticamente igual que el
+  Caso 1 — el candidato del Caso 1 ya había cambiado de estado, así que
+  `_validar_caso1.py` pasó solo al siguiente).
+- **Query usada**: "cepillo mano calabro suave lavar autos" (estrategia
+  v1, español sin traducir). **Hallazgo útil**: la propia Alibaba
+  reinterpretó/tradujo la query sola ("Showing results for 'soft pump
+  hand brush wash cars'. Search instead for '<la query literal>'.") y
+  mostró resultados igual — buena señal de que la v1 puede alcanzar sin
+  agregar una traducción propia, al menos en casos como este.
+- **Decisión: `MATCH_PROBABLE`.** Aceptó el **primer candidato del
+  ranking** (no hizo falta abrir el #2 ni el #3) — candidato de Alibaba:
+  "High Quality Soft Bristle Handle Car Cleaning Brush Reusable Car Wash
+  Accessories Brush Car Wheel Cleaning Brush"
+  (`https://www.alibaba.com/product-detail/High-Quality-Soft-Bristle-Handle-Car_1601141738501.html`).
+  Score final **0.606** (texto 0.90, imagen 0.00, atributos 1.00 con 33%
+  de cobertura — `categoria` "cepillo" coincidió; `color`/`marca` sin
+  datos de ningún lado). Sin veto por atributo esencial. Ambos productos
+  son, a simple vista, cepillos de mano de cerda suave para lavar
+  auto/ruedas — pinta de match real y razonable.
+- **Importante: cruzó el umbral (0.60) igual, a pesar de tener imagen=0.0
+  otra vez** — el texto solo (0.90, más fuerte que en el Caso 1) alcanzó.
+  Confirma que el diseño de 3 señales funciona razonablemente incluso
+  cuando una señal completa está ausente, aunque también confirma que la
+  ausencia de imagen no es un caso aislado.
+
+**Van 2 de 2 casos reales con `imagen_url=None` del lado de ML** —
+suficientemente sistemático como para sospechar que no es "a veces ML no
+tiene foto" sino algo más estructural (ver el diagnóstico agregado para
+el Caso 3, abajo). Tampoco se extrajo ningún atributo de texto más allá
+de `categoria` en ninguno de los dos casos (ni material, ni nada de
+`descripcion`) — compatible con la misma sospecha: si el bloque JSON-LD
+completo no se está encontrando, se explicarían los dos síntomas a la vez
+(imagen Y descripción ausentes), no son necesariamente dos problemas
+separados.
+
+**Antes del Caso 3**: se agregó el mismo registro de diagnóstico
+automático que ya tenía Alibaba también para la ficha de ML
+(`orquestador_matching.py`, etiqueta `matching_ml_ficha` en
+`capturas_exploratorias/manifiesto.jsonl` — guarda el HTML real sin
+intervención manual). El objetivo del Caso 3 es, además de sumar una
+observación independiente más, **usar ese HTML real para determinar si
+"ML no expone la imagen ahí" o si el parser busca en el lugar
+equivocado** — sin tocar `parser_ficha_ml.py` todavía, solo mirar la
+evidencia primero.
 
 ---
 
