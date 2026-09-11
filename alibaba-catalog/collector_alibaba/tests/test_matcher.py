@@ -9,6 +9,7 @@ from matcher import (
     PesosMatching,
     ProductoMLParaMatching,
     UmbralesMatching,
+    _combinar_score,
     ejecutar_matching,
     rankear_candidatos,
 )
@@ -212,3 +213,57 @@ def test_pesos_y_umbrales_son_configurables_no_fijos(embedder_texto):
         umbrales=UmbralesMatching(match_alto=0.99, match_probable=-1.0),
     )
     assert resultado.categoria in ("MATCH_ALTO", "MATCH_PROBABLE")
+
+
+# --- A4: re-normalización cuando falta la imagen de un lado (hallazgo real,
+# Casos 1/2/4 de la validación: la ficha de ML no siempre expone foto) ------
+
+
+def test_combinar_score_sin_imagen_disponible_no_cuenta_como_muy_distinta():
+    pesos = PesosMatching(texto=0.45, imagen=0.35, atributos=0.20)
+    con_imagen = _combinar_score(0.9, 0.0, True, 1.0, 1.0, pesos)
+    sin_imagen = _combinar_score(0.9, 0.0, False, 1.0, 1.0, pesos)
+    # Si la imagen realmente valiera 0.0 (muy distinta) el score con imagen
+    # sería MENOR -- acá tiene que ser MAYOR, porque excluir la señal
+    # ausente del promedio no es lo mismo que contarla como "muy distinta".
+    assert sin_imagen > con_imagen
+
+
+def test_combinar_score_solo_texto_si_no_hay_imagen_ni_atributos():
+    pesos = PesosMatching(texto=0.45, imagen=0.35, atributos=0.20)
+    assert _combinar_score(0.8, 0.0, False, 0.5, 0.0, pesos) == pytest.approx(0.8)
+
+
+def test_combinar_score_sin_ninguna_senal_disponible_es_cero():
+    pesos = PesosMatching(texto=0.0, imagen=0.0, atributos=0.0)
+    assert _combinar_score(0.8, 0.9, True, 1.0, 1.0, pesos) == 0.0
+
+
+def test_ejecutar_matching_sin_imagen_de_ml_puntua_mas_alto_que_si_contara_como_muy_distinta(embedder_texto):
+    """
+    Reproduce el patrón real de los Casos 1/2/4 (ver ESTADO_ACTUAL.md):
+    sin imagen de ML, antes el 35% de peso de imagen se perdía a valor
+    0.0 en vez de excluirse. Compara el score real contra el que hubiera
+    dado la fórmula vieja (imagen a 0.0 pero con su peso completo) para
+    el mismo caso -- tiene que ser estrictamente mayor.
+    """
+    producto_ml = ProductoMLParaMatching(id_ml="MLA1", nombre="Cepillo de silicona para limpieza de platos")
+    candidatos = [_candidato("a", "https://x/a.html", "Silicone cleaning brush for dish", "a.jpg", 1)]
+    embedder_imagen = EmbedderImagenPorClaves({})  # sin "ml.jpg" ni "a.jpg": no hay ninguna imagen real
+
+    def abrir_ficha(url):
+        return _html_ficha_alibaba("Silicone Cleaning Brush for Dish", {"type": "Cleaning Brush", "material": "Silicone"}, [])
+
+    pesos = PesosMatching()
+    resultado = ejecutar_matching(
+        producto_ml, "cepillo de silicona", candidatos, abrir_ficha, embedder_texto, embedder_imagen, pesos=pesos,
+        umbrales=UmbralesMatching(match_alto=0.99, match_probable=0.99),  # no importa la categoría acá, solo el score
+    )
+
+    elegido = resultado.candidatos_evaluados[0]
+    assert elegido.imagen_score == 0.0  # no hay con qué comparar, se muestra en 0 pero no participó del promedio
+
+    score_formula_vieja = (
+        elegido.texto_score * pesos.texto + 0.0 * pesos.imagen + elegido.atributos_score * pesos.atributos
+    ) / (pesos.texto + pesos.imagen + pesos.atributos)
+    assert elegido.score_final > score_formula_vieja

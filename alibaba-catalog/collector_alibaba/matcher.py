@@ -149,23 +149,36 @@ class MatchResult:
 
 
 def _combinar_score(
-    texto_score: float, imagen_score: float, atributos_score: float, cobertura_atributos: float, pesos: PesosMatching
+    texto_score: float,
+    imagen_score: float,
+    imagen_disponible: bool,
+    atributos_score: float,
+    cobertura_atributos: float,
+    pesos: PesosMatching,
 ) -> float:
     """
-    Si no hubo ningún atributo comparable de ningún lado (`cobertura == 0`),
-    se re-normaliza el peso entre texto e imagen en vez de dejar que un
-    "0.5 neutral" de atributos arrastre el score hacia abajo sin motivo.
+    Re-normaliza el peso sobre las señales que de verdad se pudieron
+    comparar. Texto siempre cuenta (siempre hay al menos un nombre de
+    cada lado). Atributos se excluye si no hubo ningún atributo
+    comparable de ningún lado (`cobertura_atributos == 0`) -- ya
+    validado. Imagen se excluye si `imagen_disponible=False` -- hallazgo
+    real de la validación (Casos 1, 2 y 4: la ficha de ML no siempre
+    expone una foto): antes, la ausencia de imagen contaba como "muy
+    distinta" a valor 0.0 con el peso completo (35%), arrastrando el
+    score hacia abajo sin ninguna evidencia real de que las imágenes
+    fueran distintas -- ahora, igual que con atributos, la señal
+    ausente simplemente no participa del promedio ponderado.
     """
-    if cobertura_atributos == 0:
-        total = pesos.texto + pesos.imagen
-        if total == 0:
-            return 0.0
-        return (texto_score * pesos.texto + imagen_score * pesos.imagen) / total
+    señales = [("texto", texto_score, pesos.texto)]
+    if imagen_disponible:
+        señales.append(("imagen", imagen_score, pesos.imagen))
+    if cobertura_atributos > 0:
+        señales.append(("atributos", atributos_score, pesos.atributos))
 
-    total = pesos.texto + pesos.imagen + pesos.atributos
-    if total == 0:
+    total_pesos = sum(peso for _, _, peso in señales)
+    if total_pesos == 0:
         return 0.0
-    return (texto_score * pesos.texto + imagen_score * pesos.imagen + atributos_score * pesos.atributos) / total
+    return sum(valor * peso for _, valor, peso in señales) / total_pesos
 
 
 def _categorizar(score: float, umbrales: UmbralesMatching) -> str:
@@ -193,17 +206,14 @@ def rankear_candidatos(
     pesos = pesos or PesosMatching()
     vector_texto_ml = embedder_texto.embed(producto_ml.texto_para_matching())
     vector_imagen_ml = embedder_imagen.embed(producto_ml.imagen_url) if producto_ml.imagen_url else None
-    total_pesos = pesos.texto + pesos.imagen
 
     rankeados = []
     for candidato in candidatos:
         texto_score = similitud_coseno(vector_texto_ml, embedder_texto.embed(candidato.nombre or ""))
-        imagen_score = (
-            similitud_coseno(vector_imagen_ml, embedder_imagen.embed(candidato.imagen_url))
-            if candidato.imagen_url
-            else 0.0
-        )
-        score_ranking = (texto_score * pesos.texto + imagen_score * pesos.imagen) / total_pesos if total_pesos else 0.0
+        vector_imagen_candidato = embedder_imagen.embed(candidato.imagen_url) if candidato.imagen_url else None
+        imagen_disponible = vector_imagen_ml is not None and vector_imagen_candidato is not None
+        imagen_score = similitud_coseno(vector_imagen_ml, vector_imagen_candidato) if imagen_disponible else 0.0
+        score_ranking = _combinar_score(texto_score, imagen_score, imagen_disponible, 0.0, 0.0, pesos)
         rankeados.append(CandidatoRankeado(candidato, texto_score, imagen_score, score_ranking))
 
     rankeados.sort(key=lambda r: r.score_ranking, reverse=True)
@@ -250,9 +260,12 @@ def verificar_candidatos(
         imagenes_alibaba = datos_ficha.get("imagenes") or (
             [rankeado.candidato.imagen_url] if rankeado.candidato.imagen_url else []
         )
-        imagen_score = max(
-            (similitud_coseno(vector_imagen_ml, embedder_imagen.embed(url)) for url in imagenes_alibaba),
-            default=0.0,
+        vectores_imagenes_alibaba = [v for v in (embedder_imagen.embed(url) for url in imagenes_alibaba) if v is not None]
+        imagen_disponible = vector_imagen_ml is not None and bool(vectores_imagenes_alibaba)
+        imagen_score = (
+            max(similitud_coseno(vector_imagen_ml, v) for v in vectores_imagenes_alibaba)
+            if imagen_disponible
+            else 0.0
         )
 
         atributos_alibaba = extraer_atributos_alibaba(datos_ficha.get("atributos"), texto_extra=nombre_alibaba)
@@ -260,7 +273,7 @@ def verificar_candidatos(
         atributos_score, cobertura = score_atributos(comparaciones)
         veto = incompatibilidad_esencial(comparaciones)
 
-        score_final = _combinar_score(texto_score, imagen_score, atributos_score, cobertura, pesos)
+        score_final = _combinar_score(texto_score, imagen_score, imagen_disponible, atributos_score, cobertura, pesos)
 
         if veto is not None:
             categoria = "SIN_MATCH_CONFIABLE"
