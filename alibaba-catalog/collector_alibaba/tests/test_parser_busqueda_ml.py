@@ -1,10 +1,13 @@
 from pathlib import Path
 
 from parser_busqueda_ml import (
+    _extraer_item_id_y_url,
     _normalizar_conteo_vendidos,
+    _url_desde_search_variation,
     clasificar_prioridad,
     parsear_listado_busqueda,
     resultado_a_candidato,
+    segmento_ruta_producto_id,
 )
 
 FIXTURE = (Path(__file__).parent / "fixtures" / "ml_busqueda_real.html").read_text(encoding="utf-8")
@@ -22,8 +25,11 @@ def test_caso_real_con_badge_mas_vendido_es_prioridad_a():
     assert item["mas_vendido"] is True
     assert item["evidencia_demanda"] == "MÁS VENDIDO"
     assert item["unidades_vendidas"] is None  # el badge no es un conteo
-    assert item["url_ml"] == "https://articulo.mercadolibre.com.ar/MLA1399281097"
-    assert item["origen_url"] == "tracking"  # reconstruida -- ver hallazgo de confiabilidad intermitente
+    # URL construida desde el searchVariation del propio href de tracking
+    # (MLA28873639, catálogo -> /p/) -- confirmado con navegación real
+    # controlada, ver experimento_url_producto_reconstruida.py
+    assert item["url_ml"] == "https://www.mercadolibre.com.ar/p/MLA28873639?pdp_filters=item_id:MLA1399281097"
+    assert item["origen_url"] == "tracking"
     assert item["precio_ml"] == 3999.0
     assert item["posicion"] == 1
     assert clasificar_prioridad(item) == "A"
@@ -35,8 +41,9 @@ def test_caso_real_con_link_de_tracking_sin_ninguna_senal():
 
     assert item["evidencia_demanda"] is None
     assert clasificar_prioridad(item) is None
-    # aun sin señal de demanda, la URL se reconstruye igual desde el item_id
-    assert item["url_ml"] == "https://articulo.mercadolibre.com.ar/MLA2789721006"
+    # aun sin señal de demanda, la URL se construye igual desde el searchVariation
+    # (MLAU3739976006, publicación individual -> /up/)
+    assert item["url_ml"] == "https://www.mercadolibre.com.ar/up/MLAU3739976006?pdp_filters=item_id:MLA2789721006"
 
 
 def test_caso_real_con_rating_visible_es_prioridad_b_no_demanda_confirmada():
@@ -65,6 +72,51 @@ def test_caso_real_con_link_directo_de_catalogo_sin_senal():
     )
     assert item["origen_url"] == "directo"
     assert clasificar_prioridad(item) is None
+
+
+# --- Construcción de URL desde searchVariation (link de tracking) ----------
+#
+# Confirmado con navegación real controlada (ver
+# experimento_url_producto_reconstruida.py, 5/5 casos reales): la
+# reconstrucción vieja (articulo.mercadolibre.com.ar/<item_id>, sin
+# guion) daba 404 siempre (0/31 en una medición real). La nueva usa el
+# searchVariation que el propio href de tracking ya trae.
+
+def test_segmento_ruta_producto_id_3_letras_usa_p():
+    assert segmento_ruta_producto_id("MLA28873639") == "p"
+
+
+def test_segmento_ruta_producto_id_4_letras_usa_up():
+    assert segmento_ruta_producto_id("MLAU3739976006") == "up"
+
+
+def test_url_desde_search_variation_con_id_de_catalogo():
+    assert _url_desde_search_variation("MLA1399281097", "MLA28873639") == (
+        "https://www.mercadolibre.com.ar/p/MLA28873639?pdp_filters=item_id:MLA1399281097"
+    )
+
+
+def test_url_desde_search_variation_con_id_de_publicacion_individual():
+    assert _url_desde_search_variation("MLA2789721006", "MLAU3739976006") == (
+        "https://www.mercadolibre.com.ar/up/MLAU3739976006?pdp_filters=item_id:MLA2789721006"
+    )
+
+
+def test_url_desde_search_variation_devuelve_none_si_el_id_es_puramente_numerico():
+    """
+    Visto en HTML real (1/12 casos de una búsqueda) pero todavía sin
+    confirmar con navegación real que resuelva a algo -- se descarta en
+    vez de adivinar un formato sin evidencia (regla del proyecto).
+    """
+    assert _url_desde_search_variation("MLA1935959192", "185498173527") is None
+
+
+def test_extraer_item_id_y_url_descarta_tracking_sin_search_variation_utilizable():
+    href = (
+        "https://click1.mercadolibre.com.ar/mclics/clicks/external/MLA/count?a=xxx"
+        "&pdp_filters=item_id%3AMLA1935959192#searchVariation=185498173527&is_advertising=true"
+    )
+    assert _extraer_item_id_y_url(href) is None
 
 
 def test_normalizar_conteo_vendidos_no_asume_el_numero_exacto():

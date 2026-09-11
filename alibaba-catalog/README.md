@@ -644,6 +644,54 @@ python collector_alibaba/medicion_confiabilidad_ml.py
 python collector_alibaba/medicion_confiabilidad_ml.py "cepillo de limpieza" "trapo de piso" --max-fichas-por-busqueda 20
 ```
 
+**Resultado de la medición real (55 fichas, 5 búsquedas)**: la pérdida
+era total y sistemática, no chica — **0% de éxito (0/31) para URLs de
+tracking** reconstruidas con `articulo.mercadolibre.com.ar/<item_id>`
+(nunca funcionaba, no era "intermitente" como parecía con una sola
+corrida), frente a **100% (24/24) para URLs directas**. Con ese resultado
+correspondía resolver la navegación antes de seguir, no solo documentar
+la limitación.
+
+### Resolución: URL construida desde `searchVariation` (sin tocar el link publicitario)
+
+Antes de aceptar la pérdida o de navegar directamente el link de
+tracking (descartado por el riesgo de registrar clics publicitarios
+reales, dado que esos `href` traen `is_advertising=true`), se investigó
+si el propio HTML del listado ya trae, sin necesidad de hacer ningún
+request al tracker, algún dato estable para llegar al producto. Sí lo
+trae: el fragmento del mismo `href` de tracking incluye
+`searchVariation=<ID>` — en 11 de 12 casos reales inspeccionados, con el
+mismo formato `MLA`/`MLAU`+dígitos que ya usan las dos formas de link
+directo (el 12° caso trae un ID puramente numérico, sin ese formato, y
+por ahora se descarta en vez de adivinar si sirve para algo).
+
+Se confirmó con navegación real controlada (`experimento_url_producto_reconstruida.py`,
+script aislado que no toca el pipeline ni la base) que
+`https://www.mercadolibre.com.ar/p/<searchVariation>?pdp_filters=item_id:<item_id>`
+(sin slug) redirige automáticamente al permalink completo — **5/5 casos
+reales consistentes**: los IDs con 3 letras de prefijo (`MLA`+dígitos,
+página de catálogo) funcionan con `/p/`; los de 4 letras
+(`MLAU`+dígitos, publicación individual) dan 404 con `/p/` pero
+funcionan con `/up/` — mismo criterio 3 vs. 4 letras que el parser ya
+usaba para distinguir `/p/` de `/up/` en los links directos, no un
+formato nuevo inventado. En todos los casos: status 200, el `item_id`
+esperado presente en la ficha resultante, y extracción normal de
+precio/ventas.
+
+Con el umbral de confirmación cumplido, esto ya está incorporado como la
+estrategia real de `parser_busqueda_ml.py` — `_extraer_item_id_y_url`
+para el caso de tracking ahora usa
+`segmento_ruta_producto_id`/`_url_desde_search_variation` en vez de la
+vieja reconstrucción sin guion. Si un link de tracking no trae un
+`searchVariation` utilizable (sin ese parámetro, o con un ID que no
+matchea el formato confirmado), el resultado se descarta en vez de
+reconstruir algo sin evidencia — recorta ligeramente cuántos resultados
+del listado se extraen, pero todo lo que se extrae ahora tiene una URL
+que se espera funcione. **Pendiente**: volver a correr
+`medicion_confiabilidad_ml.py` con esta estrategia ya incorporada para
+confirmar la mejora a escala (no solo con los 5 casos puntuales
+probados).
+
 ## Instalación y uso
 
 ```bash

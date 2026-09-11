@@ -20,10 +20,11 @@ si `https://www.mercadolibre.com.ar/p/<searchVariation>?pdp_filters=item_id:<ite
 redirect automático al permalink completo, item_id correcto, extracción
 normal. **Segunda ronda** (4 pares reales): 2/2 IDs con prefijo de 3
 letras (`MLA`+dígitos) funcionaron igual con `/p/`; 3/3 IDs con prefijo
-de 4 letras (`MLAU`+dígitos) dieron 404 con `/p/` -- por eso
-`_segmento_ruta` elige `/up/` para esos, el mismo criterio 3 vs. 4 letras
-ya confirmado para los links directos del listado
-(`parser_busqueda_ml._RE_ITEM_ID_DIRECTO`), no un formato nuevo inventado.
+de 4 letras (`MLAU`+dígitos) dieron 404 con `/p/` pero funcionaron con
+`/up/` en una tercera ronda -- 5/5 casos reales consistentes en total.
+**Ya incorporado como estrategia real** en
+`parser_busqueda_ml.segmento_ruta_producto_id`/`_url_desde_search_variation`,
+reutilizados acá en vez de duplicarse.
 
 Por cada par (product_id, item_id) reporta:
   - status HTTP de la navegación inicial
@@ -44,7 +45,6 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -61,6 +61,7 @@ from navegador_ml import (  # noqa: E402
     navegador_persistente,
     pausar_por_bloqueo_y_continuar,
 )
+from parser_busqueda_ml import segmento_ruta_producto_id  # noqa: E402
 from parser_ficha_ml import parsear_ficha_ml  # noqa: E402
 
 URL_BASE_ML = "https://listado.mercadolibre.com.ar"
@@ -79,30 +80,8 @@ logging.basicConfig(
 logger = logging.getLogger("experimento_url_producto_reconstruida")
 
 
-_RE_PREFIJO_LETRAS = re.compile(r"[A-Za-z]+")
-
-
-def _segmento_ruta(product_id: str) -> str:
-    """
-    "p" para IDs con prefijo de 3 letras (ej. MLA+dígitos, página de
-    catálogo); "up" para IDs con prefijo de 4 letras (ej. MLAU+dígitos,
-    publicación individual sin catálogo compartido) -- mismo criterio ya
-    confirmado con HTML real para los links directos del listado (ver
-    `parser_busqueda_ml._RE_ITEM_ID_DIRECTO`), no un formato nuevo.
-
-    Primer experimento (caso único): con `product_id` de 3 letras
-    (`MLA28873639`) `/p/` devolvió 200 + redirect al permalink completo.
-    Segunda ronda: 2/2 IDs de 3 letras funcionaron igual con `/p/`, pero
-    3/3 IDs de 4 letras (`MLAU...`) dieron 404 con `/p/` -- de ahí este
-    ajuste, todavía sin confirmar con HTML real para el caso `/up/`.
-    """
-    match = _RE_PREFIJO_LETRAS.match(product_id)
-    prefijo = match.group(0) if match else ""
-    return "up" if len(prefijo) == 4 else "p"
-
-
 def _construir_url(product_id: str, item_id: str) -> str:
-    segmento = _segmento_ruta(product_id)
+    segmento = segmento_ruta_producto_id(product_id)
     return f"https://www.mercadolibre.com.ar/{segmento}/{product_id}?pdp_filters=item_id:{item_id}"
 
 

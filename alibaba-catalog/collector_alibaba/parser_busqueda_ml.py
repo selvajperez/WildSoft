@@ -12,9 +12,13 @@ un `<li class="ui-search-layout__item">` con una tarjeta "poly-card"
 
   - Título + item_id + posición: en el `href` de
     `a.poly-component__title` (ej. "...&item_id%3AMLA123...&position=4...").
-    El `href` es un link de tracking de clicks, no la URL final del
-    producto -- se reconstruye la URL directa a partir del `item_id`
-    (`https://articulo.mercadolibre.com.ar/<item_id>`), que es estable.
+    Cuando el `href` es un link de tracking de clicks (no la URL final
+    del producto), se construye una URL navegable a partir del
+    `searchVariation` que el propio href ya trae en su fragmento
+    (`https://www.mercadolibre.com.ar/p/<searchVariation>?pdp_filters=item_id:<item_id>`,
+    o `/up/` si el ID tiene 4 letras de prefijo) -- confirmado con
+    navegación real controlada, ver `experimento_url_producto_reconstruida.py`
+    y el comentario junto a `_extraer_item_id_y_url` más abajo.
   - Precio: `span.andes-money-amount` dentro de `.poly-price__current`,
     vía su `aria-label` ("111420 pesos argentinos") -- más confiable que
     parsear el texto visible con separadores de miles.
@@ -65,13 +69,28 @@ MAS_VENDIDO_TEXTO = "MÁS VENDIDO"
 #   - Con wrapper de tracking de clicks (resultados con
 #     is_advertising=true en el propio href): no hay URL directa en el
 #     href, solo un item_id en el query string
-#     ("...pdp_filters=item_id%3AMLA123..."). Ahí se reconstruye la URL
-#     canónica a partir del item_id.
+#     ("...pdp_filters=item_id%3AMLA123..."). Este href también trae, en
+#     su propio fragmento, "searchVariation=<ID>" -- el mismo tipo de ID
+#     de catálogo/publicación que usan las dos formas orgánicas de
+#     arriba. Confirmado con navegación real controlada (ver
+#     `experimento_url_producto_reconstruida.py`, 5/5 casos reales): la
+#     URL construida como `/p/<searchVariation>?pdp_filters=item_id:<item_id>`
+#     (sin slug) resuelve igual que el permalink completo cuando el ID
+#     tiene 3 letras de prefijo, y `/up/<searchVariation>?...` cuando
+#     tiene 4 -- mismo criterio de arriba. Una primera versión (antes de
+#     ese experimento) reconstruía `articulo.mercadolibre.com.ar/<item_id>`
+#     sin guion, que dio 404 en el 100% de una medición real (31/31) --
+#     nunca funcionó, no era "intermitente". Si el href no trae un
+#     searchVariation con ese formato (ej. un ID puramente numérico, caso
+#     todavía no confirmado), el resultado se descarta en vez de adivinar
+#     un formato sin evidencia.
 # Entre las dos formas orgánicas, la primera versión de este parser (que
 # solo buscaba el patrón de tracking) perdía el 80% de los resultados
 # reales; sumando "/up/" todavía faltaba un tercio de los restantes.
 _RE_ITEM_ID_DIRECTO = re.compile(r"/u?p/([A-Za-z]+\d+)")
 _RE_ITEM_ID_TRACKING = re.compile(r"item_id:([A-Za-z]+\d+)")
+_RE_SEARCH_VARIATION = re.compile(r"searchVariation=([A-Za-z0-9]+)")
+_RE_ID_CON_PREFIJO_VALIDO = re.compile(r"^[A-Za-z]{3,4}\d+$")
 _RE_POSICION = re.compile(r"[?&]position=(\d+)")
 _RE_PRECIO_ARIA = re.compile(r"([\d]+)\s*pesos argentinos", re.I)
 _RE_VENDIDOS = re.compile(r"\+\s*([\d.,]+)\s*(mil)?\s*vendidos", re.I)
@@ -93,17 +112,43 @@ def _normalizar_conteo_vendidos(texto_crudo: str) -> int | None:
     return int(numero)
 
 
-def _url_canonica(item_id: str) -> str:
-    return f"https://articulo.mercadolibre.com.ar/{item_id}"
+def segmento_ruta_producto_id(product_id: str) -> str:
+    """
+    "p" para IDs con prefijo de 3 letras (ej. "MLA"+dígitos, página de
+    catálogo); "up" para IDs con prefijo de 4 letras (ej. "MLAU"+dígitos,
+    publicación individual sin catálogo compartido). Mismo criterio ya
+    usado para distinguir "/p/" de "/up/" en los links directos de arriba,
+    confirmado también para URLs reconstruidas con navegación real
+    controlada (ver `experimento_url_producto_reconstruida.py`).
+    """
+    match = re.match(r"[A-Za-z]+", product_id)
+    prefijo = match.group(0) if match else ""
+    return "up" if len(prefijo) == 4 else "p"
+
+
+def _url_desde_search_variation(item_id: str, search_variation: str) -> str | None:
+    """
+    None si `search_variation` no tiene el formato de ID ya confirmado
+    (letras+dígitos) -- ej. el caso, visto en HTML real pero todavía sin
+    probar, de un ID puramente numérico. No se adivina un formato sin
+    evidencia: quien llama descarta el resultado en ese caso.
+    """
+    if not _RE_ID_CON_PREFIJO_VALIDO.match(search_variation):
+        return None
+    segmento = segmento_ruta_producto_id(search_variation)
+    return f"https://www.mercadolibre.com.ar/{segmento}/{search_variation}?pdp_filters=item_id:{item_id}"
 
 
 def _extraer_item_id_y_url(href_crudo: str) -> tuple[str, str, str] | None:
     """
     Devuelve (item_id, url_ml, origen_url) probando primero el link
     directo, después el de tracking. `origen_url` es "directo" (href real
-    del propio listado, usado tal cual) o "tracking" (URL reconstruida a
-    partir del item_id -- ver el hallazgo real sobre su confiabilidad
-    intermitente en `parser_ficha_ml.py` y `orquestador_demanda_ml.py`).
+    del propio listado, usado tal cual) o "tracking" (URL construida a
+    partir del `searchVariation` que trae el propio href de tracking --
+    ver el comentario sobre las tres formas de href, arriba). Si el link
+    de tracking no trae un `searchVariation` utilizable, el resultado se
+    descarta (`None`) en vez de reconstruir una URL sin evidencia de que
+    funcione.
     """
     href = urllib.parse.unquote(href_crudo)
 
@@ -115,7 +160,13 @@ def _extraer_item_id_y_url(href_crudo: str) -> tuple[str, str, str] | None:
     match_tracking = _RE_ITEM_ID_TRACKING.search(href)
     if match_tracking:
         item_id = match_tracking.group(1).upper()
-        return item_id, _url_canonica(item_id), "tracking"
+        match_search_variation = _RE_SEARCH_VARIATION.search(href)
+        if match_search_variation is None:
+            return None
+        url = _url_desde_search_variation(item_id, match_search_variation.group(1).upper())
+        if url is None:
+            return None
+        return item_id, url, "tracking"
 
     return None
 
