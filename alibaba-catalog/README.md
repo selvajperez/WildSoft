@@ -54,6 +54,7 @@ alibaba-catalog/
         ml_ficha_real.html               # HTML real (recortado) de una ficha de producto de Mercado Libre
         ml_busqueda_real.html            # HTML real (recortado): 4 tarjetas representativas de una búsqueda de 60 resultados
         ml_ficha_no_encontrada_real.html # HTML real (recortado): 404 real de ML para una URL de ficha reconstruida inválida
+        ml_bloqueo_trafico_sospechoso_real.html # HTML real (recortado): bloqueo de "tráfico sospechoso" que pide loguearse
   paginas_html_crudo/       # HTML crudo de cada página visitada por collector_browser.py (no se commitea)
   capturas_exploratorias/   # muestras de capturador_exploratorio.py + manifiesto.jsonl (no se commitea)
   database/
@@ -687,10 +688,39 @@ vieja reconstrucción sin guion. Si un link de tracking no trae un
 matchea el formato confirmado), el resultado se descarta en vez de
 reconstruir algo sin evidencia — recorta ligeramente cuántos resultados
 del listado se extraen, pero todo lo que se extrae ahora tiene una URL
-que se espera funcione. **Pendiente**: volver a correr
-`medicion_confiabilidad_ml.py` con esta estrategia ya incorporada para
-confirmar la mejora a escala (no solo con los 5 casos puntuales
-probados).
+que se espera funcione.
+
+### Confirmado a escala, y un segundo bloqueo real descubierto en el camino
+
+Se volvió a correr `medicion_confiabilidad_ml.py` con la estrategia ya
+incorporada: **el 404 de tracking bajó de 100% (0/31) a 0% (0/30)** — la
+corrección funciona a escala real, no solo en los 5 casos puntuales
+probados.
+
+Pero apareció un problema nuevo, no relacionado con la URL: a mitad de
+esa misma corrida (después de ~20 fichas abiertas en pocos minutos),
+Mercado Libre empezó a devolver una pantalla real de **"tráfico
+sospechoso"** (`suspicious-traffic-frontend`, ruta interna
+`/gz/account-verification`, "¡Hola! Para continuar, ingresa a tu
+cuenta") — un bloqueo real que pide loguearse o registrarse, distinto
+del desafío PoW (que se resuelve solo). Afectó **todas** las fichas
+posteriores por igual, directas y de tracking, apareciendo como
+`otro_error` en la medición. Ni `es_desafio_pow_ml` ni el heurístico
+genérico (`bloqueado_ml_heuristico`) lo detectaban, así que la corrida
+seguía en silencio en vez de pausar — confirmado con HTML real (ver
+`tests/fixtures/ml_bloqueo_trafico_sospechoso_real.html`, capturado
+automáticamente por la propia medición al guardar todo intento
+`otro_error`, mismo mecanismo que ya usaba `orquestador_demanda_ml.py`
+para fichas indeterminadas).
+
+`navegador_ml.es_bloqueo_trafico_sospechoso_ml()` detecta este bloqueo
+específico y `abrir_pagina_ml` ahora lo trata igual que el heurístico
+genérico: pausa y espera que se resuelva a mano (loguearse o
+registrarse en la ventana de Chrome), a diferencia del PoW que solo
+espera. **Pendiente**: correr `medicion_confiabilidad_ml.py` una vez más
+para confirmar que, con esta pausa ya andando, el bloqueo de tráfico
+sospechoso no vuelve a contaminar en silencio el resto de una corrida
+larga.
 
 ## Instalación y uso
 

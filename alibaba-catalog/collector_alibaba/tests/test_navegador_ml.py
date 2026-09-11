@@ -5,6 +5,9 @@ from playwright.sync_api import Error as PlaywrightError
 import navegador_ml as nav
 
 DESAFIO_POW_ML = (Path(__file__).parent / "fixtures" / "ml_desafio_pow.html").read_text(encoding="utf-8")
+BLOQUEO_TRAFICO_SOSPECHOSO_ML = (
+    Path(__file__).parent / "fixtures" / "ml_bloqueo_trafico_sospechoso_real.html"
+).read_text(encoding="utf-8")
 
 
 def test_bloqueado_ml_heuristico_detecta_marcadores_provisorios():
@@ -27,6 +30,22 @@ def test_es_desafio_pow_ml_detecta_html_real():
 
 def test_es_desafio_pow_ml_no_marca_html_normal():
     assert nav.es_desafio_pow_ml("<html><body>Resultados de la búsqueda</body></html>") is False
+
+
+def test_es_bloqueo_trafico_sospechoso_ml_detecta_html_real():
+    """
+    Hallazgo real (corrida de medicion_confiabilidad_ml.py del
+    2026-09-11): a mitad de una corrida larga, ML empezó a devolver esta
+    pantalla de "tráfico sospechoso" (pide loguearse o registrarse) para
+    TODAS las fichas siguientes, directas y de tracking por igual. A
+    diferencia del desafío PoW, esto sí necesita una persona.
+    """
+    assert nav.es_bloqueo_trafico_sospechoso_ml(BLOQUEO_TRAFICO_SOSPECHOSO_ML) is True
+
+
+def test_es_bloqueo_trafico_sospechoso_ml_no_marca_html_normal():
+    assert nav.es_bloqueo_trafico_sospechoso_ml("<html><body>Resultados de la búsqueda</body></html>") is False
+    assert nav.es_bloqueo_trafico_sospechoso_ml(DESAFIO_POW_ML) is False  # no confundir con el desafío PoW
 
 
 class _PaginaFalsa:
@@ -128,3 +147,32 @@ def test_abrir_pagina_ml_sin_desafio_devuelve_directo():
     html = nav.abrir_pagina_ml(pagina, "https://listado.mercadolibre.com.ar/x", "búsqueda de prueba")
 
     assert html == "<html><body>resultados reales</body></html>"
+
+
+def test_abrir_pagina_ml_pausa_ante_el_bloqueo_de_trafico_sospechoso(monkeypatch):
+    """
+    Antes de agregar `es_bloqueo_trafico_sospechoso_ml`, esta pantalla no
+    la detectaba ni el heurístico genérico ni el desafío PoW -- la
+    corrida seguía en silencio devolviendo esta página como si fuera una
+    ficha normal (de ahí el otro_error masivo real). Ahora tiene que
+    pausar y, al "resolverse" (ENTER + reload), devolver el contenido real.
+    """
+    class _PaginaBloqueadaQueSeResuelve:
+        def __init__(self):
+            self._resuelta = False
+
+        def goto(self, _url, wait_until=None):
+            pass
+
+        def reload(self, wait_until=None):
+            self._resuelta = True
+
+        def content(self):
+            return "<html><body>ficha real</body></html>" if self._resuelta else BLOQUEO_TRAFICO_SOSPECHOSO_ML
+
+    monkeypatch.setattr("builtins.input", lambda: "")
+
+    pagina = _PaginaBloqueadaQueSeResuelve()
+    html = nav.abrir_pagina_ml(pagina, "https://www.mercadolibre.com.ar/p/MLA123", "ficha de prueba")
+
+    assert html == "<html><body>ficha real</body></html>"

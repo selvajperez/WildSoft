@@ -7,6 +7,17 @@ consumidor real (`orquestador_demanda_ml.py`) para no duplicar lógica ya
 probada con HTML real: detección del desafío Proof-of-Work de Akamai Bot
 Manager, reintento de `page.content()` ante la carrera de timing que eso
 provoca, y la pausa (sin resolver ni evadir) ante un bloqueo real.
+
+Bloqueos reales confirmados con HTML real hasta ahora:
+  - Desafío PoW de Akamai (`es_desafio_pow_ml`): se resuelve solo con el
+    JS de la propia página -- se espera, no se pausa.
+  - "Tráfico sospechoso" (`es_bloqueo_trafico_sospechoso_ml`): pide
+    loguearse o registrarse (ruta `/gz/account-verification`,
+    "negative_traffic"). Confirmado en una corrida real de
+    `medicion_confiabilidad_ml.py` después de ~20 fichas seguidas en
+    pocos minutos -- afectó TODAS las fichas posteriores hasta
+    resolverse a mano. A diferencia del PoW, esto sí necesita una
+    persona: se pausa.
 """
 
 from __future__ import annotations
@@ -46,10 +57,30 @@ _MARCADORES_BLOQUEO_ML_PROVISORIOS = (
     "recaptcha",
 )
 
+# Bloqueo real de ML por "tráfico sospechoso" -- pide loguearse o
+# registrarse para seguir navegando (ruta interna /gz/account-verification,
+# "negative_traffic"). Confirmado con HTML real (ver
+# tests/fixtures/ml_bloqueo_trafico_sospechoso_real.html): apareció a
+# mitad de una corrida real de medicion_confiabilidad_ml.py después de
+# ~20 fichas abiertas en pocos minutos, y afectó TODAS las fichas
+# posteriores (directas y de tracking por igual) hasta resolverse a mano.
+# A diferencia del desafío PoW, esto sí necesita una persona: no hay
+# forma de resolverlo solo con JS, hay que loguearse o registrarse.
+_MARCADORES_TRAFICO_SOSPECHOSO_ML = (
+    "suspicious-traffic-frontend",
+    "gz-account-verification-index",
+    "account-verification-main",
+)
+
 
 def es_desafio_pow_ml(html: str) -> bool:
     cuerpo = html.lower()
     return any(marcador in cuerpo for marcador in _MARCADORES_DESAFIO_POW_ML)
+
+
+def es_bloqueo_trafico_sospechoso_ml(html: str) -> bool:
+    cuerpo = html.lower()
+    return any(marcador in cuerpo for marcador in _MARCADORES_TRAFICO_SOSPECHOSO_ML)
 
 
 def bloqueado_ml_heuristico(html: str) -> bool:
@@ -128,7 +159,7 @@ def abrir_pagina_ml(pagina, url: str, etiqueta: str) -> str:
         logger.info("Desafío PoW de Mercado Libre detectado en '%s'; esperando resolución automática...", etiqueta)
         html = esperar_resolucion_desafio_pow(pagina)
 
-    if bloqueado_ml_heuristico(html):
+    if es_bloqueo_trafico_sospechoso_ml(html) or bloqueado_ml_heuristico(html):
         html = pausar_por_bloqueo_y_continuar(pagina, url, etiqueta)
 
     return html
