@@ -55,6 +55,15 @@ from bs4 import BeautifulSoup
 
 MAS_VENDIDO_TEXTO = "MÁS VENDIDO"
 
+# Clase del <li> de cada resultado -- también usado como marcador para
+# esperar a que el listado termine de renderizar (ver
+# `navegador_ml.abrir_pagina_ml(..., esperar_marcador=MARCADOR_ITEM_LISTADO)`):
+# el framework "search-nordic" (React) puede tardar en inyectar el
+# listado real después de `domcontentloaded` -- confirmado con HTML real
+# (una búsqueda devolvió 1.1MB con título normal pero 0 apariciones de
+# este marcador, solo la pantalla de carga).
+MARCADOR_ITEM_LISTADO = "ui-search-layout__item"
+
 # Hay TRES formas de href en la misma búsqueda real, según el tipo de
 # resultado:
 #   - Orgánico "catálogo" (".../p/MLA21816514#..."): link directo y
@@ -236,7 +245,7 @@ def parsear_resultado(li) -> dict | None:
 def parsear_listado_busqueda(html: str) -> list[dict]:
     soup = BeautifulSoup(html, "html.parser")
     resultados = []
-    for li in soup.select("li.ui-search-layout__item"):
+    for li in soup.select(f"li.{MARCADOR_ITEM_LISTADO}"):
         item = parsear_resultado(li)
         if item is not None:
             resultados.append(item)

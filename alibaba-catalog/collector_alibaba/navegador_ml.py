@@ -141,6 +141,27 @@ def esperar_resolucion_desafio_pow(pagina, intentos: int = 8, espera_ms: int = 2
     return html
 
 
+def esperar_marcador_en_pagina(pagina, marcador: str, intentos: int = 8, espera_ms: int = 1000) -> str:
+    """
+    Espera en pasos cortos hasta que `marcador` aparezca en el HTML, o
+    hasta agotar `intentos`. Hallazgo real: en el listado de búsqueda de
+    ML (framework "search-nordic", React), `domcontentloaded` puede
+    disparar antes de que el listado real se inyecte en el DOM -- una
+    corrida real capturó una página de 1.1MB con título normal pero CERO
+    apariciones de "ui-search-layout" (el marcador de cada resultado),
+    solo la pantalla de carga ("search.loading-screen"). Si se agotan los
+    intentos, devuelve el último HTML igual (puede ser un 0 resultados
+    genuino, no siempre es la carrera de timing).
+    """
+    html = contenido_seguro(pagina)
+    for _ in range(intentos):
+        if marcador in html:
+            break
+        pagina.wait_for_timeout(espera_ms)
+        html = contenido_seguro(pagina)
+    return html
+
+
 def confirmar_login_manual() -> None:
     print("\n" + "=" * 70)
     print("Se abrió Chrome con el perfil dedicado del proyecto.")
@@ -195,12 +216,18 @@ def esperar_entre_fichas(delay_min: float = DELAY_MIN_SEG_DEFAULT, delay_max: fl
     return espera
 
 
-def abrir_pagina_ml(pagina, url: str, etiqueta: str) -> str:
+def abrir_pagina_ml(pagina, url: str, etiqueta: str, esperar_marcador: str | None = None) -> str:
     """
     Navega a una URL de Mercado Libre manejando el desafío PoW (espera
     automática) y un bloqueo real (pausa + continúa). Devuelve el HTML
     final. Punto de entrada único para no repetir esta secuencia en cada
     lugar que visita una página de ML.
+
+    `esperar_marcador`, si se pasa (ej. "ui-search-layout" para un
+    listado de búsqueda), espera hasta que ese texto aparezca en el HTML
+    antes de devolverlo -- ver `esperar_marcador_en_pagina` para el
+    hallazgo real que motivó esto (contenido capturado antes de que
+    termine de renderizar).
     """
     pagina.goto(url, wait_until="domcontentloaded")
     html = contenido_seguro(pagina)
@@ -211,6 +238,10 @@ def abrir_pagina_ml(pagina, url: str, etiqueta: str) -> str:
 
     if es_bloqueo_trafico_sospechoso_ml(html) or bloqueado_ml_heuristico(html):
         html = pausar_por_bloqueo_y_continuar(pagina, url, etiqueta)
+
+    if esperar_marcador is not None and esperar_marcador not in html:
+        logger.info("Esperando a que '%s' aparezca en '%s'...", esperar_marcador, etiqueta)
+        html = esperar_marcador_en_pagina(pagina, esperar_marcador)
 
     return html
 

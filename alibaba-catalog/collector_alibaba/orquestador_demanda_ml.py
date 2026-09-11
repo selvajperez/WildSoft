@@ -65,7 +65,7 @@ from navegador_ml import (  # noqa: E402
     esperar_entre_fichas,
     navegador_persistente,
 )
-from parser_busqueda_ml import parsear_listado_busqueda, resultado_a_candidato  # noqa: E402
+from parser_busqueda_ml import MARCADOR_ITEM_LISTADO, parsear_listado_busqueda, resultado_a_candidato  # noqa: E402
 from parser_ficha_ml import parsear_ficha_ml  # noqa: E402
 import db  # noqa: E402
 
@@ -256,7 +256,7 @@ def ejecutar_busqueda_real(
             confirmar_login_manual()
 
         def obtener_html_busqueda(url: str) -> str:
-            return abrir_pagina_ml(pagina, url, f"búsqueda '{busqueda}'")
+            return abrir_pagina_ml(pagina, url, f"búsqueda '{busqueda}'", esperar_marcador=MARCADOR_ITEM_LISTADO)
 
         def abrir_ficha(url: str, etiqueta: str) -> str:
             espera = esperar_entre_fichas(delay_min, delay_max)

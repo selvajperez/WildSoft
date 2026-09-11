@@ -62,6 +62,65 @@ class _PaginaFalsa:
         self.esperas += 1
 
 
+def test_esperar_marcador_en_pagina_reintenta_hasta_que_aparece():
+    """
+    Hallazgo real: una búsqueda capturó una página de 1.1MB con título
+    normal pero 0 apariciones de "ui-search-layout" (el listado real
+    renderiza con React después de domcontentloaded). Esta espera evita
+    devolver el HTML antes de que el listado esté.
+    """
+    pagina = _PaginaFalsa(["<html><body>cargando...</body></html>", "<html><body><li class=\"ui-search-layout__item\">real</li></body></html>"])
+
+    html_final = nav.esperar_marcador_en_pagina(pagina, "ui-search-layout", intentos=5, espera_ms=1)
+
+    assert "ui-search-layout" in html_final
+    assert pagina.esperas == 1
+
+
+def test_esperar_marcador_en_pagina_no_hace_nada_si_ya_esta():
+    pagina = _PaginaFalsa(["<html><body><li class=\"ui-search-layout__item\">real</li></body></html>"])
+
+    html_final = nav.esperar_marcador_en_pagina(pagina, "ui-search-layout", intentos=5, espera_ms=1)
+
+    assert pagina.esperas == 0
+    assert "ui-search-layout" in html_final
+
+
+def test_esperar_marcador_en_pagina_se_rinde_tras_agotar_intentos():
+    pagina = _PaginaFalsa(["<html><body>cargando...</body></html>"])
+
+    html_final = nav.esperar_marcador_en_pagina(pagina, "ui-search-layout", intentos=3, espera_ms=1)
+
+    assert "ui-search-layout" not in html_final
+    assert pagina.esperas == 3
+
+
+def test_abrir_pagina_ml_espera_el_marcador_de_listado_si_se_pide():
+    class _PaginaConGoto(_PaginaFalsa):
+        def goto(self, _url, wait_until=None):
+            pass
+
+    pagina = _PaginaConGoto([
+        "<html><body>cargando...</body></html>",
+        "<html><body><li class=\"ui-search-layout__item\">real</li></body></html>",
+    ])
+    html = nav.abrir_pagina_ml(pagina, "https://listado.mercadolibre.com.ar/x", "búsqueda", esperar_marcador="ui-search-layout")
+
+    assert "ui-search-layout" in html
+
+
+def test_abrir_pagina_ml_sin_esperar_marcador_no_espera_de_mas():
+    class _PaginaConGoto(_PaginaFalsa):
+        def goto(self, _url, wait_until=None):
+            pass
+
+    pagina = _PaginaConGoto(["<html><body>ficha normal</body></html>"])
+    html = nav.abrir_pagina_ml(pagina, "https://www.mercadolibre.com.ar/p/MLA1", "ficha")
+
+    assert html == "<html><body>ficha normal</body></html>"
+    assert pagina.esperas == 0
+
+
 def test_esperar_resolucion_desafio_pow_reintenta_hasta_que_se_resuelve():
     pagina = _PaginaFalsa([DESAFIO_POW_ML, DESAFIO_POW_ML, "<html><body>resultados reales</body></html>"])
 

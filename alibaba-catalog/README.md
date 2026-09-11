@@ -770,6 +770,40 @@ pausa entre fichas y el manejo reforzado del bloqueo, logueada ya en
 frío (sesión iniciada antes de arrancar, no en caliente cuando ML ya
 marcó la sesión como sospechosa), para confirmar la mejora a escala.
 
+### Segunda carrera de timing: el listado también puede capturarse a medio renderizar
+
+Con la sesión ya logueada en frío, una corrida real terminó con **0
+fichas intentadas en las 5 búsquedas** en solo 14 segundos, sin que se
+disparara ningún bloqueo. El HTML capturado automáticamente (gracias a
+`guardar_diagnostico_busqueda`, agregado para este caso — ver más abajo)
+mostró la causa real: una página de **1.1MB con título normal**
+("Cepillo De Limpieza | MercadoLibre") pero **0 apariciones** de
+`ui-search-layout` (el marcador de cada resultado) — solo la pantalla de
+carga (`search.loading-screen`). El listado de búsqueda usa el mismo
+framework de renderizado en el cliente (`search-nordic`, React) que ya
+vimos en las fichas: `domcontentloaded` dispara antes de que React
+termine de inyectar los resultados reales en el DOM.
+
+`navegador_ml.esperar_marcador_en_pagina()` espera en pasos cortos hasta
+que un marcador aparezca en el HTML (o agota los intentos y devuelve lo
+que haya — puede ser un 0 resultados genuino, no siempre es la carrera).
+`abrir_pagina_ml()` ahora acepta `esperar_marcador` opcional; los
+`obtener_html_busqueda` de ambos scripts lo usan con
+`parser_busqueda_ml.MARCADOR_ITEM_LISTADO` (`"ui-search-layout__item"`,
+la misma clase que ya usaba el selector de BeautifulSoup — una sola
+fuente de verdad, no un valor nuevo inventado). Las fichas individuales
+no lo necesitan (no se les pasa `esperar_marcador`), así no se agrega
+espera donde no hace falta.
+
+Si una búsqueda sigue devolviendo 0 resultados después de esta espera,
+`medicion_confiabilidad_ml.guardar_diagnostico_busqueda` guarda el HTML
+crudo en `diagnostico_fichas_ml/busqueda_sin_resultados_<busqueda>_<timestamp>.html`
+(mismo patrón que `guardar_diagnostico` para fichas `otro_error`), para
+poder diagnosticarlo sin pedirle a nadie que lo recolecte a mano.
+
+**Pendiente**: correr la medición una vez más con esta espera ya
+incorporada para confirmar que el listado deja de capturarse vacío.
+
 ## Instalación y uso
 
 ```bash
