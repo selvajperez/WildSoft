@@ -8,9 +8,21 @@ FICHA_NO_ENCONTRADA_REAL = (
 ).read_text(encoding="utf-8")
 
 
-def test_construir_url_sin_slug():
+def test_construir_url_sin_slug_con_prefijo_de_3_letras_usa_p():
     assert _construir_url("MLA28873639", "MLA1399281097") == (
         "https://www.mercadolibre.com.ar/p/MLA28873639?pdp_filters=item_id:MLA1399281097"
+    )
+
+
+def test_construir_url_sin_slug_con_prefijo_de_4_letras_usa_up():
+    """
+    Segunda ronda del experimento real: 2/2 IDs de 3 letras (MLA+dígitos)
+    funcionaron con /p/, pero 3/3 IDs de 4 letras (MLAU+dígitos) dieron
+    404 con /p/ -- mismo criterio 3 vs. 4 letras ya confirmado para los
+    links directos del listado (parser_busqueda_ml._RE_ITEM_ID_DIRECTO).
+    """
+    assert _construir_url("MLAU3739976006", "MLA2789721006") == (
+        "https://www.mercadolibre.com.ar/up/MLAU3739976006?pdp_filters=item_id:MLA2789721006"
     )
 
 
