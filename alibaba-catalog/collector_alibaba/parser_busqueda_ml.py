@@ -97,19 +97,25 @@ def _url_canonica(item_id: str) -> str:
     return f"https://articulo.mercadolibre.com.ar/{item_id}"
 
 
-def _extraer_item_id_y_url(href_crudo: str) -> tuple[str, str] | None:
-    """Devuelve (item_id, url_ml) probando primero el link directo, después el de tracking."""
+def _extraer_item_id_y_url(href_crudo: str) -> tuple[str, str, str] | None:
+    """
+    Devuelve (item_id, url_ml, origen_url) probando primero el link
+    directo, después el de tracking. `origen_url` es "directo" (href real
+    del propio listado, usado tal cual) o "tracking" (URL reconstruida a
+    partir del item_id -- ver el hallazgo real sobre su confiabilidad
+    intermitente en `parser_ficha_ml.py` y `orquestador_demanda_ml.py`).
+    """
     href = urllib.parse.unquote(href_crudo)
 
     match_directo = _RE_ITEM_ID_DIRECTO.search(href)
     if match_directo:
         item_id = match_directo.group(1).upper()
-        return item_id, href.split("#")[0]
+        return item_id, href.split("#")[0], "directo"
 
     match_tracking = _RE_ITEM_ID_TRACKING.search(href)
     if match_tracking:
         item_id = match_tracking.group(1).upper()
-        return item_id, _url_canonica(item_id)
+        return item_id, _url_canonica(item_id), "tracking"
 
     return None
 
@@ -127,7 +133,7 @@ def parsear_resultado(li) -> dict | None:
     extraido = _extraer_item_id_y_url(enlace["href"])
     if extraido is None:
         return None
-    item_id, url_ml = extraido
+    item_id, url_ml, origen_url = extraido
 
     match_pos = _RE_POSICION.search(urllib.parse.unquote(enlace["href"]))
     posicion = int(match_pos.group(1)) if match_pos else None
@@ -164,6 +170,7 @@ def parsear_resultado(li) -> dict | None:
     return {
         "id_ml": item_id,
         "url_ml": url_ml,
+        "origen_url": origen_url,
         "nombre": enlace.get_text(strip=True),
         "precio_ml": precio,
         "moneda_ml": "ARS" if precio is not None else None,

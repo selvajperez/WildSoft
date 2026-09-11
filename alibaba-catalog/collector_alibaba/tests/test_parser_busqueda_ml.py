@@ -23,6 +23,7 @@ def test_caso_real_con_badge_mas_vendido_es_prioridad_a():
     assert item["evidencia_demanda"] == "MÁS VENDIDO"
     assert item["unidades_vendidas"] is None  # el badge no es un conteo
     assert item["url_ml"] == "https://articulo.mercadolibre.com.ar/MLA1399281097"
+    assert item["origen_url"] == "tracking"  # reconstruida -- ver hallazgo de confiabilidad intermitente
     assert item["precio_ml"] == 3999.0
     assert item["posicion"] == 1
     assert clasificar_prioridad(item) == "A"
@@ -62,6 +63,7 @@ def test_caso_real_con_link_directo_de_catalogo_sin_senal():
     assert item["url_ml"] == (
         "https://www.mercadolibre.com.ar/limpiavidrio-mango-aluminio-extensible-70cm-doble-cabeza/p/MLA21816514"
     )
+    assert item["origen_url"] == "directo"
     assert clasificar_prioridad(item) is None
 
 

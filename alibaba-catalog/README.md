@@ -32,6 +32,7 @@ alibaba-catalog/
     parser_ficha_ml.py          # Fase 1 (arranque): parsea la ficha individual de Mercado Libre (demanda, precio)
     parser_busqueda_ml.py       # Fase 1: parsea el listado de búsqueda de ML (prioridad A/B/sin señal, nunca demanda confirmada)
     orquestador_demanda_ml.py   # Fase 1: busca, prioriza y abre fichas individuales hasta confirmar demanda real (configurable)
+    medicion_confiabilidad_ml.py  # Diagnóstico: mide % de éxito/404 al abrir fichas, separado por origen de URL -- no toca candidatos_ml
     tests/
       test_parser.py
       test_scraper.py
@@ -43,6 +44,7 @@ alibaba-catalog/
       test_parser_ficha_ml.py
       test_parser_busqueda_ml.py
       test_orquestador_demanda_ml.py
+      test_medicion_confiabilidad_ml.py
       fixtures/
         productlist_page19.html          # HTML real (recortado) de un listado válido
         productlist_page_mixto.html      # los mismos 2 + 2 productos reales "a Cotizar" (RFQ)
@@ -51,6 +53,7 @@ alibaba-catalog/
         alibaba_ficha_real.html          # HTML real (recortado) de una ficha de producto de Alibaba
         ml_ficha_real.html               # HTML real (recortado) de una ficha de producto de Mercado Libre
         ml_busqueda_real.html            # HTML real (recortado): 4 tarjetas representativas de una búsqueda de 60 resultados
+        ml_ficha_no_encontrada_real.html # HTML real (recortado): 404 real de ML para una URL de ficha reconstruida inválida
   paginas_html_crudo/       # HTML crudo de cada página visitada por collector_browser.py (no se commitea)
   capturas_exploratorias/   # muestras de capturador_exploratorio.py + manifiesto.jsonl (no se commitea)
   database/
@@ -595,6 +598,51 @@ esos item_id, algo que no se puede adivinar sin arriesgar otro dato
 inventado), pero la hace visible, medible y distinguible de otras causas
 de indeterminación (bloqueo, cambio de plantilla, etc.) en las próximas
 corridas.
+
+**Segundo hallazgo (corrida posterior, ~25 minutos después, misma
+búsqueda)**: el item `MLA1399281097` había confirmado demanda
+(`demanda_confirmada`, 1000 vendidas) en la primera corrida y, con la
+*misma* URL reconstruida, dio el 404 real en la segunda. Esto descarta la
+hipótesis de "ciertos item_id específicos están simplemente rotos": la
+reconstrucción (`articulo.mercadolibre.com.ar/<item_id>`, sin guion) es
+**intermitente/poco confiable en general** para resultados envueltos en
+un link de tracking de clicks, no un problema fijo de una lista de IDs.
+
+Se evaluó usar directamente el href de tracking crudo (que sí es una URL
+real y navegable, un endpoint de click-tracking de ML) en vez de
+reconstruir nada, pero se descartó: `candidatos_ml` deduplica por
+`url_ml` (`ON CONFLICT(url_ml)`, ver `database/db.py`), y ese href trae
+un parámetro cifrado (`a=...`) que aparenta cambiar en cada carga de
+página — usarlo tal cual generaría una fila nueva por cada búsqueda
+futura que vuelva a encontrar el mismo producto, rompiendo la
+deduplicación en silencio. Mantener una URL reconstruida estable (aunque
+a veces falle al abrirla) sigue siendo la opción correcta para el
+identificador en base; el costo es navegación desperdiciada, no datos
+corruptos (nunca fabrica una demanda confirmada falsa).
+
+### Medición cuantitativa de la pérdida (`medicion_confiabilidad_ml.py`)
+
+Antes de decidir si esta intermitencia amerita resolver la navegación
+antes de seguir, o si la pérdida es chica y se puede documentar y avanzar,
+hacía falta medirla con más de una búsqueda real — no alcanza con las 14
+fichas de una sola corrida. `medicion_confiabilidad_ml.py` es una
+herramienta de diagnóstico **separada del pipeline de producción**: corre
+varias búsquedas reales (5 por defecto, mismo rubro), abre **todas** las
+fichas Prioridad A/B de cada una (sin el corte por `candidatos_objetivo`
+de `orquestador_demanda_ml.py`, porque acá el objetivo es medir, no
+curar candidatos) hasta un máximo configurable por búsqueda, y clasifica
+cada intento en `abierta_ok` / `404` / `otro_error`, separado por
+`origen_url` (`"directo"` vs. `"tracking"` — nuevo campo agregado a
+`parser_busqueda_ml.parsear_resultado`, aditivo, no rompe nada existente).
+**No escribe en `candidatos_ml`/`historial_ml`** — no mezcla datos de
+medición con el estado real de candidatos ni toca el progreso existente.
+Guarda el detalle completo (cada intento) + el resumen agregado en
+`medicion_confiabilidad_ml/reporte_<timestamp>.json` (no se commitea).
+
+```bash
+python collector_alibaba/medicion_confiabilidad_ml.py
+python collector_alibaba/medicion_confiabilidad_ml.py "cepillo de limpieza" "trapo de piso" --max-fichas-por-busqueda 20
+```
 
 ## Instalación y uso
 
