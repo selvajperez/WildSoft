@@ -34,8 +34,8 @@ python _validar_caso1.py           # corridas siguientes
 ```
 
 Casos a cubrir (pedido explícito de la usuaria, con al menos un caso por
-punto) — **estado actual: 3 corridos (Casos 1, 2 y 3), punto 1 casi
-completo**:
+punto) — **estado actual: 4 corridos (Casos 1 a 4), punto 1 casi
+completo, punto 2 todavía sin validar de verdad**:
 
 1. **Varios matches claros** (2-3 candidatos de ML de distinto rubro) —
    🔶 casi completo: Caso 1 dio `SIN_MATCH_CONFIABLE` por muy poco margen,
@@ -43,7 +43,13 @@ completo**:
    `MATCH_ALTO` (cepillos eléctricos multiuso) — dos matches reales
    confirmados de rubros parecidos (ambos "cepillo"), todavía no de
    rubros muy distintos entre sí.
-2. **Un caso sin match real** — sin probar todavía.
+2. **Un caso sin match real** — 🔶 Caso 4 corrido, pero **no valida
+   todavía el punto**: el candidato salió por fallback (no por un
+   heurístico de "esto no debería tener equivalente"), y Alibaba devolvió
+   numerosos productos de la misma familia — el `SIN_MATCH_CONFIABLE` que
+   dio fue razonable dada la evidencia, pero no es una prueba real de que
+   el sistema sepa reconocer un caso genuinamente sin equivalente. Caso 5
+   en curso, con un heurístico de selección más específico (ver abajo).
 3. **Un "gemelo tramposo"** — sin probar todavía (lógica ya validada con
    datos sintéticos en `tests/test_matcher.py`, falta un caso real).
 4. Si se consigue, **un caso con fotos distintas del mismo producto real**
@@ -183,6 +189,49 @@ intervención manual).
   (0.82) para dos fotos de productos genuinamente parecidos. Hasta este
   caso, la señal de imagen solo se había probado con datos sintéticos en
   los tests.
+
+#### Caso 4 (2026-09-11) — `SIN_MATCH_CONFIABLE` razonable, pero NO valida el caso negativo buscado
+
+- **Candidato ML**: `MLA4781026` — "Set 4 Cepillos Limpieza Oh My Shop
+  Surcos Hendiduras Cerdas Duraderas". Se intentó elegir automáticamente
+  (`_validar_caso4.py`) un candidato con baja probabilidad de tener
+  equivalente en Alibaba, priorizando indicios de marca/homologación
+  local en el título — pero **ningún candidato de la base disparó el
+  heurístico**, así que cayó al mismo criterio de siempre (mayor
+  `unidades_vendidas`). "Oh My Shop" (marca de venta por TV) no estaba en
+  la lista de palabras del heurístico.
+- **Decisión: `SIN_MATCH_CONFIABLE`**, sin veto. Los 3 candidatos
+  verificados fueron sets de cepillos de limpieza genéricos ("Cleaning
+  Brush Set of 3", "Household Cleaning Brush Set Multifunctional",
+  "Deep Cleaning Brush Set") con scores 0.564-0.595, todos por debajo del
+  umbral de `MATCH_PROBABLE`.
+- **Veredicto sobre si la decisión fue razonable**: sí, dado lo que el
+  sistema pudo comparar (sin imagen de ML otra vez, sin material
+  comparable en ningún candidato) — pero **este caso NO prueba que el
+  sistema reconozca correctamente un producto sin equivalente real**.
+  Alibaba devolvió numerosos productos de la misma familia genérica
+  ("set de cepillos de limpieza"), así que el resultado negativo pudo
+  deberse tanto a que genuinamente no hay un equivalente exacto como a
+  falta de evidencia suficiente (mismo patrón que el Caso 1) — no hay
+  forma de distinguir las dos causas con este caso en particular. El
+  Caso 5 apunta a un heurístico de selección más estructural para
+  cerrar esta brecha.
+
+**Dos hallazgos de calibración registrados, sin corregir todavía**:
+
+1. **Reconocimiento incompleto de marcas locales**: el heurístico de
+   `_validar_caso4.py` no tenía "Oh My Shop" (ni, seguramente, muchas
+   otras marcas de venta por TV/nicho) en su lista. Es un heurístico de
+   *selección de casos de prueba*, no del matcher -- pero confirma que
+   cualquier lista de palabras clave hardcodeada tiene huecos reales.
+2. **Cantidad de piezas no normalizada entre expresiones equivalentes**:
+   `atributos_matching._RE_PACK_OF`/`_RE_CANTIDAD_PIEZAS` no reconocen
+   "Set 4" (español, sin "de") ni "Set of 3" (inglés) como cantidad de
+   piezas -- solo "pack of N"/"set de N"/"juego de N"/"N pcs/piezas/
+   unidades/units". En este caso, ML decía "Set 4" y el candidato top de
+   Alibaba "Set of 3" -- una posible diferencia real de cantidad de
+   piezas que el sistema nunca llegó a comparar porque ninguna de las dos
+   expresiones matcheó el patrón.
 
 ---
 
