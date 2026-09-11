@@ -32,9 +32,16 @@ a buscarlo, algo que el proyecto evita a propósito. `procesar_busqueda_ml`
 recibe esto también inyectado (`guardar_diagnostico`, opcional) para no
 tocar disco en los tests.
 
+`ejecutar_busqueda_real` también espera una pausa configurable con
+jitter aleatorio (`--delay-min`/`--delay-max`, ver `navegador_ml.esperar_entre_fichas`)
+antes de abrir cada ficha, para reducir la frecuencia del bloqueo de
+tráfico sospechoso en primer lugar (hallazgo real: apareció después de
+~20 fichas seguidas en ~1 segundo cada una).
+
 Uso:
     python orquestador_demanda_ml.py "cepillo de limpieza"
     python orquestador_demanda_ml.py "candado bicicleta" --max-fichas 10 --objetivo 3 --umbral-vendidas 100
+    python orquestador_demanda_ml.py "cepillo de limpieza" --delay-min 4 --delay-max 10
 """
 
 from __future__ import annotations
@@ -49,7 +56,15 @@ from typing import Callable
 sys.path.insert(0, str(Path(__file__).parent))
 sys.path.insert(0, str(Path(__file__).parent.parent / "database"))
 
-from navegador_ml import abrir_pagina_ml, confirmar_login_manual, es_primera_vez, navegador_persistente  # noqa: E402
+from navegador_ml import (  # noqa: E402
+    DELAY_MAX_SEG_DEFAULT,
+    DELAY_MIN_SEG_DEFAULT,
+    abrir_pagina_ml,
+    confirmar_login_manual,
+    es_primera_vez,
+    esperar_entre_fichas,
+    navegador_persistente,
+)
 from parser_busqueda_ml import parsear_listado_busqueda, resultado_a_candidato  # noqa: E402
 from parser_ficha_ml import parsear_ficha_ml  # noqa: E402
 import db  # noqa: E402
@@ -226,6 +241,8 @@ def ejecutar_busqueda_real(
     candidatos_objetivo: int = CANDIDATOS_OBJETIVO_DEFAULT,
     umbral_unidades_vendidas: int = UMBRAL_UNIDADES_VENDIDAS_DEFAULT,
     forzar_login: bool = False,
+    delay_min: float = DELAY_MIN_SEG_DEFAULT,
+    delay_max: float = DELAY_MAX_SEG_DEFAULT,
 ) -> dict:
     """Punto de entrada real: arma `obtener_html_busqueda`/`abrir_ficha` con Chrome real + Playwright."""
     conexion = db.conectar()
@@ -242,6 +259,8 @@ def ejecutar_busqueda_real(
             return abrir_pagina_ml(pagina, url, f"búsqueda '{busqueda}'")
 
         def abrir_ficha(url: str, etiqueta: str) -> str:
+            espera = esperar_entre_fichas(delay_min, delay_max)
+            logger.info("Esperando %.1fs antes de abrir '%s' (reduce el riesgo de bloqueo).", espera, etiqueta)
             return abrir_pagina_ml(pagina, url, etiqueta)
 
         resumen = procesar_busqueda_ml(
@@ -272,6 +291,14 @@ def main() -> None:
         help="Unidades vendidas mínimas (confirmadas en la ficha) para considerar la demanda válida.",
     )
     argparser.add_argument("--login", action="store_true", help="Forzar el paso de login manual de nuevo.")
+    argparser.add_argument(
+        "--delay-min", type=float, default=DELAY_MIN_SEG_DEFAULT,
+        help="Espera mínima en segundos antes de abrir cada ficha (con jitter aleatorio hasta --delay-max).",
+    )
+    argparser.add_argument(
+        "--delay-max", type=float, default=DELAY_MAX_SEG_DEFAULT,
+        help="Espera máxima en segundos antes de abrir cada ficha.",
+    )
     args = argparser.parse_args()
 
     resumen = ejecutar_busqueda_real(
@@ -280,6 +307,8 @@ def main() -> None:
         candidatos_objetivo=args.objetivo,
         umbral_unidades_vendidas=args.umbral_vendidas,
         forzar_login=args.login,
+        delay_min=args.delay_min,
+        delay_max=args.delay_max,
     )
     print(resumen)
 

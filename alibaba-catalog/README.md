@@ -717,10 +717,58 @@ para fichas indeterminadas).
 específico y `abrir_pagina_ml` ahora lo trata igual que el heurístico
 genérico: pausa y espera que se resuelva a mano (loguearse o
 registrarse en la ventana de Chrome), a diferencia del PoW que solo
-espera. **Pendiente**: correr `medicion_confiabilidad_ml.py` una vez más
-para confirmar que, con esta pausa ya andando, el bloqueo de tráfico
-sospechoso no vuelve a contaminar en silencio el resto de una corrida
-larga.
+espera.
+
+Al intentar resolverlo en la práctica apareció un problema más: el
+Chrome que abre Playwright (aunque sea Chrome real, no headless) a veces
+hace que el reCAPTCHA de Google no renderice el widget visual — queda un
+recuadro vacío con el error "Completá el reCAPTCHA" sin checkbox para
+marcar. Confirmado real: la misma cuenta, misma contraseña, sin
+bloqueadores de navegador, funcionaba sin problema en un Chrome normal
+pero no en la ventana del perfil dedicado. Es una limitación conocida de
+automatizar Chrome (Google puede detectar el control por CDP y negarse a
+renderizar el challenge), no algo que se resuelva con configuración.
+
+### Manejo humano del bloqueo, y pausa configurable entre fichas
+
+Por lo anterior, `pausar_por_bloqueo_y_continuar` (`navegador_ml.py`) se
+reforzó para tratar el bloqueo como lo que es — una intervención humana
+real, no siempre resoluble al toque:
+
+- Nunca cierra Chrome ni intenta resolver/evadir el bloqueo.
+- Pausa **indefinidamente** (sin timeout corto) con el mensaje: *"Mercado
+  Libre requiere intervención humana. Resolvé el login/CAPTCHA en la
+  ventana de Chrome y luego presioná Enter para continuar."*
+- Al presionar Enter, recarga la **misma URL** y **verifica** que el
+  bloqueo realmente haya desaparecido (`es_bloqueo_trafico_sospechoso_ml`/
+  `bloqueado_ml_heuristico`) antes de seguir — si sigue bloqueado
+  (ej. el reCAPTCHA no se pudo completar en un intento), vuelve a pausar
+  en vez de avanzar o marcar la ficha como fallida.
+- Como retoma la misma URL, quien llama (`abrir_pagina_ml`, y por
+  transitividad `orquestador_demanda_ml.py`/`medicion_confiabilidad_ml.py`)
+  continúa exactamente con esa ficha al resolverse — no hace falta
+  guardar un índice aparte: el estado "qué ficha se estaba procesando"
+  vive en la propia llamada de Python bloqueada, y ninguna observación
+  se escribe en `historial_ml` hasta que esa llamada devuelve contenido
+  real, así que una pausa nunca pierde ni duplica datos.
+
+Como el problema real fue "demasiadas fichas seguidas dispararon el
+bloqueo", mejor evitarlo que resolverlo: `navegador_ml.esperar_entre_fichas(delay_min, delay_max)`
+agrega una pausa aleatoria (jitter) antes de abrir cada ficha, expuesta
+como `--delay-min`/`--delay-max` en ambos scripts (default 3-8
+segundos — un punto de partida razonable dado que el bloqueo apareció
+tras ~20 fichas en ~1 segundo cada una, no un valor confirmado como
+"seguro").
+
+```bash
+python collector_alibaba/orquestador_demanda_ml.py "cepillo de limpieza" --delay-min 4 --delay-max 10
+python collector_alibaba/medicion_confiabilidad_ml.py --delay-min 4 --delay-max 10
+```
+
+**Pendiente**: correr `medicion_confiabilidad_ml.py` de nuevo con la
+pausa entre fichas y el manejo reforzado del bloqueo, logueada ya en
+frío (sesión iniciada antes de arrancar, no en caliente cuando ML ya
+marcó la sesión como sospechosa), para confirmar la mejora a escala.
 
 ## Instalación y uso
 

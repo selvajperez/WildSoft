@@ -31,10 +31,16 @@ medición con el estado real de candidatos ni tocar el progreso existente.
 Guarda el detalle completo de cada intento + el resumen agregado en
 `medicion_confiabilidad_ml/reporte_<timestamp>.json` (no se commitea).
 
+También espera una pausa configurable con jitter aleatorio
+(`--delay-min`/`--delay-max`, ver `navegador_ml.esperar_entre_fichas`)
+antes de abrir cada ficha, para reducir la frecuencia del bloqueo de
+tráfico sospechoso en primer lugar.
+
 Uso:
     python medicion_confiabilidad_ml.py
     python medicion_confiabilidad_ml.py "cepillo de limpieza" "trapo de piso" --max-fichas-por-busqueda 20
     python medicion_confiabilidad_ml.py --login
+    python medicion_confiabilidad_ml.py --delay-min 4 --delay-max 10
 """
 
 from __future__ import annotations
@@ -50,7 +56,15 @@ from typing import Callable
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from navegador_ml import abrir_pagina_ml, confirmar_login_manual, es_primera_vez, navegador_persistente  # noqa: E402
+from navegador_ml import (  # noqa: E402
+    DELAY_MAX_SEG_DEFAULT,
+    DELAY_MIN_SEG_DEFAULT,
+    abrir_pagina_ml,
+    confirmar_login_manual,
+    es_primera_vez,
+    esperar_entre_fichas,
+    navegador_persistente,
+)
 from parser_busqueda_ml import clasificar_prioridad, parsear_listado_busqueda  # noqa: E402
 from parser_ficha_ml import parsear_ficha_ml  # noqa: E402
 
@@ -161,6 +175,8 @@ def ejecutar_medicion_real(
     busquedas: list[str],
     max_fichas_por_busqueda: int = MAX_FICHAS_POR_BUSQUEDA_DEFAULT,
     forzar_login: bool = False,
+    delay_min: float = DELAY_MIN_SEG_DEFAULT,
+    delay_max: float = DELAY_MAX_SEG_DEFAULT,
 ) -> list[dict]:
     """Punto de entrada real: arma `obtener_html_busqueda`/`abrir_ficha` con Chrome real + Playwright."""
     primera_vez = es_primera_vez()
@@ -177,6 +193,8 @@ def ejecutar_medicion_real(
             return abrir_pagina_ml(pagina, url, f"búsqueda de medición: {url}")
 
         def abrir_ficha(url: str, etiqueta: str) -> str:
+            espera = esperar_entre_fichas(delay_min, delay_max)
+            logger.info("Esperando %.1fs antes de abrir '%s' (reduce el riesgo de bloqueo).", espera, etiqueta)
             return abrir_pagina_ml(pagina, url, etiqueta)
 
         for busqueda in busquedas:
@@ -255,10 +273,19 @@ def main() -> None:
         help="Máximo de fichas Prioridad A/B a abrir por búsqueda.",
     )
     argparser.add_argument("--login", action="store_true", help="Forzar el paso de login manual de nuevo.")
+    argparser.add_argument(
+        "--delay-min", type=float, default=DELAY_MIN_SEG_DEFAULT,
+        help="Espera mínima en segundos antes de abrir cada ficha (con jitter aleatorio hasta --delay-max).",
+    )
+    argparser.add_argument(
+        "--delay-max", type=float, default=DELAY_MAX_SEG_DEFAULT,
+        help="Espera máxima en segundos antes de abrir cada ficha.",
+    )
     args = argparser.parse_args()
 
     intentos = ejecutar_medicion_real(
         args.busquedas, max_fichas_por_busqueda=args.max_fichas_por_busqueda, forzar_login=args.login,
+        delay_min=args.delay_min, delay_max=args.delay_max,
     )
     resumen = agregar_resumen(intentos)
     archivo = _guardar_reporte(intentos, resumen)

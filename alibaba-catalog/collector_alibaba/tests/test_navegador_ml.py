@@ -176,3 +176,50 @@ def test_abrir_pagina_ml_pausa_ante_el_bloqueo_de_trafico_sospechoso(monkeypatch
     html = nav.abrir_pagina_ml(pagina, "https://www.mercadolibre.com.ar/p/MLA123", "ficha de prueba")
 
     assert html == "<html><body>ficha real</body></html>"
+
+
+def test_pausar_por_bloqueo_y_continuar_vuelve_a_esperar_si_sigue_bloqueado(monkeypatch):
+    """
+    Manejo humano del bloqueo: si después de un Enter el bloqueo sigue
+    presente, no puede avanzar igual ni darlo por resuelto -- tiene que
+    volver a pausar (sin timeout corto) hasta que realmente desaparezca.
+    """
+    class _PaginaBloqueadaDosVeces:
+        def __init__(self):
+            self.reloads = 0
+
+        def reload(self, wait_until=None):
+            self.reloads += 1
+
+        def content(self):
+            if self.reloads < 2:
+                return BLOQUEO_TRAFICO_SOSPECHOSO_ML
+            return "<html><body>ficha real</body></html>"
+
+    llamadas_a_input = []
+    monkeypatch.setattr("builtins.input", lambda: llamadas_a_input.append(1))
+
+    pagina = _PaginaBloqueadaDosVeces()
+    html = nav.pausar_por_bloqueo_y_continuar(pagina, "https://www.mercadolibre.com.ar/p/MLA123", "ficha de prueba")
+
+    assert html == "<html><body>ficha real</body></html>"
+    assert pagina.reloads == 2  # se recargó (y verificó) dos veces antes de darlo por resuelto
+    assert len(llamadas_a_input) == 2  # pausó dos veces -- nunca avanzó con el bloqueo todavía activo
+
+
+def test_esperar_entre_fichas_respeta_el_rango(monkeypatch):
+    monkeypatch.setattr(nav.time, "sleep", lambda _s: None)
+
+    for _ in range(30):
+        espera = nav.esperar_entre_fichas(2.0, 5.0)
+        assert 2.0 <= espera <= 5.0
+
+
+def test_esperar_entre_fichas_usa_los_defaults_del_hallazgo_real(monkeypatch):
+    dormidos = []
+    monkeypatch.setattr(nav.time, "sleep", dormidos.append)
+
+    espera = nav.esperar_entre_fichas()
+
+    assert dormidos == [espera]
+    assert nav.DELAY_MIN_SEG_DEFAULT <= espera <= nav.DELAY_MAX_SEG_DEFAULT

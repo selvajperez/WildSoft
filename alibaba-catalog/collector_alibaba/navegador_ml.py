@@ -18,11 +18,29 @@ Bloqueos reales confirmados con HTML real hasta ahora:
     pocos minutos -- afectó TODAS las fichas posteriores hasta
     resolverse a mano. A diferencia del PoW, esto sí necesita una
     persona: se pausa.
+
+`pausar_por_bloqueo_y_continuar` nunca cierra Chrome ni resuelve/evade
+el bloqueo -- pausa indefinidamente (sin timeout corto), y al presionar
+Enter recarga la MISMA URL y verifica que el bloqueo realmente haya
+desaparecido antes de seguir; si sigue bloqueado, vuelve a pausar en vez
+de avanzar. Como el reload es sobre la página que ya se estaba
+procesando, quien llama (`abrir_pagina_ml`) siempre retoma exactamente
+esa misma ficha/URL al resolverse -- no hace falta guardar un índice
+aparte: el estado "qué ficha se estaba procesando" ya vive en la propia
+llamada bloqueada de Python, y ningún dato se escribe en la base hasta
+que esa llamada devuelve contenido real, así que una pausa nunca pierde
+ni duplica observaciones.
+
+`esperar_entre_fichas` agrega una pausa configurable con jitter aleatorio
+entre fichas, para reducir la frecuencia con la que aparece el bloqueo
+de tráfico sospechoso en primer lugar (más vale evitarlo que resolverlo).
 """
 
 from __future__ import annotations
 
 import logging
+import random
+import time
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -33,6 +51,13 @@ from playwright.sync_api import sync_playwright
 # Alibaba y Mercado Libre (es solo un directorio de datos de Chrome, no hay
 # conflicto entre sesiones de distintos dominios).
 PERFIL_DEDICADO = Path(__file__).parent.parent / ".perfil_chrome_collector"
+
+# Hallazgo real: el bloqueo de tráfico sospechoso apareció después de
+# ~20 fichas abiertas en ~1 segundo cada una. Este rango es un punto de
+# partida razonable, no un valor confirmado como "seguro" -- siempre
+# configurable desde afuera (--delay-min/--delay-max).
+DELAY_MIN_SEG_DEFAULT = 3.0
+DELAY_MAX_SEG_DEFAULT = 8.0
 
 logger = logging.getLogger("navegador_ml")
 
@@ -128,21 +153,46 @@ def confirmar_login_manual() -> None:
 
 def pausar_por_bloqueo_y_continuar(pagina, url: str, etiqueta: str) -> str:
     """
-    No corta la corrida: pausa, espera que la usuaria resuelva el bloqueo
-    a mano en la ventana visible, y al presionar ENTER recarga y sigue
-    automáticamente.
+    No corta la corrida ni cierra Chrome, y no resuelve ni evade el
+    bloqueo. Pausa indefinidamente (sin timeout corto) a que la usuaria
+    lo resuelva a mano en la ventana visible. Al presionar Enter recarga
+    la MISMA URL y verifica que el bloqueo realmente haya desaparecido
+    antes de devolver el control -- si sigue bloqueado, vuelve a pausar
+    en vez de avanzar o darlo por resuelto. Como retoma la misma URL,
+    quien llama continúa exactamente con esa ficha, nunca la pierde ni
+    la procesa dos veces.
     """
-    logger.warning("Posible bloqueo/CAPTCHA detectado en '%s' (%s).", etiqueta, url)
-    print("\n" + "!" * 70)
-    print(f"Posible CAPTCHA / bloqueo detectado en: {etiqueta}")
-    print(f"URL: {url}")
-    print("No se resuelve ni se evade automáticamente. Resolvelo vos en la")
-    print("ventana de Chrome (si hace falta) y volvé acá.")
-    print("Cuando esté resuelto, presioná ENTER: la corrida va a continuar sola.")
-    print("!" * 70 + "\n")
-    input()
-    pagina.reload(wait_until="domcontentloaded")
-    return contenido_seguro(pagina)
+    while True:
+        logger.warning("Bloqueo/CAPTCHA detectado en '%s' (%s). Pausando para intervención humana.", etiqueta, url)
+        print("\n" + "!" * 70)
+        print("Mercado Libre requiere intervención humana. Resolvé el login/CAPTCHA")
+        print("en la ventana de Chrome y luego presioná Enter para continuar.")
+        print(f"Página en curso: {etiqueta}")
+        print(f"URL: {url}")
+        print("!" * 70 + "\n")
+        input()
+
+        pagina.reload(wait_until="domcontentloaded")
+        html = contenido_seguro(pagina)
+
+        if not (es_bloqueo_trafico_sospechoso_ml(html) or bloqueado_ml_heuristico(html)):
+            logger.info("Bloqueo resuelto en '%s'. Continuando.", etiqueta)
+            return html
+
+        logger.warning("Sigue bloqueado en '%s' -- se vuelve a pausar en vez de avanzar.", etiqueta)
+        print("Todavía parece bloqueado. Volvé a intentar resolverlo y presioná Enter de nuevo.\n")
+
+
+def esperar_entre_fichas(delay_min: float = DELAY_MIN_SEG_DEFAULT, delay_max: float = DELAY_MAX_SEG_DEFAULT) -> float:
+    """
+    Pausa una cantidad aleatoria de segundos en [delay_min, delay_max]
+    antes de abrir la próxima ficha, para reducir la frecuencia del
+    bloqueo de tráfico sospechoso (mejor evitarlo que resolverlo).
+    Devuelve la espera real usada, para poder loguearla.
+    """
+    espera = random.uniform(delay_min, delay_max)
+    time.sleep(espera)
+    return espera
 
 
 def abrir_pagina_ml(pagina, url: str, etiqueta: str) -> str:
