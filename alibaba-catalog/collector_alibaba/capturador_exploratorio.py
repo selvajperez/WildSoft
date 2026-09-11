@@ -44,6 +44,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
+from playwright.sync_api import Error as PlaywrightError  # noqa: E402
 from playwright.sync_api import sync_playwright  # noqa: E402
 
 from scraper import contiene_marcadores_bloqueo as bloqueado_alibaba  # noqa: E402
@@ -123,13 +124,30 @@ def _esperar_resolucion_desafio_pow(pagina, intentos: int = 8, espera_ms: int = 
     en pasos cortos en vez de un único timeout largo, para no perder
     tiempo si se resuelve rápido.
     """
-    html = pagina.content()
+    html = _contenido_seguro(pagina)
     for _ in range(intentos):
         if not es_desafio_pow_ml(html):
             break
         pagina.wait_for_timeout(espera_ms)
-        html = pagina.content()
+        html = _contenido_seguro(pagina)
     return html
+
+
+def _contenido_seguro(pagina, intentos: int = 5, espera_ms: int = 500) -> str:
+    """
+    `page.content()` de Playwright puede tirar un error transitorio si se
+    llama justo mientras la página está navegando (pasa seguido acá: el
+    desafío PoW de ML redirige sola apenas se resuelve). Reintenta en vez
+    de romper la captura.
+    """
+    ultimo_error = None
+    for _ in range(intentos):
+        try:
+            return pagina.content()
+        except PlaywrightError as exc:
+            ultimo_error = exc
+            pagina.wait_for_timeout(espera_ms)
+    raise ultimo_error
 
 
 def _extraer_primer_link_producto_ml(html: str) -> str | None:
@@ -195,7 +213,7 @@ def _pausar_por_bloqueo_y_continuar(pagina, url: str, etiqueta: str) -> str:
     print("!" * 70 + "\n")
     input()
     pagina.reload(wait_until="domcontentloaded")
-    return pagina.content()
+    return _contenido_seguro(pagina)
 
 
 # --- Capturas individuales -------------------------------------------------
@@ -204,7 +222,7 @@ def _capturar_busqueda_ml(pagina, busqueda: str) -> str:
     url = f"{URL_BASE_ML}/{urllib.parse.quote(busqueda.replace(' ', '-'))}"
     logger.info("Abriendo búsqueda de Mercado Libre: %s", url)
     pagina.goto(url, wait_until="domcontentloaded")
-    html = pagina.content()
+    html = _contenido_seguro(pagina)
 
     if es_desafio_pow_ml(html):
         logger.info("Desafío PoW de Mercado Libre detectado; esperando resolución automática...")
@@ -231,7 +249,7 @@ def _capturar_ficha_ml(pagina, html_busqueda: str) -> None:
 
     logger.info("Abriendo ficha de Mercado Libre: %s", link)
     pagina.goto(link, wait_until="domcontentloaded")
-    html = pagina.content()
+    html = _contenido_seguro(pagina)
 
     if es_desafio_pow_ml(html):
         logger.info("Desafío PoW de Mercado Libre detectado; esperando resolución automática...")
@@ -248,7 +266,7 @@ def _capturar_ficha_ml(pagina, html_busqueda: str) -> None:
 def _capturar_ficha_alibaba(pagina, url: str) -> None:
     logger.info("Abriendo ficha de Alibaba: %s", url)
     pagina.goto(url, wait_until="domcontentloaded")
-    html = pagina.content()
+    html = _contenido_seguro(pagina)
 
     if bloqueado_alibaba(html):
         html = _pausar_por_bloqueo_y_continuar(pagina, url, "ficha Alibaba")

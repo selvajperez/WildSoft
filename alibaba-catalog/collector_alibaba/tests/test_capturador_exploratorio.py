@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+from playwright.sync_api import Error as PlaywrightError
+
 import capturador_exploratorio as ce
 
 DESAFIO_POW_ML = (Path(__file__).parent / "fixtures" / "ml_desafio_pow.html").read_text(encoding="utf-8")
@@ -67,6 +69,44 @@ def test_esperar_resolucion_desafio_pow_se_rinde_tras_agotar_intentos():
 
     assert ce.es_desafio_pow_ml(html_final) is True
     assert pagina.esperas == 3
+
+
+class _PaginaQueFallaYLuegoResponde:
+    """
+    Stub que reproduce el error real de Playwright: `content()` falla
+    mientras la página está navegando, y funciona apenas se estabiliza.
+    """
+
+    def __init__(self, fallos_antes_de_responder: int, html_final: str):
+        self._fallos_restantes = fallos_antes_de_responder
+        self._html_final = html_final
+        self.esperas = 0
+
+    def content(self):
+        if self._fallos_restantes > 0:
+            self._fallos_restantes -= 1
+            raise PlaywrightError("Page.content: Unable to retrieve content because the page is navigating")
+        return self._html_final
+
+    def wait_for_timeout(self, _ms):
+        self.esperas += 1
+
+
+def test_contenido_seguro_reintenta_ante_error_de_navegacion_transitorio():
+    pagina = _PaginaQueFallaYLuegoResponde(fallos_antes_de_responder=2, html_final="<html>listo</html>")
+
+    assert ce._contenido_seguro(pagina, intentos=5, espera_ms=1) == "<html>listo</html>"
+    assert pagina.esperas == 2
+
+
+def test_contenido_seguro_relanza_el_error_si_nunca_se_estabiliza():
+    pagina = _PaginaQueFallaYLuegoResponde(fallos_antes_de_responder=10, html_final="<html>listo</html>")
+
+    try:
+        ce._contenido_seguro(pagina, intentos=3, espera_ms=1)
+        assert False, "debería haber relanzado PlaywrightError"
+    except PlaywrightError:
+        pass
 
 
 def test_extraer_primer_link_producto_ml_encuentra_patron_mla():

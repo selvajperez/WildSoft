@@ -302,6 +302,12 @@ capturas — a diferencia de `collector_browser.py`, acá no hay un catálogo
 largo que proteger cortando la corrida, así que tiene sentido seguir en
 vez de abortar todo.
 
+**Otro detalle real que apareció en la primera corrida**: `page.content()`
+de Playwright puede tirar un error transitorio si se llama justo mientras
+la página está navegando — pasa seguido acá porque el desafío PoW redirige
+sola apenas se resuelve. `_contenido_seguro()` reintenta en vez de romper
+la captura entera por una carrera de timing.
+
 ## Parser de ficha individual de Alibaba (`parser_ficha_alibaba.py`)
 
 Confirmado con HTML real (`tests/fixtures/alibaba_ficha_real.html`,
