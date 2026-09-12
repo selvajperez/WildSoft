@@ -8,6 +8,7 @@ collector_alibaba/experimento_url_producto_reconstruida.log
 collector_alibaba/capturador_busqueda_alibaba.log
 collector_alibaba/orquestador_matching.log
 collector_alibaba/orquestador_matching_lote.log
+collector_alibaba/orquestador_filtro_economico.log
 medicion_confiabilidad_ml/
 .perfil_chrome_collector/
 paginas_html_crudo/

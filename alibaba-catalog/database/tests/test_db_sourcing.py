@@ -1,3 +1,4 @@
+import json
 import time
 
 import pytest
@@ -198,3 +199,69 @@ def test_obtener_ultimo_matching_devuelve_none_si_nunca_se_corrio():
     conexion = _conexion_memoria()
     candidato_id = db.upsert_candidato_ml(conexion, {"url_ml": "https://ejemplo.test/1", "nombre": "Cepillo"})
     assert db.obtener_ultimo_matching(conexion, candidato_id) is None
+
+
+def test_insertar_comparable_alibaba_guarda_evidencia_del_filtro_economico():
+    conexion = _conexion_memoria()
+    candidato_id = db.upsert_candidato_ml(conexion, {"url_ml": "https://ejemplo.test/1", "nombre": "Cepillo"})
+
+    comparable_id = db.insertar_comparable_alibaba(conexion, candidato_id, {
+        "url_alibaba": "https://alibaba.test/x.html",
+        "precio_alibaba_50u": 4.20,
+        "moneda": "USD",
+        "precio_no_verificado": False,
+        "cantidad_precio_alibaba": 20,
+        "fuente_precio": "precio_unico",
+        "precio_ml_original": 18.0,
+        "moneda_ml_original": "USD",
+        "precio_ml_usd": 18.0,
+        "ratio": 4.2857,
+        "diferencia_usd": 13.80,
+        "categoria_match": "MATCH_ALTO",
+        "resultado_viabilidad": "viable",
+        "motivo_viabilidad": "Ratio 4.29x / diferencia USD 13.80 -- supera las dos reglas.",
+    })
+
+    fila = conexion.execute(
+        "SELECT resultado_viabilidad, ratio, diferencia_usd, cantidad_precio_alibaba, precio_ladder_crudo_json "
+        "FROM alibaba_comparables WHERE id = ?", (comparable_id,),
+    ).fetchone()
+    assert fila == ("viable", 4.2857, 13.80, 20, None)
+
+
+def test_insertar_comparable_alibaba_serializa_precio_ladder_crudo():
+    conexion = _conexion_memoria()
+    candidato_id = db.upsert_candidato_ml(conexion, {"url_ml": "https://ejemplo.test/1", "nombre": "Cepillo"})
+
+    comparable_id = db.insertar_comparable_alibaba(conexion, candidato_id, {
+        "url_alibaba": "https://alibaba.test/x.html",
+        "precio_no_verificado": True,
+        "resultado_viabilidad": "indeterminado",
+        "precio_ladder_crudo_json": [{"algo": 2, "dollarPrice": 4.5}],
+    })
+
+    fila = conexion.execute(
+        "SELECT precio_ladder_crudo_json FROM alibaba_comparables WHERE id = ?", (comparable_id,)
+    ).fetchone()
+    assert json.loads(fila[0]) == [{"algo": 2, "dollarPrice": 4.5}]
+
+
+def test_obtener_candidatos_pendientes_de_viabilidad_solo_trae_con_comparable():
+    conexion = _conexion_memoria()
+    id_pendiente = db.upsert_candidato_ml(conexion, {"url_ml": "https://ejemplo.test/1", "nombre": "A"})
+    db.actualizar_estado_candidato(conexion, id_pendiente, "con_comparable")
+    db.insertar_resultado_matching(conexion, id_pendiente, {
+        "id_ml": "MLA1", "categoria": "MATCH_ALTO", "motivo": "x",
+        "candidato_elegido": {"url_alibaba": "https://alibaba.test/y.html", "score_final": 0.9},
+        "candidatos_evaluados": [], "candidatos_rankeados": [],
+    })
+
+    id_otro_estado = db.upsert_candidato_ml(conexion, {"url_ml": "https://ejemplo.test/2", "nombre": "B"})
+    db.actualizar_estado_candidato(conexion, id_otro_estado, "descartado_sin_comparable")
+
+    pendientes = db.obtener_candidatos_pendientes_de_viabilidad(conexion)
+
+    assert len(pendientes) == 1
+    assert pendientes[0]["id"] == id_pendiente
+    assert pendientes[0]["ultimo_matching"]["categoria"] == "MATCH_ALTO"
+    assert pendientes[0]["ultimo_matching"]["url_alibaba_elegido"] == "https://alibaba.test/y.html"

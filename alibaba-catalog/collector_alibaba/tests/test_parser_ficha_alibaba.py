@@ -26,6 +26,8 @@ def test_parsear_ficha_alibaba_precio_unico_verificado():
     assert resultado["moneda"] == "USD"
     assert resultado["precio_no_verificado"] is False
     assert resultado["moq"] == "10 pieces"
+    assert resultado["moq_valor"] == 10
+    assert resultado["precio_ladder_crudo"] is None
     assert resultado["url_alibaba"] == "https://www.alibaba.com/product-detail/x_1601487795601.html"
 
 
@@ -77,3 +79,31 @@ def test_parsear_ficha_alibaba_con_rango_de_precio_no_adivina():
 
     assert resultado["precio_alibaba_50u"] is None
     assert resultado["precio_no_verificado"] is True
+
+
+def test_parsear_ficha_alibaba_guarda_escalones_crudos_sin_interpretarlos():
+    """
+    Si viene productLadderPrices, se guarda tal cual (evidencia para
+    reconstruir el cálculo después) -- no se intenta adivinar qué campo
+    indica la cantidad de cada escalón, sin evidencia real de su forma.
+    """
+    html = """
+    <script>
+    window.detailData = {"globalData": {"product": {
+        "productId": 999,
+        "moq": 2,
+        "customPrice": {"unitEven": "pieces"},
+        "price": {
+            "productRangePrices": {"dollarPriceRangeLow": 0.80, "dollarPriceRangeHigh": 4.50},
+            "productLadderPrices": [{"algunCampoDesconocido": 2, "dollarPrice": 4.50}, {"algunCampoDesconocido": 1000, "dollarPrice": 0.80}]
+        }
+    }}};
+    </script>
+    """
+    resultado = parsear_ficha_alibaba(html)
+
+    assert resultado["precio_alibaba_50u"] is None
+    assert resultado["precio_no_verificado"] is True
+    assert resultado["precio_ladder_crudo"] == [
+        {"algunCampoDesconocido": 2, "dollarPrice": 4.50}, {"algunCampoDesconocido": 1000, "dollarPrice": 0.80}
+    ]

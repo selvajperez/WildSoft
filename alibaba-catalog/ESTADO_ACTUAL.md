@@ -60,26 +60,34 @@ repositorio, misma carpeta, misma rama para las dos:
 
 ## 🚦 Próximo punto de entrada (leer esto primero)
 
-**Fase A (calibración dirigida por los 5 casos reales) y Fase B (corrida
-automática en lote) ya están implementadas y con tests -- lo que sigue es
-CORRER el lote real y revisar los resultados**, no escribir más código
-todavía.
+**Fase A (calibración), Fase B (corrida en lote de Match Mode) y Fase 3
+(filtro económico) ya están implementadas y con tests (260/260).** Falta
+una sola decisión de la usuaria antes de poder correr el filtro económico
+con datos reales: **el tipo de cambio USD/ARS a usar** (ver sección 10).
+El resto es correr el flujo real, no escribir más código.
 
 ```powershell
 cd alibaba-catalog\collector_alibaba
 python orquestador_matching_lote.py --login   # solo si hace falta loguearse de nuevo
-python orquestador_matching_lote.py           # 10 candidatos por default
+python orquestador_matching_lote.py           # Fase 2: Match Mode en lote, 10 candidatos por default
+
+python orquestador_filtro_economico.py --tipo-cambio <ARS por USD>   # Fase 3: filtro económico real
 ```
 
-Selecciona sola hasta 10 candidatos `demanda_confirmada` (variados por
-tipo de producto cuando es posible), abre un único Chrome para los 10,
-sigue adelante si un candidato puntual falla, y al final imprime un
-resumen con conteos por categoría y una lista de "dudosos" (MATCH_PROBABLE
-o candidatos vetados) para revisar a mano. Ver la sección "Fase B" más
-abajo para el detalle de diseño.
+`orquestador_matching_lote.py` selecciona sola hasta 10 candidatos
+`demanda_confirmada` (variados por tipo de producto cuando es posible),
+abre un único Chrome para los 10, sigue adelante si un candidato puntual
+falla, y al final imprime un resumen con conteos por categoría y una
+lista de "dudosos" (MATCH_PROBABLE o candidatos vetados) para revisar a
+mano. Ver la sección "Fase B" más abajo para el detalle de diseño.
 
-**No avanzar con el filtro económico (×2.5 / USD 10) hasta revisar los
-resultados de esta corrida en lote.**
+`orquestador_filtro_economico.py` toma todos los candidatos que quedaron
+en estado `con_comparable` (es decir, con un match de Alibaba ya elegido
+por Match Mode), abre la ficha de Alibaba de cada uno, calcula
+ratio/diferencia y guarda el resultado. **No tiene default de tipo de
+cambio** -- si hay candidatos en ARS y no se pasa `--tipo-cambio`, esos
+casos quedan en `indeterminado` en vez de asumir un valor. Ver sección 10
+para el detalle completo (reglas, esquema, limitaciones).
 
 **Nota operativa importante, encontrada durante la validación**: el perfil
 de Chrome (`.perfil_chrome_collector`) puede acumular "mala reputación"
@@ -631,23 +639,28 @@ mismo (regla explícita de la usuaria).
 
 En orden, cada uno bloqueado por el anterior:
 
-1. **🚦 Validación real de Match Mode con navegación en vivo** (ver
-   arriba) — el bloqueante actual.
-2. Calibrar pesos/umbrales/estrategias de query con los resultados de esa
-   validación.
-3. Si el diccionario de categorías/materiales resulta demasiado grueso en
-   la validación real (ver limitación en la sección 🚦), ampliarlo con
-   los términos que aparezcan en los casos reales — no antes, para no
-   ajustar a ciegas.
-4. Verificación de precio en cadena: para el comparable elegido por Match
-   Mode, guardar en `alibaba_comparables` (`db.insertar_comparable_alibaba`,
-   ya existe) — hoy Match Mode NO llena esa tabla, solo `matching_alibaba`.
-5. Filtro económico (×2.5 de markup, USD 10 de diferencia mínima) —
-   todavía sin implementar.
-6. Segunda etapa de análisis + shortlist final (`ESTADOS_CANDIDATO` ya
-   define `segunda_etapa`/`finalista`, sin lógica que los use todavía).
-7. Pendiente menor, no bloqueante: confirmar el caso de precio de Alibaba
-   con escalones por cantidad.
+1. ✅ Validación real de Match Mode con navegación en vivo (5 casos, ver
+   arriba) — cerrada.
+2. ✅ Fase A: calibración dirigida por esos 5 casos (identidad como
+   atributo esencial, etc.) — implementada, con regresión sobre los
+   casos reales.
+3. ✅ Fase B: corrida automática en lote — implementada, pendiente de
+   correr con datos reales a gran escala (no bloqueante para lo que
+   sigue).
+4. ✅ Filtro económico (Fase 3, ×2.5 / USD 10) — implementado con tests.
+   Ver sección 10. Pendiente: correrlo con datos reales, lo cual requiere
+   que la usuaria confirme el tipo de cambio USD/ARS.
+5. Segunda etapa de análisis + shortlist final (`ESTADOS_CANDIDATO` ya
+   define `segunda_etapa`/`finalista`, sin lógica que los use todavía) —
+   no empezada.
+6. Si el diccionario de categorías/materiales o de marcas locales resulta
+   demasiado grueso al correr con más datos reales, ampliarlo con los
+   términos que aparezcan — no antes, para no ajustar a ciegas.
+7. Pendiente menor, no bloqueante: si aparece evidencia real de un
+   producto de Alibaba con escalones de precio por cantidad
+   (`productLadderPrices`), confirmar el nombre real de los campos de
+   cantidad/precio por escalón (hoy solo se preserva el JSON crudo sin
+   interpretarlo — ver sección 10).
 
 ## 8. Decisiones técnicas importantes y por qué
 
@@ -706,16 +719,110 @@ En orden, cada uno bloqueado por el anterior:
 
 ## 9. Estado de los tests
 
-**232/232 tests pasan** (`pytest` desde la raíz de `alibaba-catalog/`).
+**260/260 tests pasan** (`pytest` desde la raíz de `alibaba-catalog/`).
 Incluye la validación real (5 casos reales, ver 🚦), la Fase A de
 calibración con regresión sobre esos 5 casos reales
 (`test_matcher_regresion_casos_reales.py`, usa scores de texto/imagen
-REALES ya medidos con CLIP, no fakes) y la Fase B
-(`test_orquestador_matching_lote.py`). El resto de los tests de matching
-usa embedders fake (deterministas, sin red).
+REALES ya medidos con CLIP, no fakes), la Fase B
+(`test_orquestador_matching_lote.py`) y la Fase 3 / filtro económico
+(`test_filtro_economico.py`, `test_orquestador_filtro_economico.py`, más
+los tests nuevos en `test_parser_ficha_alibaba.py` y
+`test_db_sourcing.py` — ver sección 10). El resto de los tests de
+matching usa embedders fake (deterministas, sin red).
 
 ```bash
 cd alibaba-catalog
 pip install -r requirements.txt   # trae numpy, sentence-transformers, Pillow (nuevo)
 pytest
 ```
+
+## 10. Fase 3 — Filtro económico (implementado, pendiente de una decisión de negocio)
+
+**Objetivo:** cerrar el flujo completo demanda real (ML) → match
+adecuado (Alibaba, Match Mode) → ¿vale la pena económicamente? Reglas de
+negocio dadas por la usuaria: relación mínima ×2.5 **y** diferencia
+mínima de USD 10 (las dos condiciones son obligatorias, confirmado con su
+propio ejemplo: Alibaba USD 4.20/u a 20u vs. ML USD 18 → ratio 4.29×,
+diferencia USD 13.80 → viable).
+
+### Archivos nuevos
+
+- `collector_alibaba/filtro_economico.py` — lógica pura, sin
+  navegación. `resolver_precio_alibaba(datos_ficha)` decide qué precio
+  de Alibaba usar (precio único ya verificado por el parser existente, o
+  "hay escalones pero no están confirmados" preservando el dato crudo, o
+  "no disponible") y `evaluar_viabilidad(...)` aplica las dos reglas y
+  devuelve un resultado con toda la evidencia (`ResultadoViabilidad`).
+- `collector_alibaba/orquestador_filtro_economico.py` — orquestador con
+  navegación real: toma los candidatos en estado `con_comparable`
+  (`db.obtener_candidatos_pendientes_de_viabilidad`, nueva), abre la
+  ficha de Alibaba elegida por Match Mode, parsea, evalúa viabilidad,
+  persiste evidencia completa y actualiza el estado del candidato. Reusa
+  `_abrir_pagina_alibaba`/`goto_seguro`/`esperar_entre_fichas` ya
+  existentes — ninguna infraestructura de navegación nueva.
+- Tests: `test_filtro_economico.py` (16, lógica pura) y
+  `test_orquestador_filtro_economico.py` (8, con navegación fake).
+
+### Decisiones tomadas
+
+- **Las dos reglas son AND, no OR** — un candidato con ratio alto pero
+  diferencia chica (o viceversa) es `no_viable`. Verificado con tests
+  específicos para cada combinación.
+- **`MATCH_PROBABLE` que pasa las reglas económicas no se descarta**:
+  queda como `viable_dudoso` (candidato sigue en `precio_verificado`,
+  para revisión), mientras que `MATCH_ALTO` que pasa las reglas queda
+  `viable`. Solo `MATCH_ALTO`/`MATCH_PROBABLE` entran al filtro —
+  cualquier otra categoría de Match Mode es `indeterminado`.
+- **Nunca se asume un valor cuando falta evidencia** (extiende la regla
+  ya usada en todo el proyecto): precio de Alibaba no verificado, ML sin
+  precio, moneda ARS sin tipo de cambio, o moneda desconocida → siempre
+  `indeterminado`, nunca `no_viable` ni un número inventado. Esto reusa
+  los estados que ya existían en `ESTADOS_CANDIDATO`
+  (`descartado_no_verificado` para "no pude verificar",
+  `descartado_filtro_economico` para "sí lo verifiqué y no es viable",
+  `precio_verificado` para los dos viables) — no hizo falta agregar
+  estados nuevos.
+- **El precio de Alibaba usado siempre lleva su cantidad asociada**
+  (`cantidad_asociada`/`moq_valor`), nunca un precio suelto sin saber a
+  qué escalón corresponde.
+- **Escalones de precio por cantidad (`productLadderPrices`) se
+  preservan crudos, sin interpretar**: el parser confirmó que el campo
+  real se llama así (visto en `globalDataKeys` del HTML real), pero
+  ningún producto real visto hasta ahora tenía escalones, así que no hay
+  evidencia real del nombre de los campos de cantidad/precio dentro de
+  cada escalón. En vez de adivinar esos nombres, se guarda la lista tal
+  cual llega (`precio_ladder_crudo`) y el caso se marca
+  `no_verificado`/`indeterminado` hasta que aparezca un caso real que
+  permita confirmar el esquema.
+- **Toda la evidencia queda en `alibaba_comparables`**, no solo el
+  resultado final: precio de Alibaba y su cantidad, fuente del precio,
+  escalones crudos (si los hay, como JSON), precio de ML original y su
+  moneda, tipo de cambio usado, precio de ML ya en USD, ratio,
+  diferencia, categoría de match y resultado/motivo de viabilidad. Se
+  puede reconstruir de dónde salió cualquier cálculo sin volver a
+  navegar.
+
+### 🔴 Decisión de negocio pendiente de la usuaria: tipo de cambio USD/ARS
+
+Este es el único punto que cumple su propio criterio de escalamiento ("si
+aparece una decisión de negocio importante que no pueda inferirse de las
+reglas actuales"): **el filtro económico necesita saber a cuántos ARS
+está el USD para convertir precios de ML que están en pesos**, y esa
+tasa no está en ninguna regla dada hasta ahora (blue, oficial, tarjeta,
+cripto, un promedio...). Por eso `orquestador_filtro_economico.py` NO
+tiene un valor default: si no se pasa `--tipo-cambio`, cualquier
+candidato con precio en ARS queda en `indeterminado` en vez de asumir
+algo. Falta que la usuaria diga qué tasa usar (y si eso puede cambiar de
+una corrida a otra, o si conviene fijarla en config).
+
+### Limitaciones conocidas que siguen abiertas
+
+- No se corrió todavía con datos reales de navegación — está probado con
+  fixtures/fakes deterministas, no con una ficha de Alibaba real que
+  tenga escalones de precio.
+- `proveedor`, `variante`, `dimensiones`, `peso_gramos` en
+  `alibaba_comparables` siguen sin poblarse — el parser nunca los
+  extrajo; es un hueco preexistente, no algo que esta fase debía cerrar.
+- El esquema real de `productLadderPrices` (nombres de campo de cantidad
+  y precio por escalón) sigue sin confirmar con evidencia real, como se
+  explicó arriba.

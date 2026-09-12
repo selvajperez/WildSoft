@@ -81,6 +81,25 @@ _MIGRACIONES_HISTORIAL_ML = {
     "rating": "ALTER TABLE historial_ml ADD COLUMN rating REAL",
 }
 
+# Filtro económico (Fase 3, ver filtro_economico.py): columnas agregadas
+# para dejar trazabilidad completa de cada cálculo de viabilidad -- nunca
+# alcanza con guardar solo el resultado final "viable"/"no_viable", hace
+# falta poder reconstruir de dónde salió (pedido explícito de la usuaria).
+_MIGRACIONES_ALIBABA_COMPARABLES = {
+    "cantidad_precio_alibaba": "ALTER TABLE alibaba_comparables ADD COLUMN cantidad_precio_alibaba INTEGER",
+    "fuente_precio": "ALTER TABLE alibaba_comparables ADD COLUMN fuente_precio TEXT",
+    "precio_ladder_crudo_json": "ALTER TABLE alibaba_comparables ADD COLUMN precio_ladder_crudo_json TEXT",
+    "precio_ml_original": "ALTER TABLE alibaba_comparables ADD COLUMN precio_ml_original REAL",
+    "moneda_ml_original": "ALTER TABLE alibaba_comparables ADD COLUMN moneda_ml_original TEXT",
+    "tipo_cambio_usado": "ALTER TABLE alibaba_comparables ADD COLUMN tipo_cambio_usado REAL",
+    "precio_ml_usd": "ALTER TABLE alibaba_comparables ADD COLUMN precio_ml_usd REAL",
+    "ratio": "ALTER TABLE alibaba_comparables ADD COLUMN ratio REAL",
+    "diferencia_usd": "ALTER TABLE alibaba_comparables ADD COLUMN diferencia_usd REAL",
+    "categoria_match": "ALTER TABLE alibaba_comparables ADD COLUMN categoria_match TEXT",
+    "resultado_viabilidad": "ALTER TABLE alibaba_comparables ADD COLUMN resultado_viabilidad TEXT",
+    "motivo_viabilidad": "ALTER TABLE alibaba_comparables ADD COLUMN motivo_viabilidad TEXT",
+}
+
 
 def _migrar_columnas(conexion: sqlite3.Connection, tabla: str, migraciones: dict[str, str]) -> None:
     columnas_existentes = {fila[1] for fila in conexion.execute(f"PRAGMA table_info({tabla})")}
@@ -163,6 +182,11 @@ CREATE TABLE IF NOT EXISTS alibaba_comparables (
 COLUMNAS_COMPARABLE_ALIBABA = [
     "url_alibaba", "proveedor", "variante", "moq", "precio_alibaba_50u", "moneda",
     "precio_no_verificado", "requiere_contacto_proveedor", "dimensiones", "peso_gramos",
+    # Filtro económico (Fase 3) -- ver filtro_economico.py y su docstring
+    # sobre por qué se guarda toda esta evidencia, no solo el resultado.
+    "cantidad_precio_alibaba", "fuente_precio", "precio_ladder_crudo_json",
+    "precio_ml_original", "moneda_ml_original", "tipo_cambio_usado", "precio_ml_usd",
+    "ratio", "diferencia_usd", "categoria_match", "resultado_viabilidad", "motivo_viabilidad",
 ]
 
 ESQUEMA_HISTORIAL_ML = """
@@ -218,6 +242,7 @@ def conectar(db_path: Path | str = DB_PATH_DEFAULT) -> sqlite3.Connection:
     _migrar_columnas(conexion, "productos_alibaba", _MIGRACIONES_PRODUCTOS)
     _migrar_columnas(conexion, "candidatos_ml", _MIGRACIONES_CANDIDATOS_ML)
     _migrar_columnas(conexion, "historial_ml", _MIGRACIONES_HISTORIAL_ML)
+    _migrar_columnas(conexion, "alibaba_comparables", _MIGRACIONES_ALIBABA_COMPARABLES)
     return conexion
 
 
@@ -337,10 +362,20 @@ def actualizar_estado_candidato(
 
 
 def insertar_comparable_alibaba(conexion: sqlite3.Connection, candidato_id: int, comparable: dict) -> int:
-    """Registra el producto de Alibaba elegido como comparable de un candidato de ML."""
+    """
+    Registra el producto de Alibaba elegido como comparable de un
+    candidato de ML, con el resultado completo del filtro económico (ver
+    filtro_economico.py) -- precios, conversión de moneda, ratio,
+    diferencia, y el motivo, para poder reconstruir cualquier cálculo
+    después. `precio_ladder_crudo_json` acepta un objeto Python (lo
+    serializa acá) o ya un string -- evidencia cruda de escalones de
+    precio que todavía no se puede interpretar con confianza.
+    """
     valores = {clave: comparable.get(clave) for clave in COLUMNAS_COMPARABLE_ALIBABA}
     valores["precio_no_verificado"] = bool(valores.get("precio_no_verificado"))
     valores["requiere_contacto_proveedor"] = bool(valores.get("requiere_contacto_proveedor"))
+    if valores.get("precio_ladder_crudo_json") is not None and not isinstance(valores["precio_ladder_crudo_json"], str):
+        valores["precio_ladder_crudo_json"] = json.dumps(valores["precio_ladder_crudo_json"], ensure_ascii=False)
     valores["candidato_id"] = candidato_id
     valores["fecha_verificado"] = datetime.now(timezone.utc).isoformat()
 
@@ -452,3 +487,22 @@ def obtener_historial_matching(conexion: sqlite3.Connection, candidato_id: int) 
     ).fetchall()
     conexion.row_factory = None
     return [_fila_matching_a_dict(fila) for fila in filas]
+
+
+def obtener_candidatos_pendientes_de_viabilidad(conexion: sqlite3.Connection) -> list[dict]:
+    """
+    Candidatos con un match adecuado ya encontrado por Match Mode
+    (`estado = con_comparable`) pero todavía sin evaluar por el filtro
+    económico (ver `filtro_economico.py`). Cada candidato viene con su
+    resultado de matching más reciente ya adjunto en `ultimo_matching`
+    (reusa `obtener_ultimo_matching`, no duplica la consulta) -- de ahí
+    sale la `categoria` (MATCH_ALTO/MATCH_PROBABLE) y la URL de Alibaba
+    a volver a abrir para leer el precio real.
+    """
+    conexion.row_factory = sqlite3.Row
+    filas = conexion.execute("SELECT * FROM candidatos_ml WHERE estado = 'con_comparable'").fetchall()
+    conexion.row_factory = None
+    candidatos = [dict(fila) for fila in filas]
+    for candidato in candidatos:
+        candidato["ultimo_matching"] = obtener_ultimo_matching(conexion, candidato["id"])
+    return candidatos

@@ -32,6 +32,17 @@ un producto de ML (confirmado con HTML real, producto 1601487795601):
     (`imageUrl.big/normal/small/thumb`). Se guarda la resolución `big` de
     cada foto en `imagenes` -- son fotos reales del proveedor, mejor
     insumo para similitud visual que la única miniatura del listado.
+
+**Filtro económico (Fase 3)**: `product.price.productLadderPrices` es el
+campo real (confirmado por su propio nombre en las `globalDataKeys` de
+varios módulos de la página, ej. `"product.price.productLadderPrices"`)
+que Alibaba usa para precios escalonados por cantidad -- pero el producto
+del fixture real (1601487795601) no tiene escalones (viene `None`/ausente
+ahí), así que todavía no hay evidencia real de la forma exacta de cada
+entrada (qué campo indica la cantidad de cada escalón). Por eso
+`precio_ladder_crudo` guarda la lista tal cual viene, sin interpretarla
+-- ver `filtro_economico.py`, que la deja como "no verificado" en vez de
+adivinar a qué escalón corresponde el precio buscado.
 """
 
 from __future__ import annotations
@@ -146,6 +157,8 @@ def parsear_ficha_alibaba(html: str, url: str | None = None) -> dict:
         "nombre_ficha": None,
         "atributos": {},
         "imagenes": [],
+        "moq_valor": None,
+        "precio_ladder_crudo": None,
     }
 
     data = extraer_detail_data(html)
@@ -154,7 +167,8 @@ def parsear_ficha_alibaba(html: str, url: str | None = None) -> dict:
 
     producto = data.get("globalData", {}).get("product", {})
     custom_price = producto.get("customPrice") or {}
-    rango_precio = (producto.get("price") or {}).get("productRangePrices") or {}
+    precio = producto.get("price") or {}
+    rango_precio = precio.get("productRangePrices") or {}
 
     resultado["nombre_ficha"] = producto.get("subject")
     resultado["atributos"] = _extraer_atributos(producto)
@@ -162,20 +176,24 @@ def parsear_ficha_alibaba(html: str, url: str | None = None) -> dict:
 
     moq = producto.get("moq") or producto.get("customsMoq")
     resultado["moq"] = f"{moq} {custom_price.get('unitEven', 'pieces')}" if moq else None
+    resultado["moq_valor"] = moq
 
     precio_bajo = rango_precio.get("dollarPriceRangeLow")
     precio_alto = rango_precio.get("dollarPriceRangeHigh")
 
     if precio_bajo is not None and precio_alto is not None and precio_bajo == precio_alto:
         # Precio único (sin escalones por cantidad): vale para cualquier
-        # cantidad, incluida ~50 unidades.
+        # cantidad, incluida el MOQ.
         resultado["precio_alibaba_50u"] = precio_bajo
         resultado["moneda"] = "USD"
         resultado["precio_no_verificado"] = False
     # Si precio_bajo != precio_alto, el producto tiene escalones de precio
     # por cantidad y todavía no confirmamos contra HTML real cuál campo
-    # indica el escalón exacto para ~50 unidades -- se deja
-    # precio_no_verificado=True a propósito en vez de adivinar cuál tramo
-    # corresponde.
+    # indica el escalón exacto -- se deja precio_no_verificado=True a
+    # propósito en vez de adivinar cuál tramo corresponde. Se guarda el
+    # escalonado crudo (si vino) para no perder la evidencia.
+    escalones = precio.get("productLadderPrices")
+    if escalones:
+        resultado["precio_ladder_crudo"] = escalones
 
     return resultado
