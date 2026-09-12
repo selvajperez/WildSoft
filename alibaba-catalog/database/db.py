@@ -92,6 +92,8 @@ _MIGRACIONES_ALIBABA_COMPARABLES = {
     "precio_ml_original": "ALTER TABLE alibaba_comparables ADD COLUMN precio_ml_original REAL",
     "moneda_ml_original": "ALTER TABLE alibaba_comparables ADD COLUMN moneda_ml_original TEXT",
     "tipo_cambio_usado": "ALTER TABLE alibaba_comparables ADD COLUMN tipo_cambio_usado REAL",
+    "tipo_cambio_fuente": "ALTER TABLE alibaba_comparables ADD COLUMN tipo_cambio_fuente TEXT",
+    "tipo_cambio_fecha_referencia": "ALTER TABLE alibaba_comparables ADD COLUMN tipo_cambio_fecha_referencia TEXT",
     "precio_ml_usd": "ALTER TABLE alibaba_comparables ADD COLUMN precio_ml_usd REAL",
     "ratio": "ALTER TABLE alibaba_comparables ADD COLUMN ratio REAL",
     "diferencia_usd": "ALTER TABLE alibaba_comparables ADD COLUMN diferencia_usd REAL",
@@ -185,7 +187,8 @@ COLUMNAS_COMPARABLE_ALIBABA = [
     # Filtro económico (Fase 3) -- ver filtro_economico.py y su docstring
     # sobre por qué se guarda toda esta evidencia, no solo el resultado.
     "cantidad_precio_alibaba", "fuente_precio", "precio_ladder_crudo_json",
-    "precio_ml_original", "moneda_ml_original", "tipo_cambio_usado", "precio_ml_usd",
+    "precio_ml_original", "moneda_ml_original", "tipo_cambio_usado",
+    "tipo_cambio_fuente", "tipo_cambio_fecha_referencia", "precio_ml_usd",
     "ratio", "diferencia_usd", "categoria_match", "resultado_viabilidad", "motivo_viabilidad",
 ]
 

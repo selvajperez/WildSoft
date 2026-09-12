@@ -147,6 +147,27 @@ def test_evaluar_viabilidad_convierte_ars_con_tipo_de_cambio_explicito():
     assert r.tipo_cambio_usado == 1000.0
 
 
+def test_evaluar_viabilidad_guarda_fuente_y_fecha_del_tipo_de_cambio():
+    """La procedencia del tipo de cambio (ej. dólar MEP) se conserva junto con el cálculo."""
+    precio_alibaba = PrecioAlibabaResuelto(4.20, 20, "precio_unico", False, "x")
+    r = evaluar_viabilidad(
+        precio_ml=18000.0, moneda_ml="ARS", categoria_match="MATCH_ALTO", precio_alibaba=precio_alibaba,
+        tipo_cambio_usd_ars=1000.0,
+        tipo_cambio_fuente="https://dolarapi.com/v1/dolares/bolsa",
+        tipo_cambio_fecha_referencia="2026-09-12T10:00:00.000Z",
+    )
+    assert r.resultado == "viable"
+    assert r.tipo_cambio_fuente == "https://dolarapi.com/v1/dolares/bolsa"
+    assert r.tipo_cambio_fecha_referencia == "2026-09-12T10:00:00.000Z"
+
+
+def test_evaluar_viabilidad_sin_fuente_de_tipo_de_cambio_queda_none():
+    precio_alibaba = PrecioAlibabaResuelto(4.20, 20, "precio_unico", False, "x")
+    r = evaluar_viabilidad(precio_ml=18.0, moneda_ml="USD", categoria_match="MATCH_ALTO", precio_alibaba=precio_alibaba)
+    assert r.tipo_cambio_fuente is None
+    assert r.tipo_cambio_fecha_referencia is None
+
+
 def test_evaluar_viabilidad_moneda_none_se_asume_ya_en_usd():
     precio_alibaba = PrecioAlibabaResuelto(4.20, 20, "precio_unico", False, "x")
     r = evaluar_viabilidad(precio_ml=18.0, moneda_ml=None, categoria_match="MATCH_ALTO", precio_alibaba=precio_alibaba)

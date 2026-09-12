@@ -18,15 +18,17 @@ sigue con el próximo candidato si uno falla (nunca corta todo el lote), y
 persiste cada resultado apenas termina (si se corta a mitad de camino, lo
 ya procesado no se pierde).
 
-**Tipo de cambio**: parámetro obligatorio en el punto de entrada real
-(`--tipo-cambio`, sin default) -- ver `filtro_economico.py`, es la
-decisión de negocio que la usuaria tiene que confirmar (oficial/MEP/blue/
-tarjeta), no algo que este módulo pueda asumir en silencio. Sin él, todo
-candidato con precio de ML en ARS queda `indeterminado` explícitamente.
+**Tipo de cambio**: dólar MEP (referencia elegida por la usuaria),
+consultado en vivo UNA vez por corrida vía `tipo_cambio.obtener_dolar_mep`
+-- nunca un valor fijo en el código, y puede variar de una corrida a la
+siguiente. El valor, la fuente y la fecha de referencia se guardan junto
+con cada cálculo (ver `database/db.py`). Si el MEP no está disponible o
+no se puede verificar, NO se cae a otra cotización -- todo candidato con
+precio de ML en ARS queda `indeterminado` explícitamente en esa corrida.
 
 Uso:
-    python orquestador_filtro_economico.py --tipo-cambio 1000
-    python orquestador_filtro_economico.py --tipo-cambio 1000 --login
+    python orquestador_filtro_economico.py
+    python orquestador_filtro_economico.py --login
 """
 
 from __future__ import annotations
@@ -57,7 +59,16 @@ from navegador_ml import (  # noqa: E402
 )
 from orquestador_matching import URL_ALIBABA_HOME, _abrir_pagina_alibaba  # noqa: E402
 from parser_ficha_alibaba import parsear_ficha_alibaba  # noqa: E402
+from tipo_cambio import TipoCambioResuelto, obtener_dolar_mep  # noqa: E402
 import db  # noqa: E402
+
+# Tipo de cambio "no disponible" explícito -- usado cuando no se pudo
+# consultar el dólar MEP en esta corrida, para no dejar el parámetro en
+# `None` suelto sin motivo (ver `tipo_cambio.py`).
+_TIPO_CAMBIO_NO_DISPONIBLE = TipoCambioResuelto(
+    valor=None, fuente=None, fecha_referencia=None, obtenido_en=None,
+    disponible=False, detalle="No se consultó ningún tipo de cambio en esta corrida.",
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -82,7 +93,7 @@ def procesar_candidato_viabilidad(
     candidato: dict,
     conexion,
     abrir_ficha: Callable[[str], str],
-    tipo_cambio_usd_ars: float | None,
+    tipo_cambio: TipoCambioResuelto = _TIPO_CAMBIO_NO_DISPONIBLE,
     ratio_minimo: float = RATIO_MINIMO_DEFAULT,
     diferencia_minima_usd: float = DIFERENCIA_MINIMA_USD_DEFAULT,
 ) -> dict:
@@ -91,6 +102,12 @@ def procesar_candidato_viabilidad(
     (ya trae `ultimo_matching` adjunto). `abrir_ficha(url) -> html` es
     inyectado para poder probar todo el flujo con HTML ya capturado, sin
     navegador real -- mismo patrón que `orquestador_matching.py`.
+
+    `tipo_cambio` se resuelve UNA vez por corrida completa (ver
+    `ejecutar_filtro_economico_real`), no por candidato -- todos los
+    candidatos de una misma corrida comparten el mismo valor/fuente/fecha
+    de referencia. Si `tipo_cambio.disponible` es `False`, cualquier
+    candidato en ARS queda `indeterminado` (no se asume ninguna tasa).
     """
     ultimo_matching = candidato.get("ultimo_matching") or {}
     categoria_match = ultimo_matching.get("categoria")
@@ -119,7 +136,9 @@ def procesar_candidato_viabilidad(
     resultado = evaluar_viabilidad(
         precio_ml=candidato.get("precio_ml"), moneda_ml=candidato.get("moneda_ml"),
         categoria_match=categoria_match, precio_alibaba=precio_resuelto,
-        tipo_cambio_usd_ars=tipo_cambio_usd_ars,
+        tipo_cambio_usd_ars=tipo_cambio.valor if tipo_cambio.disponible else None,
+        tipo_cambio_fuente=tipo_cambio.fuente if tipo_cambio.disponible else None,
+        tipo_cambio_fecha_referencia=tipo_cambio.fecha_referencia if tipo_cambio.disponible else None,
         ratio_minimo=ratio_minimo, diferencia_minima_usd=diferencia_minima_usd,
     )
 
@@ -135,6 +154,8 @@ def procesar_candidato_viabilidad(
         "precio_ml_original": resultado.precio_ml_original,
         "moneda_ml_original": resultado.moneda_ml,
         "tipo_cambio_usado": resultado.tipo_cambio_usado,
+        "tipo_cambio_fuente": resultado.tipo_cambio_fuente,
+        "tipo_cambio_fecha_referencia": resultado.tipo_cambio_fecha_referencia,
         "precio_ml_usd": resultado.precio_ml_usd,
         "ratio": resultado.ratio,
         "diferencia_usd": resultado.diferencia_usd,
@@ -177,20 +198,40 @@ def procesar_lote_viabilidad(candidatos: list[dict], conexion, procesar_uno: Cal
 
 
 def ejecutar_filtro_economico_real(
-    tipo_cambio_usd_ars: float | None,
     ratio_minimo: float = RATIO_MINIMO_DEFAULT,
     diferencia_minima_usd: float = DIFERENCIA_MINIMA_USD_DEFAULT,
     forzar_login: bool = False,
     delay_min: float = DELAY_MIN_SEG_DEFAULT,
     delay_max: float = DELAY_MAX_SEG_DEFAULT,
+    obtener_tipo_cambio: Callable[[], TipoCambioResuelto] = obtener_dolar_mep,
 ) -> list[dict]:
-    """Punto de entrada real: abre Chrome UNA vez, procesa todos los candidatos pendientes en orden."""
+    """
+    Punto de entrada real: abre Chrome UNA vez, procesa todos los
+    candidatos pendientes en orden. Consulta el dólar MEP UNA sola vez al
+    principio de la corrida (no hay tasa fija en el código, ver
+    `tipo_cambio.py`) -- todos los candidatos de esta corrida comparten
+    ese mismo valor/fuente/fecha. `obtener_tipo_cambio` es inyectable
+    para poder testear sin red real; en producción es siempre
+    `tipo_cambio.obtener_dolar_mep`.
+    """
     conexion = db.conectar()
     candidatos = db.obtener_candidatos_pendientes_de_viabilidad(conexion)
 
     if not candidatos:
         logger.warning("No hay ningún candidato con estado 'con_comparable' pendiente de evaluar.")
         return []
+
+    tipo_cambio = obtener_tipo_cambio()
+    if tipo_cambio.disponible:
+        logger.info(
+            "Tipo de cambio MEP: $%.2f (fuente %s, fecha de referencia %s, consultado %s).",
+            tipo_cambio.valor, tipo_cambio.fuente, tipo_cambio.fecha_referencia, tipo_cambio.obtenido_en,
+        )
+    else:
+        logger.warning(
+            "No se pudo obtener el dólar MEP en esta corrida (%s) -- los candidatos con precio de ML en "
+            "ARS quedarán 'indeterminado', no se asume ninguna otra cotización.", tipo_cambio.detalle,
+        )
 
     primera_vez = es_primera_vez()
 
@@ -208,7 +249,7 @@ def ejecutar_filtro_economico_real(
 
         def procesar_uno(candidato: dict) -> dict:
             return procesar_candidato_viabilidad(
-                candidato, conexion, abrir_ficha, tipo_cambio_usd_ars,
+                candidato, conexion, abrir_ficha, tipo_cambio,
                 ratio_minimo=ratio_minimo, diferencia_minima_usd=diferencia_minima_usd,
             )
 
@@ -221,11 +262,6 @@ def main() -> None:
     argparser = argparse.ArgumentParser(
         description="Filtro económico (Fase 3): evalúa viabilidad de importar cada candidato con match adecuado."
     )
-    argparser.add_argument(
-        "--tipo-cambio", type=float, default=None,
-        help="Tipo de cambio USD/ARS a usar para convertir precios de ML (obligatorio para candidatos en ARS -- "
-             "sin esto, esos candidatos quedan 'indeterminado' explícitamente, nunca se asume un valor).",
-    )
     argparser.add_argument("--ratio-minimo", type=float, default=RATIO_MINIMO_DEFAULT, help="Relación mínima ML/Alibaba (regla de negocio).")
     argparser.add_argument("--diferencia-minima", type=float, default=DIFERENCIA_MINIMA_USD_DEFAULT, help="Diferencia mínima en USD (regla de negocio).")
     argparser.add_argument("--login", action="store_true", help="Forzar el paso de login manual de nuevo.")
@@ -234,9 +270,8 @@ def main() -> None:
     args = argparser.parse_args()
 
     resultados = ejecutar_filtro_economico_real(
-        tipo_cambio_usd_ars=args.tipo_cambio, ratio_minimo=args.ratio_minimo,
-        diferencia_minima_usd=args.diferencia_minima, forzar_login=args.login,
-        delay_min=args.delay_min, delay_max=args.delay_max,
+        ratio_minimo=args.ratio_minimo, diferencia_minima_usd=args.diferencia_minima,
+        forzar_login=args.login, delay_min=args.delay_min, delay_max=args.delay_max,
     )
 
     print("=" * 70)

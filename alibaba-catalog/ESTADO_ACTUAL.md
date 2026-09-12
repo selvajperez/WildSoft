@@ -61,17 +61,26 @@ repositorio, misma carpeta, misma rama para las dos:
 ## 🚦 Próximo punto de entrada (leer esto primero)
 
 **Fase A (calibración), Fase B (corrida en lote de Match Mode) y Fase 3
-(filtro económico) ya están implementadas y con tests (260/260).** Falta
-una sola decisión de la usuaria antes de poder correr el filtro económico
-con datos reales: **el tipo de cambio USD/ARS a usar** (ver sección 10).
-El resto es correr el flujo real, no escribir más código.
+(filtro económico, ya con tipo de cambio MEP automático) están
+implementadas y con tests (269/269).** Ya no falta ninguna decisión de
+negocio para poder correr el filtro económico -- la usuaria confirmó
+dólar MEP como referencia (ver sección 10). **Lo que sigue es correr el
+flujo real, y eso lo tiene que hacer la usuaria/Local, no la sesión de
+Nube**: esta sesión no tiene navegador real (nunca lo tuvo) y además su
+propia política de red de sandbox bloquea salidas a internet en general
+(incluida `dolarapi.com`) -- lo comprobé al intentar probar el fetch del
+MEP en vivo desde acá. Ningún código de este proyecto se probó todavía
+contra la API real de dolarapi.com ni contra una ficha de Alibaba real
+con escalones de precio -- toda la cobertura de tests usa HTTP y HTML
+simulados.
 
 ```powershell
 cd alibaba-catalog\collector_alibaba
 python orquestador_matching_lote.py --login   # solo si hace falta loguearse de nuevo
 python orquestador_matching_lote.py           # Fase 2: Match Mode en lote, 10 candidatos por default
 
-python orquestador_filtro_economico.py --tipo-cambio <ARS por USD>   # Fase 3: filtro económico real
+python orquestador_filtro_economico.py        # Fase 3: filtro económico real, ya sin --tipo-cambio manual
+python orquestador_filtro_economico.py --login
 ```
 
 `orquestador_matching_lote.py` selecciona sola hasta 10 candidatos
@@ -83,11 +92,12 @@ mano. Ver la sección "Fase B" más abajo para el detalle de diseño.
 
 `orquestador_filtro_economico.py` toma todos los candidatos que quedaron
 en estado `con_comparable` (es decir, con un match de Alibaba ya elegido
-por Match Mode), abre la ficha de Alibaba de cada uno, calcula
-ratio/diferencia y guarda el resultado. **No tiene default de tipo de
-cambio** -- si hay candidatos en ARS y no se pasa `--tipo-cambio`, esos
-casos quedan en `indeterminado` en vez de asumir un valor. Ver sección 10
-para el detalle completo (reglas, esquema, limitaciones).
+por Match Mode), consulta el dólar MEP una vez al arrancar, abre la ficha
+de Alibaba de cada uno, calcula ratio/diferencia y guarda el resultado.
+**Ya no recibe el tipo de cambio por parámetro manual**: lo busca solo en
+cada corrida y, si no lo puede verificar, los candidatos en ARS quedan en
+`indeterminado` en vez de asumir un valor. Ver sección 10 para el detalle
+completo (reglas, esquema, limitaciones).
 
 **Nota operativa importante, encontrada durante la validación**: el perfil
 de Chrome (`.perfil_chrome_collector`) puede acumular "mala reputación"
@@ -647,9 +657,11 @@ En orden, cada uno bloqueado por el anterior:
 3. ✅ Fase B: corrida automática en lote — implementada, pendiente de
    correr con datos reales a gran escala (no bloqueante para lo que
    sigue).
-4. ✅ Filtro económico (Fase 3, ×2.5 / USD 10) — implementado con tests.
-   Ver sección 10. Pendiente: correrlo con datos reales, lo cual requiere
-   que la usuaria confirme el tipo de cambio USD/ARS.
+4. ✅ Filtro económico (Fase 3, ×2.5 / USD 10, tipo de cambio dólar MEP
+   automático) — implementado con tests, sin ninguna decisión de negocio
+   pendiente. Ver sección 10. Pendiente: correrlo con datos reales -- eso
+   solo lo puede hacer la usuaria/Local, esta sesión de Nube no tiene
+   acceso a un navegador real ni a internet en general.
 5. Segunda etapa de análisis + shortlist final (`ESTADOS_CANDIDATO` ya
    define `segunda_etapa`/`finalista`, sin lógica que los use todavía) —
    no empezada.
@@ -719,7 +731,7 @@ En orden, cada uno bloqueado por el anterior:
 
 ## 9. Estado de los tests
 
-**260/260 tests pasan** (`pytest` desde la raíz de `alibaba-catalog/`).
+**269/269 tests pasan** (`pytest` desde la raíz de `alibaba-catalog/`).
 Incluye la validación real (5 casos reales, ver 🚦), la Fase A de
 calibración con regresión sobre esos 5 casos reales
 (`test_matcher_regresion_casos_reales.py`, usa scores de texto/imagen
@@ -802,24 +814,62 @@ diferencia USD 13.80 → viable).
   puede reconstruir de dónde salió cualquier cálculo sin volver a
   navegar.
 
-### 🔴 Decisión de negocio pendiente de la usuaria: tipo de cambio USD/ARS
+### ✅ Decisión de negocio resuelta: dólar MEP, consultado en vivo en cada corrida
 
-Este es el único punto que cumple su propio criterio de escalamiento ("si
-aparece una decisión de negocio importante que no pueda inferirse de las
-reglas actuales"): **el filtro económico necesita saber a cuántos ARS
-está el USD para convertir precios de ML que están en pesos**, y esa
-tasa no está en ninguna regla dada hasta ahora (blue, oficial, tarjeta,
-cripto, un promedio...). Por eso `orquestador_filtro_economico.py` NO
-tiene un valor default: si no se pasa `--tipo-cambio`, cualquier
-candidato con precio en ARS queda en `indeterminado` en vez de asumir
-algo. Falta que la usuaria diga qué tasa usar (y si eso puede cambiar de
-una corrida a otra, o si conviene fijarla en config).
+La usuaria confirmó **dólar MEP** como referencia (2026-09-12), con estos
+requisitos explícitos, todos implementados:
+
+- **Puede variar entre corridas** -- `collector_alibaba/tipo_cambio.py`
+  (`obtener_dolar_mep()`) consulta `https://dolarapi.com/v1/dolares/bolsa`
+  (cotización de venta) en vivo cada vez que se llama. No hay ningún
+  valor numérico hardcodeado en el código.
+- **Se consulta UNA vez por corrida completa** (no por candidato) en
+  `ejecutar_filtro_economico_real` -- todos los candidatos de una misma
+  corrida comparten el mismo valor/fuente/fecha, evitando mezclar tasas
+  distintas dentro de un mismo lote.
+- **Queda guardado junto con cada cálculo**: `alibaba_comparables` ahora
+  tiene `tipo_cambio_usado` (valor), `tipo_cambio_fuente` (URL de la
+  API) y `tipo_cambio_fecha_referencia` (fecha que la propia fuente
+  reporta para ese valor, distinta de `obtenido_en` que es cuándo MUTE la
+  consultó).
+- **Sin fallback silencioso a otra cotización**: si `dolarapi.com` no
+  responde, responde con error, o la respuesta no tiene un valor de venta
+  interpretable, `TipoCambioResuelto.disponible=False` explícito -- nunca
+  se prueba con oficial/blue/tarjeta como "mejor que nada". Con
+  `disponible=False`, cualquier candidato con precio de ML en ARS queda
+  `indeterminado` en esa corrida (los candidatos en USD no se ven
+  afectados, no necesitan tipo de cambio).
+- **La API se eligió por practicidad** (dolarapi.com es pública, sin
+  clave, y expone `bolsa` como el nombre que usa para MEP) -- no hay
+  ninguna decisión de negocio nueva escondida ahí, es solo la fuente
+  técnica del dato que la usuaria ya definió.
+
+### 🔴 Limitación nueva descubierta al implementar esto: esta sesión (Nube) no puede verificarlo con datos reales
+
+Al intentar probar `obtener_dolar_mep()` contra la API real desde esta
+sesión en la nube, la conexión fue rechazada por la política de red del
+propio sandbox de esta sesión (permite solo un puñado de hosts de
+infraestructura -- GitHub, PyPI, npm -- y bloquea internet en general,
+incluido `dolarapi.com`; se confirmó que hasta `google.com` está
+bloqueado). Esto es independiente del problema de siempre (esta sesión
+tampoco tiene un navegador real para Alibaba/CAPTCHA) -- son dos
+bloqueos distintos que coinciden en el mismo lugar: **la corrida real
+del filtro económico (`orquestador_filtro_economico.py` sin mockear) solo
+se puede hacer desde la máquina de la usuaria, nunca desde esta sesión de
+Nube.** Todo lo demás (armar el módulo, la integración, el esquema, los
+269 tests) sí se hizo y se probó acá, con HTTP y HTML simulados -- ver
+`test_tipo_cambio.py` para la cobertura de `obtener_dolar_mep` (éxito,
+error de red, HTTP 4xx/5xx, respuesta sin campo `venta`, valor no
+numérico o ≤0 -- en todos los casos de falla se verifica que nunca se
+reintenta contra otra fuente).
 
 ### Limitaciones conocidas que siguen abiertas
 
-- No se corrió todavía con datos reales de navegación — está probado con
-  fixtures/fakes deterministas, no con una ficha de Alibaba real que
-  tenga escalones de precio.
+- No se corrió todavía con datos reales de navegación ni contra la API
+  real de dólar MEP — está probado con fixtures/fakes deterministas, no
+  con una corrida real completa. Ver limitación de arriba.
+- No se validó con una ficha de Alibaba real que tenga escalones de
+  precio.
 - `proveedor`, `variante`, `dimensiones`, `peso_gramos` en
   `alibaba_comparables` siguen sin poblarse — el parser nunca los
   extrajo; es un hueco preexistente, no algo que esta fase debía cerrar.

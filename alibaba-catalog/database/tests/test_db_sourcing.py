@@ -229,6 +229,28 @@ def test_insertar_comparable_alibaba_guarda_evidencia_del_filtro_economico():
     assert fila == ("viable", 4.2857, 13.80, 20, None)
 
 
+def test_insertar_comparable_alibaba_guarda_procedencia_del_tipo_de_cambio():
+    """La fuente y la fecha de referencia del tipo de cambio (ej. dólar MEP) quedan junto al cálculo."""
+    conexion = _conexion_memoria()
+    candidato_id = db.upsert_candidato_ml(conexion, {"url_ml": "https://ejemplo.test/1", "nombre": "Cepillo"})
+
+    comparable_id = db.insertar_comparable_alibaba(conexion, candidato_id, {
+        "url_alibaba": "https://alibaba.test/x.html",
+        "precio_ml_original": 18000.0,
+        "moneda_ml_original": "ARS",
+        "tipo_cambio_usado": 1000.0,
+        "tipo_cambio_fuente": "https://dolarapi.com/v1/dolares/bolsa",
+        "tipo_cambio_fecha_referencia": "2026-09-12T10:00:00.000Z",
+        "resultado_viabilidad": "viable",
+    })
+
+    fila = conexion.execute(
+        "SELECT tipo_cambio_usado, tipo_cambio_fuente, tipo_cambio_fecha_referencia "
+        "FROM alibaba_comparables WHERE id = ?", (comparable_id,),
+    ).fetchone()
+    assert fila == (1000.0, "https://dolarapi.com/v1/dolares/bolsa", "2026-09-12T10:00:00.000Z")
+
+
 def test_insertar_comparable_alibaba_serializa_precio_ladder_crudo():
     conexion = _conexion_memoria()
     candidato_id = db.upsert_candidato_ml(conexion, {"url_ml": "https://ejemplo.test/1", "nombre": "Cepillo"})

@@ -1,7 +1,22 @@
 import json
 
 import db
-from orquestador_filtro_economico import procesar_candidato_viabilidad, procesar_lote_viabilidad
+from orquestador_filtro_economico import (
+    ejecutar_filtro_economico_real,
+    procesar_candidato_viabilidad,
+    procesar_lote_viabilidad,
+)
+from tipo_cambio import TipoCambioResuelto
+
+_MEP_DISPONIBLE = TipoCambioResuelto(
+    valor=1000.0, fuente="https://dolarapi.com/v1/dolares/bolsa",
+    fecha_referencia="2026-09-12T10:00:00.000Z", obtenido_en="2026-09-12T10:05:00+00:00",
+    disponible=True, detalle="ok",
+)
+_MEP_NO_DISPONIBLE = TipoCambioResuelto(
+    valor=None, fuente=None, fecha_referencia=None, obtenido_en="2026-09-12T10:05:00+00:00",
+    disponible=False, detalle="No se pudo consultar el dólar MEP: timeout.",
+)
 
 
 def _conexion_memoria():
@@ -48,7 +63,7 @@ def test_procesar_candidato_viabilidad_match_alto_viable():
     def abrir_ficha(url):
         return _html_ficha_alibaba(precio=4.20, moq=20)
 
-    resultado = procesar_candidato_viabilidad(candidato, conexion, abrir_ficha, tipo_cambio_usd_ars=None)
+    resultado = procesar_candidato_viabilidad(candidato, conexion, abrir_ficha, _MEP_NO_DISPONIBLE)
 
     assert resultado["resultado"] == "viable"
     assert resultado["ratio"] > 2.5
@@ -64,7 +79,7 @@ def test_procesar_candidato_viabilidad_match_probable_pasa_reglas_es_viable_dudo
     def abrir_ficha(url):
         return _html_ficha_alibaba(precio=4.20, moq=20)
 
-    resultado = procesar_candidato_viabilidad(candidato, conexion, abrir_ficha, tipo_cambio_usd_ars=None)
+    resultado = procesar_candidato_viabilidad(candidato, conexion, abrir_ficha, _MEP_NO_DISPONIBLE)
 
     assert resultado["resultado"] == "viable_dudoso"
     fila = db.obtener_candidato_por_url(conexion, candidato["url_ml"])
@@ -78,7 +93,7 @@ def test_procesar_candidato_viabilidad_no_alcanza_reglas_es_no_viable():
     def abrir_ficha(url):
         return _html_ficha_alibaba(precio=4.20, moq=20)
 
-    resultado = procesar_candidato_viabilidad(candidato, conexion, abrir_ficha, tipo_cambio_usd_ars=None)
+    resultado = procesar_candidato_viabilidad(candidato, conexion, abrir_ficha, _MEP_NO_DISPONIBLE)
 
     assert resultado["resultado"] == "no_viable"
     fila = db.obtener_candidato_por_url(conexion, candidato["url_ml"])
@@ -92,23 +107,32 @@ def test_procesar_candidato_viabilidad_precio_ars_sin_tipo_de_cambio_es_indeterm
     def abrir_ficha(url):
         return _html_ficha_alibaba(precio=4.20, moq=20)
 
-    resultado = procesar_candidato_viabilidad(candidato, conexion, abrir_ficha, tipo_cambio_usd_ars=None)
+    resultado = procesar_candidato_viabilidad(candidato, conexion, abrir_ficha, _MEP_NO_DISPONIBLE)
 
     assert resultado["resultado"] == "indeterminado"
     fila = db.obtener_candidato_por_url(conexion, candidato["url_ml"])
     assert fila["estado"] == "descartado_no_verificado"
 
 
-def test_procesar_candidato_viabilidad_convierte_ars_con_tipo_de_cambio():
+def test_procesar_candidato_viabilidad_convierte_ars_con_dolar_mep_y_guarda_su_procedencia():
     conexion = _conexion_memoria()
     candidato = _candidato_pendiente(conexion, precio_ml=18000.0, moneda_ml="ARS", categoria_match="MATCH_ALTO")
 
     def abrir_ficha(url):
         return _html_ficha_alibaba(precio=4.20, moq=20)
 
-    resultado = procesar_candidato_viabilidad(candidato, conexion, abrir_ficha, tipo_cambio_usd_ars=1000.0)
+    resultado = procesar_candidato_viabilidad(candidato, conexion, abrir_ficha, _MEP_DISPONIBLE)
 
     assert resultado["resultado"] == "viable"
+
+    fila = conexion.execute(
+        "SELECT tipo_cambio_usado, tipo_cambio_fuente, tipo_cambio_fecha_referencia "
+        "FROM alibaba_comparables WHERE candidato_id = ?",
+        (candidato["id"],),
+    ).fetchone()
+    assert fila[0] == 1000.0
+    assert fila[1] == "https://dolarapi.com/v1/dolares/bolsa"
+    assert fila[2] == "2026-09-12T10:00:00.000Z"
 
 
 def test_procesar_candidato_viabilidad_guarda_evidencia_completa_en_alibaba_comparables():
@@ -118,7 +142,7 @@ def test_procesar_candidato_viabilidad_guarda_evidencia_completa_en_alibaba_comp
     def abrir_ficha(url):
         return _html_ficha_alibaba(precio=4.20, moq=20)
 
-    procesar_candidato_viabilidad(candidato, conexion, abrir_ficha, tipo_cambio_usd_ars=None)
+    procesar_candidato_viabilidad(candidato, conexion, abrir_ficha, _MEP_NO_DISPONIBLE)
 
     fila = conexion.execute(
         "SELECT precio_alibaba_50u, cantidad_precio_alibaba, ratio, diferencia_usd, resultado_viabilidad, "
@@ -143,7 +167,7 @@ def test_procesar_candidato_viabilidad_sin_url_alibaba_no_intenta_abrir_ficha():
     def abrir_ficha(url):
         raise AssertionError("no debería intentar abrir ninguna ficha")
 
-    resultado = procesar_candidato_viabilidad(candidato, conexion, abrir_ficha, tipo_cambio_usd_ars=None)
+    resultado = procesar_candidato_viabilidad(candidato, conexion, abrir_ficha, _MEP_NO_DISPONIBLE)
     assert resultado["resultado"] == "indeterminado"
 
 

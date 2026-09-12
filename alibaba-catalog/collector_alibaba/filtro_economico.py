@@ -28,10 +28,11 @@ resultado es `indeterminado`, nunca "no viable" ni "viable" adivinado.
 **Conversión de moneda**: el precio de Mercado Libre normalmente está en
 ARS, el de Alibaba en USD -- hace falta convertir para poder comparar.
 El tipo de cambio (`tipo_cambio_usd_ars`) es un parámetro explícito, NO
-un valor hardcodeado acá: la usuaria decide qué tipo de cambio usar
-(oficial/MEP/blue/tarjeta) y puede cambiar de un día para el otro -- ver
-ESTADO_ACTUAL.md, es la decisión de negocio que quedó pendiente de su
-confirmación.
+un valor hardcodeado acá. Referencia elegida por la usuaria: dólar MEP,
+consultado en vivo en cada corrida por `tipo_cambio.obtener_dolar_mep`
+(ver ese módulo) -- este archivo no sabe de dónde salió el número, solo
+lo recibe junto con su procedencia (`tipo_cambio_fuente`,
+`tipo_cambio_fecha_referencia`) para poder guardarla como evidencia.
 
 **Trazabilidad completa** (pedido explícito -- "no quiero que quede
 solamente el resultado 'viable', quiero conservar la evidencia útil"):
@@ -81,6 +82,8 @@ class ResultadoViabilidad:
     precio_ml_original: float | None
     moneda_ml: str | None
     tipo_cambio_usado: float | None
+    tipo_cambio_fuente: str | None
+    tipo_cambio_fecha_referencia: str | None
     precio_ml_usd: float | None
     precio_alibaba_usd: float | None
     cantidad_alibaba: int | None
@@ -153,6 +156,8 @@ def evaluar_viabilidad(
     categoria_match: str | None,
     precio_alibaba: PrecioAlibabaResuelto,
     tipo_cambio_usd_ars: float | None = None,
+    tipo_cambio_fuente: str | None = None,
+    tipo_cambio_fecha_referencia: str | None = None,
     ratio_minimo: float = RATIO_MINIMO_DEFAULT,
     diferencia_minima_usd: float = DIFERENCIA_MINIMA_USD_DEFAULT,
 ) -> ResultadoViabilidad:
@@ -162,12 +167,19 @@ def evaluar_viabilidad(
     tira una excepción por datos faltantes -- siempre devuelve un
     `ResultadoViabilidad` con motivo explícito, `indeterminado` cuando no
     hay evidencia suficiente para decidir viable/no_viable con confianza.
+
+    `tipo_cambio_fuente`/`tipo_cambio_fecha_referencia` son solo para
+    trazabilidad (de dónde salió `tipo_cambio_usd_ars`, ej. dólar MEP) --
+    esta función no valida ni interpreta esos dos, solo los guarda en el
+    resultado tal cual llegan.
     """
     base = dict(
         categoria_match=categoria_match,
         precio_ml_original=precio_ml,
         moneda_ml=moneda_ml,
         tipo_cambio_usado=tipo_cambio_usd_ars,
+        tipo_cambio_fuente=tipo_cambio_fuente,
+        tipo_cambio_fecha_referencia=tipo_cambio_fecha_referencia,
         precio_alibaba_usd=precio_alibaba.precio_usd,
         cantidad_alibaba=precio_alibaba.cantidad_asociada,
         fuente_precio_alibaba=precio_alibaba.fuente,
