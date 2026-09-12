@@ -1,9 +1,163 @@
 # Estado actual del motor de sourcing MUTE (ML ↔ Alibaba)
 
-> Última actualización: sesión del 2026-09-11 (implementación de Match
-> Mode). Este documento es el punto de entrada para retomar el proyecto —
-> no hace falta leer todo el historial de `README.md` para saber dónde
-> estamos parados.
+> Última actualización: sesión del 2026-09-12 (Nube, primera corrida real
+> pedida por la usuaria de forma autónoma -- ver "🆕 2026-09-12 (sesión
+> Nube, corrida real autónoma)" más abajo, justo después de esta
+> introducción, para el resultado). Este documento es el punto de entrada
+> para retomar el proyecto -- no hace falta leer todo el historial de
+> `README.md` para saber dónde estamos parados.
+
+## 🆕 2026-09-12 (sesión Nube, corrida real autónoma) -- primer resultado real, con un hallazgo nuevo y bloqueante
+
+Esta sesión de Nube ejecutó, de punta a punta y sin intervención humana
+salvo para leer el resultado, la corrida real que quedaba pendiente desde
+la sesión anterior. Resultado corto: **el tipo de cambio (dólar MEP) ya
+funciona de verdad en Nube -- primera confirmación real de la historia del
+proyecto** -- pero **la navegación real (Fase 1 ML, Fase 2 Alibaba, y la
+parte de navegación de Fase 3) sigue completamente bloqueada en Nube, por
+una causa nueva y distinta de las ya documentadas** (no es la política de
+red "Trusted" de antes, ni CAPTCHA/login). Detalle completo:
+
+### Verificado con `get_session`: esta sesión corrió en el entorno "Default" (`env_01Rjaq5CzyeCszVx72o4n6X7`)
+
+No en "WildSoft". La usuaria indicó al arrancar esta sesión que "Default ya
+está configurado con Full Network y setup de Python/Playwright" -- y así
+fue: se confirmó acceso real a internet general desde Default (ver abajo),
+algo que en la sesión del 2026-09-12 anterior todavía no estaba resuelto
+para ese entorno. O sea, **la solución terminó siendo reconfigurar
+"Default" con acceso Full, no depender de un segundo entorno "WildSoft"
+separado** -- probablemente ya no hace falta mantener esa distinción en
+adelante, aunque esta sesión no tocó la configuración de ningún entorno
+(la usuaria pidió explícitamente no volver a investigar entornos/proxies
+salvo que algo fallara).
+
+### ✅ Confirmado con datos reales: `obtener_dolar_mep()` funciona contra la API real
+
+```
+TipoCambioResuelto(valor=1539.9, fuente='https://dolarapi.com/v1/dolares/bolsa',
+fecha_referencia='2026-09-12T14:57:00.000Z',
+obtenido_en='2026-09-12T15:14:42.432026+00:00', disponible=True, ...)
+```
+
+Sin mockear nada -- acceso real a `dolarapi.com` desde Nube, algo que en
+todas las sesiones anteriores había estado bloqueado por política de red.
+Esto cierra, en el entorno "Default" reconfigurado, la limitación descrita
+arriba en "Nube tiene dos variantes de entorno" (sección ahora parcialmente
+obsoleta: ya no hace falta elegir "WildSoft" a mano si "Default" tiene Full
+Network).
+
+### ✅ Confirmado: Playwright puede instalar y lanzar tanto Chromium como Chrome real
+
+`python3 -m playwright install --with-deps chromium` y, por separado,
+`python3 -m playwright install chrome` (necesario porque
+`navegador_ml.navegador_persistente` pide explícitamente `channel="chrome"`,
+no el Chromium genérico) terminaron sin error, con acceso real a la red
+para descargar los binarios. El navegador headless lanza sin problema.
+
+### 🔴 Hallazgo nuevo y bloqueante: el proxy de salida de esta sesión no completa el handshake TLS de un navegador Chrome/Chromium, aunque sí funciona para clientes HTTP normales
+
+Con acceso Full a la red confirmado (el fetch de `requests` a `dolarapi.com`
+funciona), **cualquier navegación real de Playwright -- headless o headed,
+con Chromium genérico o con Chrome real, con o sin proxy explícito en el
+código -- falla siempre con `net::ERR_CONNECTION_RESET`**, contra
+cualquier dominio probado: `example.com`, `www.google.com`, y el dominio
+real del proyecto, `listado.mercadolibre.com.ar` (confirmado corriendo el
+propio `orquestador_demanda_ml.py "cepillo electrico" --objetivo 1
+--max-fichas 3` real, bajo `xvfb-run` porque `navegador_persistente`
+lanza headed por default y esta sesión no tiene servidor X -- ver nota
+operativa abajo). **Nunca llega a cargar ninguna página real de ningún
+sitio** -- no es el bloqueo de tráfico sospechoso ni el CAPTCHA ya
+conocidos de ML/Alibaba, es anterior a eso: el navegador no logra
+completar ni una sola conexión HTTPS.
+
+**Diagnóstico hecho** (`curl -sS "$HTTPS_PROXY/__agentproxy/status"`,
+según indica `/root/.ccr/README.md`): el proxy de salida de esta sesión
+(`http://127.0.0.1:46017`, un túnel HTTP CONNECT hacia un proxy de egreso
+remoto vía WebSocket) reporta el mismo patrón exacto para los tres
+dominios probados -- `recentRelayFailures` con `kind:
+"ws_closed_mid_exchange"`, túnel cerrado a los **6 segundos exactos**,
+habiendo enviado ~1700-2000 bytes (el ClientHello TLS de Chrome/Chromium,
+más grande que el de un cliente normal) y recibido solo **39 bytes** antes
+del cierre. El mismo patrón se repite igual para `example.com` (dominio
+inofensivo, sin relación con ML/Alibaba) que para el dominio real de
+Mercado Libre -- **descarta que sea un bloqueo de política por dominio**
+(eso daría 403/407 inmediato, no un reset a los 6s) y apunta a una
+incompatibilidad a nivel de negociación TLS entre el stack de Chrome/
+Chromium (BoringSSL) y la terminación TLS del proxy de egreso de esta
+sesión en particular.
+
+**Se probó (y descartó) como causa controlable desde el código del
+proyecto**:
+- Pasar `proxy={"server": "http://127.0.0.1:46017"}` explícito en el
+  `launch` de Playwright (mismo resultado que dejarlo tomar la variable de
+  entorno `HTTPS_PROXY` sola).
+- Deshabilitar QUIC, HTTP/2, Encrypted Client Hello (ECH) y los grupos
+  post-cuánticos (`X25519Kyber768`/`MLKEM`) vía flags de Chromium.
+- Forzar TLS máximo 1.2 (`--ssl-version-max=tls1.2`).
+- Usar Chrome real (`channel="chrome"`) en vez de Chromium genérico --
+  falla exactamente igual, confirma que no es un problema de una
+  distribución en particular sino del stack TLS que ambas comparten.
+
+Ninguna de estas variantes cambió el resultado -- la falla está en una capa
+que no se controla desde `playwright.launch(...)` ni desde el código de
+este proyecto. **Un cliente HTTP simple (`requests`, `curl`) sí completa
+HTTPS sin problema contra el mismo proxy** (así se confirmó el dólar MEP
+arriba) -- el Full Network de esta sesión funciona genuinamente para ese
+tipo de cliente, pero no para un navegador real Chrome/Chromium.
+
+### Qué significa esto para el proyecto, en términos concretos
+
+Responde directamente la pregunta de la consigna ("cuánto del flujo puede
+completarse sin intervención humana", corrida real, no simulada):
+
+- **Tipo de cambio (parte no-navegación de Fase 3)**: ✅ 100% autónomo,
+  confirmado con dato real.
+- **Fase 1 (demanda real en ML), Fase 2 (Match Mode contra Alibaba), y la
+  parte de navegación de Fase 3 (abrir la ficha de Alibaba elegida)**: ❌
+  0% ejecutable en esta sesión de Nube -- se cae antes incluso de llegar a
+  la pantalla de login/CAPTCHA de ML o Alibaba, por el bloqueo de TLS de
+  arriba. No es un caso de "hace falta que Selva resuelva un CAPTCHA": el
+  navegador nunca llega a mostrarle nada a nadie, revienta en la conexión.
+- Tampoco hay nada que retomar de corridas anteriores dentro de esta
+  sesión: no existe `catalogo_alibaba.db` ni `.perfil_chrome_collector`
+  acá (ambos gitignorados, viven solo en la máquina de Selva/Local, como
+  corresponde al diseño) -- aunque la navegación hubiera funcionado, esta
+  sesión habría arrancado de cero en Fase 1, sin ningún candidato
+  `demanda_confirmada` previo y sin sesión logueada.
+- **Conclusión operativa**: la navegación real contra ML/Alibaba sigue
+  siendo, en la práctica, exclusiva de Local -- no porque la regla de
+  diseño lo exija por precaución, sino porque **ahora hay evidencia directa
+  de que ni siquiera con Full Network una sesión de Nube (en este entorno,
+  al menos) puede completar una conexión HTTPS con un navegador real**.
+  Si se quiere seguir insistiendo en correr esto desde Nube en el futuro,
+  el problema a resolver no es de código de este proyecto ni de elegir
+  bien el entorno -- es de compatibilidad TLS del proxy de salida de la
+  sesión con clientes tipo Chrome/Chromium, y eso está fuera del alcance de
+  lo que una sesión de Claude Code puede arreglar desde adentro.
+
+### Nota operativa nueva, sin relación con el bloqueo de arriba: hace falta `xvfb-run` en un sandbox sin pantalla
+
+`navegador_ml.navegador_persistente` lanza con `headless=False` por
+default (pensado para la máquina de Selva, que sí tiene pantalla). En un
+sandbox de Nube sin servidor X, eso tira `Missing X server or $DISPLAY` --
+se resolvió corriendo el script bajo `xvfb-run -a` (ya viene instalado
+junto con las dependencias de sistema de `playwright install --with-deps`,
+sin paso adicional). No es un bug del proyecto -- es esperable que un
+script pensado para uso interactivo local necesite esto en un entorno
+sin pantalla. Documentado acá por si una futura sesión de Nube lo vuelve a
+necesitar.
+
+### Nota operativa nueva: `pytest` del sandbox no ve las dependencias del proyecto
+
+El `pytest` preinstalado en este sandbox corre bajo su propio intérprete
+aislado (`uv tool`, en `/root/.local/share/uv/tools/pytest/...`), separado
+del `python3` del sistema donde se instalaron las dependencias del
+proyecto (`pip install --break-system-packages -r requirements.txt`).
+Correr `pytest` a secas da `ModuleNotFoundError` en la colección de tests
+(no es un fallo real del proyecto). Solución: instalar pytest también en
+el intérprete de sistema (`python3 -m pip install --break-system-packages
+pytest`) y correr `python3 -m pytest` en vez de `pytest` a secas.
+**269/269 tests siguen pasando**, sin cambios de código en esta sesión.
 
 ## 👥 Cómo se organiza el trabajo (Nube / Local / Selva)
 
@@ -135,6 +289,19 @@ repositorio, misma carpeta, misma rama para las dos:
   leer este archivo completo antes de tocar código.
 
 ## 🚦 Próximo punto de entrada (leer esto primero)
+
+> **Actualización 2026-09-12 (posterior a todo lo de abajo): la corrida
+> real pendiente se ejecutó.** Ver "🆕 2026-09-12 (sesión Nube, corrida
+> real autónoma)" al principio del archivo para el resultado completo. En
+> corto: el dólar MEP ya funciona en vivo desde Nube (entorno "Default"
+> reconfigurado con Full Network), pero se encontró un bloqueo nuevo y más
+> profundo que el ya documentado abajo -- el proxy de salida de la sesión
+> no completa el handshake TLS de un navegador Chrome/Chromium contra
+> ningún dominio (ni siquiera `example.com`), así que Fase 1/2 y la
+> navegación de Fase 3 siguen sin poder correr desde Nube, ahora con causa
+> confirmada en vez de sospechada. El resto de esta sección describe el
+> estado *antes* de esa corrida -- se deja sin reescribir como registro
+> histórico de cómo se llegó hasta acá.
 
 **Fase A (calibración), Fase B (corrida en lote de Match Mode) y Fase 3
 (filtro económico, ya con tipo de cambio MEP automático) están
