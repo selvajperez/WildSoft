@@ -26,6 +26,45 @@ De acá en adelante:
   fase). **No transporta resultados, logs, comandos ni archivos entre
   sesiones** -- ese trabajo lo hacen GitHub + este archivo.
 
+### Nube tiene dos variantes de entorno (2026-09-12): "Default" y "WildSoft"
+
+Al investigar por qué Nube no podía consultar el dólar MEP en vivo (ver
+sección 10), encontramos que la limitación de red **no es de Claude Code
+en general, sino de la configuración del *cloud environment*** en el que
+corre cada sesión de Nube (`claude.ai/code`, ícono de nube arriba del
+cuadro de mensaje → engranaje del environment → "Acceso a la red"). Hay
+cuatro niveles posibles (None/Trusted/Full/Custom); el entorno por
+defecto ("Default") viene en **Trusted** (solo domina un puñado de hosts
+de infraestructura -- GitHub, PyPI, npm, etc. -- nada de internet
+general). Esto es configurable por la usuaria, por entorno, no algo fijo
+de la plataforma.
+
+La usuaria creó/ajustó un segundo entorno, **"WildSoft"**, con:
+
+- **Acceso a la red: Full** (cualquier dominio, incluido `dolarapi.com`).
+- **Script de configuración**:
+  ```bash
+  #!/bin/bash
+  pip install --break-system-packages -r alibaba-catalog/requirements.txt || true
+  python3 -m playwright install --with-deps chromium || true
+  ```
+  (instala las dependencias de Python y la build de Chromium que
+  corresponde a la versión de `playwright` del proyecto -- se comprobó
+  que el Chromium que ya viene preinstalado en la imagen base de estas
+  sesiones tiene un desajuste de revisión con el paquete `playwright` de
+  `requirements.txt`, así que hace falta este paso para que coincidan).
+
+**Una sesión de Nube que arranca eligiendo el entorno "WildSoft" (no
+"Default") puede entonces**: consultar APIs externas como el dólar MEP,
+y lanzar Chromium headless sin el error de revisión. **Lo que NO cambia,
+en ningún entorno de Nube**: no hay pantalla ni forma de que Nube resuelva
+un CAPTCHA o un login interactivo -- eso sigue siendo exclusivamente de
+Local/Selva, sin importar el nivel de red. Esto **todavía no se verificó
+con una corrida real** (pendiente: abrir una sesión de Nube en WildSoft y
+confirmar que `tipo_cambio.obtener_dolar_mep()` funciona de verdad y que
+Chromium lanza sin errores -- ver checklist que se le pidió a esa
+sesión).
+
 ### Reglas obligatorias
 
 1. **Antes de empezar a trabajar, toda sesión (Nube o Local) lee este
@@ -64,15 +103,18 @@ repositorio, misma carpeta, misma rama para las dos:
 (filtro económico, ya con tipo de cambio MEP automático) están
 implementadas y con tests (269/269).** Ya no falta ninguna decisión de
 negocio para poder correr el filtro económico -- la usuaria confirmó
-dólar MEP como referencia (ver sección 10). **Lo que sigue es correr el
-flujo real, y eso lo tiene que hacer la usuaria/Local, no la sesión de
-Nube**: esta sesión no tiene navegador real (nunca lo tuvo) y además su
-propia política de red de sandbox bloquea salidas a internet en general
-(incluida `dolarapi.com`) -- lo comprobé al intentar probar el fetch del
-MEP en vivo desde acá. Ningún código de este proyecto se probó todavía
-contra la API real de dolarapi.com ni contra una ficha de Alibaba real
-con escalones de precio -- toda la cobertura de tests usa HTTP y HTML
-simulados.
+dólar MEP como referencia (ver sección 10). **La navegación real contra
+ML/Alibaba (CAPTCHA, login) sigue siendo exclusivamente de la
+usuaria/Local, en cualquier entorno de Nube.** El bloqueo de red general
+que impedía siquiera consultar el dólar MEP desde Nube era específico
+del entorno "Default" (nivel Trusted) -- ver el nuevo entorno "WildSoft"
+(Full + Chromium listo) en la sección de arriba "Nube tiene dos variantes
+de entorno". Una sesión de Nube en WildSoft debería poder verificar el
+fetch del MEP real y que Chromium lanza bien, **pero esto todavía no se
+confirmó con una corrida real** (pendiente). Ningún código de este
+proyecto se probó todavía contra la API real de dolarapi.com ni contra
+una ficha de Alibaba real con escalones de precio -- toda la cobertura
+de tests usa HTTP y HTML simulados.
 
 ```powershell
 cd alibaba-catalog\collector_alibaba
