@@ -65,6 +65,43 @@ confirmar que `tipo_cambio.obtener_dolar_mep()` funciona de verdad y que
 Chromium lanza sin errores -- ver checklist que se le pidió a esa
 sesión).
 
+#### 2026-09-12 (sesión Nube posterior): la verificación seguía sin hacerse, pero ahora se sabe por qué
+
+Una sesión de Nube que **asumía** estar en el entorno "WildSoft" (así lo
+decía la consigna con la que arrancó) repitió los mismos chequeos --
+`obtener_dolar_mep()` real, `pytest`, lanzar Chromium -- y se topó con el
+mismo bloqueo de red de siempre (403 de política en `dolarapi.com`,
+`google.com`, dominios de Alibaba, y también el CDN de descarga de
+Playwright/Chrome), más el mismo desajuste de revisión de Chromium ya
+conocido (el Chromium preinstalado en la imagen es una revisión más
+vieja que la que pide el `playwright` de `requirements.txt`; el script de
+setup de WildSoft lo resuelve bajando la revisión correcta, pero esa
+descarga también necesita red y por eso tampoco corrió).
+
+**Causa encontrada, con evidencia directa** (`mcp__Claude_Code_Remote__get_session`
+sin `session_id` + `mcp__Claude_Code_Remote__list_environments`): el
+`environment_id` real de esa sesión era `env_01Rjaq5CzyeCszVx72o4n6X7`,
+que es el entorno **"Default" ("Default - trusted network access")**, no
+`env_01Pz6sB8r76D8MbH8CkubqcX` ("WildSoft"). O sea: **la sesión nunca
+estuvo en WildSoft** -- se creó (o se le indicó arrancar) en Default, que
+es justamente el entorno Trusted que ya sabíamos que bloquea internet en
+general. No es un problema del proxy, de Chromium, ni de que "WildSoft no
+funcione" -- es que hace falta elegir explícitamente el entorno
+"WildSoft" al crear la sesión de Nube (ícono de nube → selector de
+entorno, antes de arrancar), no alcanza con que la consigna lo mencione
+por nombre.
+
+**Sigue pendiente** (nadie lo verificó todavía con una corrida real):
+abrir una sesión de Nube seleccionando de verdad el entorno "WildSoft" en
+el selector (confirmar después con `get_session` que
+`environment_id = env_01Pz6sB8r76D8MbH8CkubqcX`, no asumirlo por el
+nombre de la consigna) y recién ahí repetir `obtener_dolar_mep()` real +
+lanzamiento de Chromium. Si en WildSoft el script de setup no llegó a
+correr (por ejemplo, por no ejecutarse en sesiones que no son "primer
+arranque" del entorno), puede hacer falta correr a mano `python3 -m
+playwright install --with-deps chromium` dentro de esa sesión antes de
+probar.
+
 ### Reglas obligatorias
 
 1. **Antes de empezar a trabajar, toda sesión (Nube o Local) lee este
@@ -115,6 +152,18 @@ confirmó con una corrida real** (pendiente). Ningún código de este
 proyecto se probó todavía contra la API real de dolarapi.com ni contra
 una ficha de Alibaba real con escalones de precio -- toda la cobertura
 de tests usa HTTP y HTML simulados.
+
+**Actualización 2026-09-12: cuidado al arrancar una sesión de Nube
+"en WildSoft"** -- una sesión que arrancó con una consigna que daba por
+sentado que el entorno era WildSoft resultó, verificado con
+`get_session`, estar corriendo en `environment_id` del entorno
+**Default**, no WildSoft (ver detalle y causa en "Nube tiene dos
+variantes de entorno" arriba). La verificación real de dólar MEP +
+Chromium sigue pendiente -- para la próxima sesión que la intente: elegir
+"WildSoft" a mano en el selector de entorno al crear la sesión (no
+asumirlo por el texto de la consigna) y confirmar con `get_session` que
+el `environment_id` es el de WildSoft antes de dar por buena cualquier
+prueba de red.
 
 ```powershell
 cd alibaba-catalog\collector_alibaba
