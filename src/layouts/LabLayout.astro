@@ -1,0 +1,268 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+export interface Props {
+  title: string;
+  description: string;
+  estado: 'en-marcha' | 'en-pausa' | 'explorando' | 'terminado';
+  fecha: Date;
+  tags: string[];
+  heroImage: string;
+  stack?: string[];
+  stats?: { valor: string; etiqueta: string }[];
+  pasos?: { titulo: string; texto: string }[];
+  repo?: string;
+  repoPrivado?: boolean;
+  readingTime: number;
+}
+
+const {
+  title, description, estado, fecha, tags, heroImage,
+  stack = [], stats = [], pasos = [], repo, repoPrivado = false, readingTime,
+} = Astro.props;
+
+const etiquetaEstado = {
+  'en-marcha': 'En marcha',
+  'en-pausa': 'En pausa',
+  'explorando': 'Explorando',
+  'terminado': 'Terminado',
+}[estado];
+
+const fechaTexto = fecha.toLocaleDateString('es-AR', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+---
+<BaseLayout title={`${title} — WildSoft Lab`} description={description}>
+  <Header />
+
+  <section class="lab-hero">
+    <div class="hero-inner">
+      <a class="volver" href="/lab">&larr; Volver al Lab</a>
+      <div class="chips">
+        <span class={`estado estado-${estado}`}>{etiquetaEstado}</span>
+        {tags.map((tag) => <span class="tag">{tag}</span>)}
+      </div>
+      <h1>{title}</h1>
+      <p class="lab-desc">{description}</p>
+      <p class="lab-meta">Actualizado el {fechaTexto} · {readingTime} min de lectura</p>
+    </div>
+
+    <div class="figura">
+      <img src={heroImage} alt={`Esquema del experimento: ${title}`} />
+    </div>
+  </section>
+
+  {stats.length > 0 && (
+    <section class="stats">
+      <div class="stats-inner">
+        <p class="bloque-kicker">Una corrida real, en números</p>
+        <ul class="stats-grid">
+          {stats.map((s) => (
+            <li class="stat">
+              <span class="stat-valor">{s.valor}</span>
+              <span class="stat-etiqueta">{s.etiqueta}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  {pasos.length > 0 && (
+    <section class="pasos">
+      <div class="pasos-inner">
+        <p class="bloque-kicker">Cómo funciona</p>
+        <ol class="pasos-grid">
+          {pasos.map((p, i) => (
+            <li class="paso">
+              <span class="paso-num">{String(i + 1).padStart(2, '0')}</span>
+              <h3>{p.titulo}</h3>
+              <p>{p.texto}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )}
+
+  <div class="articulo-body prose">
+    <slot />
+  </div>
+
+  <section class="ficha">
+    <div class="ficha-inner">
+      {stack.length > 0 && (
+        <div class="ficha-bloque">
+          <p class="bloque-kicker">Herramientas</p>
+          <ul class="stack">
+            {stack.map((s) => <li>{s}</li>)}
+          </ul>
+        </div>
+      )}
+      <div class="ficha-bloque">
+        <p class="bloque-kicker">Código</p>
+        {repo ? (
+          <a class="repo-link" href={repo} target="_blank" rel="noopener">Ver el repositorio &rarr;</a>
+        ) : repoPrivado ? (
+          <p class="repo-texto">El código vive en un repositorio privado.</p>
+        ) : (
+          <p class="repo-texto">Todavía sin repositorio publicado.</p>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <div class="fin-lab">
+    <a class="volver-abajo" href="/lab">&larr; Volver al Lab</a>
+    <div class="siguiente-card">
+      <p class="siguiente-label">Seguir explorando</p>
+      <p class="siguiente-periodo">Más proyectos y casos</p>
+      <p class="siguiente-texto">El Lab es el espacio de experimentos. Los casos de estudio completos, con su contexto y su resultado, están en Proyectos.</p>
+      <a class="siguiente-link" href="/proyectos">Ver todos los proyectos →</a>
+    </div>
+  </div>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  /* HERO OSCURO */
+  .lab-hero{ background: var(--negro); color: var(--crema); padding: 56px 60px 80px; }
+  .hero-inner{ max-width: 920px; margin: 0 auto; }
+  .volver{
+    display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600;
+    color: #C9C2B4; margin-bottom: 34px;
+  }
+  .chips{ display: flex; gap: 12px; margin-bottom: 26px; flex-wrap: wrap; align-items: center; }
+  .tag{
+    font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 7px 16px; border-radius: 20px; border: 1px solid var(--verde); color: #B9C05A;
+  }
+  .estado{
+    font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 7px 14px; border-radius: 20px; background: var(--naranja); color: #fff;
+  }
+  .estado-en-pausa{ background: #4a4944; color: #E7E0D2; }
+  .estado-explorando{ background: var(--verde); color: #fff; }
+  .estado-terminado{ background: var(--crema); color: var(--negro); }
+  .lab-hero h1{
+    font-size: 46px; font-weight: 800; line-height: 1.2; color: #fff; margin: 0 0 26px; max-width: 760px;
+  }
+  .lab-desc{ font-size: 17px; line-height: 1.65; color: #D9D2C4; max-width: 640px; margin: 0 0 30px; }
+  .lab-meta{ font-size: 13.5px; color: #9C9689; font-weight: 600; letter-spacing: 0.02em; margin: 0 0 56px; }
+
+  .figura{
+    max-width: 1040px; margin: -40px auto 0; border-radius: 18px; overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.35); line-height: 0;
+  }
+  .figura img{ width: 100%; display: block; }
+
+  /* KICKER DE BLOQUE */
+  .bloque-kicker{
+    font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--verde); margin: 0 0 22px;
+  }
+
+  /* NÚMEROS */
+  .stats{ background: var(--fondo-claro); padding: 90px 60px 30px; }
+  .stats-inner{ max-width: 1040px; margin: 0 auto; }
+  .stats-grid{ list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat{ background: #fff; border-radius: 14px; padding: 26px 22px; border-top: 4px solid var(--naranja); display: flex; flex-direction: column; gap: 10px; }
+  .stat-valor{ font-family: var(--font-mono); font-size: 36px; font-weight: 600; color: var(--negro); line-height: 1; }
+  .stat-etiqueta{ font-size: 13.5px; line-height: 1.5; color: var(--gris); }
+
+  /* PASOS */
+  .pasos{ background: var(--fondo-claro); padding: 50px 60px 10px; }
+  .pasos-inner{ max-width: 1040px; margin: 0 auto; }
+  .pasos-grid{ list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .paso{ background: var(--crema); border-radius: 14px; padding: 24px 22px; }
+  .paso-num{ font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--naranja); }
+  .paso h3{ font-size: 19px; font-weight: 800; color: var(--negro); margin: 10px 0 8px; }
+  .paso p{ font-size: 13.5px; line-height: 1.55; color: var(--gris); margin: 0; }
+
+  /* CUERPO */
+  .articulo-body{ max-width: 810px; margin: 0 auto; padding: 80px 60px 20px; }
+  .articulo-body :global(p){ font-size: 17.5px; line-height: 1.85; color: var(--gris); margin: 0 0 26px; }
+  .articulo-body :global(h2){
+    font-size: 27px; font-weight: 800; color: var(--negro); line-height: 1.3; margin: 64px 0 22px;
+  }
+  .articulo-body :global(h2:first-child){ margin-top: 0; }
+  .articulo-body :global(ul){ margin: 0 0 26px; padding-left: 22px; }
+  .articulo-body :global(li){ font-size: 17px; line-height: 1.75; color: var(--gris); margin-bottom: 12px; }
+  .articulo-body :global(strong){ color: var(--negro); }
+  .articulo-body :global(blockquote){
+    font-family: var(--font-secundaria); font-style: italic; font-size: 30px; line-height: 1.55; color: var(--negro);
+    border-left: 5px solid var(--naranja); padding: 16px 0 16px 36px; margin: 52px 0;
+  }
+  .articulo-body :global(blockquote p){ margin: 0; font-size: inherit; line-height: inherit; color: inherit; }
+
+  /* FICHA: stack + código */
+  .ficha{ padding: 30px 60px 10px; }
+  .ficha-inner{ max-width: 810px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; border-top: 1px solid rgba(21,22,18,0.15); padding-top: 40px; }
+  .ficha-bloque .bloque-kicker{ margin-bottom: 16px; }
+  .stack{ list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .stack li{
+    font-family: var(--font-mono); font-size: 12.5px; font-weight: 500; color: var(--negro);
+    background: rgba(113,120,26,0.14); border: 1px solid rgba(113,120,26,0.35); border-radius: 20px; padding: 6px 13px;
+  }
+  .repo-texto{ font-size: 15px; line-height: 1.6; color: var(--gris); margin: 0; }
+  .repo-link{ font-size: 15px; font-weight: 700; color: var(--naranja); }
+
+  /* VOLVER + SUGERENCIA FINAL */
+  .fin-lab{ max-width: 810px; margin: 0 auto; padding: 50px 60px 90px; }
+  .volver-abajo{
+    display: inline-flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 700;
+    color: var(--verde); border-bottom: 1px solid var(--verde); padding-bottom: 2px; margin-bottom: 60px;
+  }
+  .siguiente-card{ background: var(--negro); border-radius: 20px; padding: 60px 64px; color: var(--crema); }
+  .siguiente-label{ font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--naranja); margin: 0 0 16px; }
+  .siguiente-periodo{ font-family: var(--font-secundaria); font-size: 30px; color: #fff; margin: 0 0 14px; }
+  .siguiente-texto{ font-size: 15.5px; line-height: 1.7; color: #D9D2C4; margin: 0 0 24px; max-width: 560px; }
+  .siguiente-link{ font-size: 15px; font-weight: 700; color: var(--naranja); }
+
+  @media (max-width: 900px){
+    .stats-grid, .pasos-grid{ grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 760px){
+    .lab-hero{ padding: 28px 22px 46px; }
+    .hero-inner{ max-width: none; }
+    .volver{ font-size: 13px; margin-bottom: 22px; }
+    .chips{ gap: 8px; margin-bottom: 20px; }
+    .tag{ font-size: 11px; padding: 6px 12px; }
+    .estado{ font-size: 11px; padding: 6px 12px; }
+    .lab-hero h1{ font-size: 28px; margin-bottom: 20px; }
+    .lab-desc{ font-size: 14.5px; margin-bottom: 20px; }
+    .lab-meta{ font-size: 12.5px; margin-bottom: 0; }
+    .figura{ margin: 30px -2px 0; border-radius: 16px; }
+
+    .stats{ padding: 50px 22px 20px; }
+    .stat{ padding: 20px 18px; }
+    .stat-valor{ font-size: 28px; }
+    .pasos{ padding: 34px 22px 6px; }
+
+    .stats-grid, .pasos-grid{ grid-template-columns: 1fr; gap: 12px; }
+
+    .articulo-body{ padding: 44px 22px 10px; }
+    .articulo-body :global(p){ font-size: 15.5px; line-height: 1.75; margin-bottom: 22px; }
+    .articulo-body :global(li){ font-size: 15.5px; line-height: 1.7; }
+    .articulo-body :global(h2){ font-size: 21px; margin: 44px 0 16px; }
+    .articulo-body :global(blockquote){ font-size: 22px; padding: 12px 0 12px 22px; margin: 40px 0; }
+
+    .ficha{ padding: 20px 22px 6px; }
+    .ficha-inner{ grid-template-columns: 1fr; gap: 28px; padding-top: 30px; }
+
+    .fin-lab{ padding: 30px 22px 56px; }
+    .volver-abajo{ font-size: 14px; margin-bottom: 36px; }
+    .siguiente-card{ border-radius: 18px; padding: 40px 32px; }
+    .siguiente-label{ font-size: 11px; margin-bottom: 14px; }
+    .siguiente-periodo{ font-size: 24px; margin-bottom: 12px; }
+    .siguiente-texto{ font-size: 14.5px; margin-bottom: 20px; }
+    .siguiente-link{ font-size: 14.5px; }
+  }
+</style>

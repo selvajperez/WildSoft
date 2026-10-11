@@ -1,0 +1,34 @@
+---
+import { getCollection } from 'astro:content';
+import LabLayout from '../../layouts/LabLayout.astro';
+
+export async function getStaticPaths() {
+  const experimentos = await getCollection('lab');
+  return experimentos.map((experimento) => ({
+    params: { slug: experimento.slug },
+    props: { experimento },
+  }));
+}
+
+const { experimento } = Astro.props;
+const { Content } = await experimento.render();
+
+const palabras = experimento.body.trim().split(/\s+/).length;
+const readingTime = Math.max(1, Math.round(palabras / 200));
+---
+<LabLayout
+  title={experimento.data.title}
+  description={experimento.data.description}
+  estado={experimento.data.estado}
+  fecha={experimento.data.fecha}
+  tags={experimento.data.tags}
+  heroImage={experimento.data.heroImage}
+  stack={experimento.data.stack}
+  stats={experimento.data.stats}
+  pasos={experimento.data.pasos}
+  repo={experimento.data.repo}
+  repoPrivado={experimento.data.repoPrivado}
+  readingTime={readingTime}
+>
+  <Content />
+</LabLayout>

@@ -39,6 +39,7 @@ src/
   layouts/
     BaseLayout.astro         # <head>, fuentes, favicon
     NotaLayout.astro         # plantilla de página de nota (hero oscuro, cuerpo, cierre)
+    LabLayout.astro          # plantilla de página de experimento (hero oscuro, números, pasos, cuerpo, ficha)
   components/
     Header.astro             # logo + navegación (desktop y menú mobile)
     Hero.astro
@@ -48,13 +49,17 @@ src/
     Notas.astro
     Contacto.astro
     Footer.astro
+    lab/                     # Hero, Principios y Experimentos de la portada /lab
   content/
     config.ts                # esquema de la colección "notas"
     notas/*.md                # una nota por archivo (frontmatter + cuerpo)
+    lab/*.md                  # un experimento del Lab por archivo (frontmatter + cuerpo)
   pages/
     index.astro               # ensambla la home
     notas/index.astro          # listado de Notas
     notas/[slug].astro         # página de una nota (a partir de content/notas)
+    lab/index.astro            # portada de WildSoft Lab (experimentos de automatización y datos)
+    lab/[slug].astro           # página de un experimento (a partir de content/lab)
   styles/global.css          # paleta, tipografías, estilos base
 public/
   images/                    # logo e ilustraciones aprobadas (WildFox)
@@ -82,6 +87,38 @@ public/
 4. La nota aparece automáticamente en `/notas` y en `/notas/tu-slug`. Si
    corresponde, agregá a mano una tarjeta en `src/components/Recorrido.astro`
    igual a la de "1993 → 2026" para enlazarla desde el Recorrido.
+
+## Cómo agregar un experimento al Lab
+
+WildSoft Lab (`/lab`) es el espacio para experimentos de automatización y
+extracción de datos. Cada experimento es un archivo, igual que una nota.
+
+1. Creá `src/content/lab/tu-experimento.md` con este frontmatter:
+   ```yaml
+   ---
+   title: "Nombre del experimento"
+   description: "Una o dos frases: qué es y qué se aprendió."
+   estado: "en-marcha"        # en-marcha | en-pausa | explorando | terminado
+   fecha: 2026-10-11          # última actualización
+   tags: ["Extracción de datos", "Automatización"]
+   heroImage: "/images/lab/tu-experimento-hero.svg"
+   stack: ["Python", "Playwright"]   # opcional
+   repo: "https://github.com/usuario/repo"   # opcional; solo si es público
+   repoPrivado: true                  # opcional; muestra "repositorio privado"
+   stats:                             # opcional: tira de números
+     - valor: "470"
+       etiqueta: "qué mide ese número"
+   pasos:                             # opcional: recorrido del flujo
+     - titulo: "Paso"
+       texto: "Qué hace."
+   ---
+   ```
+2. Escribí el cuerpo en Markdown: títulos `##`, listas, `**negrita**` y una
+   cita `>` si hace falta.
+3. Poné la ilustración principal (1200×630, fondo `#151612`) en
+   `public/images/lab/`.
+4. Aparece sola en `/lab` y en `/lab/tu-experimento`. **No enlaces un
+   repositorio privado** (el visitante vería un 404): usá `repoPrivado: true`.
 
 ## Paleta y tipografías
 

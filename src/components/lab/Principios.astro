@@ -1,0 +1,44 @@
+---
+const principios = [
+  {
+    titulo: 'Medir antes de decidir',
+    texto: 'Cada idea se prueba contra datos reales antes de convertirse en regla. Si no resiste la medición, se descarta y se documenta por qué.',
+  },
+  {
+    titulo: 'Dejar rastro',
+    texto: 'Históricos que no se pisan, tests con páginas reales y un documento de estado: cualquiera puede retomar el trabajo donde quedó.',
+  },
+  {
+    titulo: 'Respetar el límite',
+    texto: 'Un bloqueo o un CAPTCHA no se esquiva: se pausa y se espera a una persona. El ritmo de navegación es el de una persona.',
+  },
+];
+---
+<section class="princ">
+  <div class="wrap">
+    <div class="princ-kicker">Cómo se trabaja en el Lab</div>
+    <div class="princ-grid">
+      {principios.map((p) => (
+        <div class="princ-card">
+          <h3>{p.titulo}</h3>
+          <p>{p.texto}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .princ{ background: var(--crema); padding: 0 0 80px; }
+  .princ-kicker{ text-align: center; font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gris); opacity: 0.7; margin-bottom: 24px; }
+  .princ-grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 940px; margin: 0 auto; }
+  .princ-card{ background: #fff; border-radius: 14px; padding: 24px 24px; }
+  .princ-card h3{ font-size: 17px; font-weight: 800; color: var(--naranja); margin: 0 0 8px; }
+  .princ-card p{ font-size: 13.5px; line-height: 1.55; color: var(--gris); margin: 0; }
+
+  @media (max-width: 760px){
+    .princ{ padding: 0 0 48px; }
+    .princ-grid{ display: flex; flex-direction: column; gap: 14px; }
+    .princ-card{ padding: 20px 20px; border-radius: 12px; }
+  }
+</style>
