@@ -1,0 +1,69 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#151612"/>
+
+  <text x="60" y="70" font-family="monospace" font-size="16" fill="#8d8879" letter-spacing="2">WILDSOFT LAB · RADAR DE DEMANDA</text>
+
+  <!-- conectores -->
+  <g stroke="#EC7323" stroke-width="2" fill="none">
+    <line x1="290" y1="290" x2="395" y2="290"/>
+    <polygon points="395,282 410,290 395,298" fill="#EC7323"/>
+    <line x1="560" y1="290" x2="665" y2="290"/>
+    <polygon points="665,282 680,290 665,298" fill="#EC7323"/>
+    <line x1="830" y1="290" x2="935" y2="290"/>
+    <polygon points="935,282 950,290 935,298" fill="#EC7323"/>
+  </g>
+
+  <!-- 1. DESCUBRIR: una grilla de tarjetas, una destacada -->
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="135" y="235" width="150" height="110" rx="12"/>
+  </g>
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="152" y="252" width="34" height="26" rx="4"/>
+    <rect x="193" y="252" width="34" height="26" rx="4"/>
+    <rect x="234" y="252" width="34" height="26" rx="4"/>
+    <rect x="152" y="290" width="34" height="26" rx="4"/>
+    <rect x="234" y="290" width="34" height="26" rx="4"/>
+  </g>
+  <rect x="193" y="290" width="34" height="26" rx="4" fill="none" stroke="#EC7323" stroke-width="2.5"/>
+  <text x="210" y="385" font-family="monospace" font-size="15" fill="#D9D2C4" text-anchor="middle">descubrir</text>
+  <text x="210" y="408" font-family="monospace" font-size="12" fill="#8d8879" text-anchor="middle">13 categorías</text>
+
+  <!-- 2. CONFIRMAR: ficha con unidades vendidas -->
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="405" y="235" width="150" height="110" rx="12"/>
+  </g>
+  <text x="480" y="288" font-family="monospace" font-size="26" fill="#EC7323" text-anchor="middle">+1000</text>
+  <text x="480" y="310" font-family="monospace" font-size="12" fill="#8d8879" text-anchor="middle">vendidos</text>
+  <path d="M 462 326 L 474 337 L 498 316" stroke="#8a9430" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="480" y="385" font-family="monospace" font-size="15" fill="#D9D2C4" text-anchor="middle">confirmar</text>
+  <text x="480" y="408" font-family="monospace" font-size="12" fill="#8d8879" text-anchor="middle">abre la ficha</text>
+
+  <!-- 3. RECORDAR: registro append-only -->
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="675" y="235" width="150" height="110" rx="12"/>
+  </g>
+  <g stroke="#8a9430" stroke-width="2" fill="none" stroke-linecap="round">
+    <line x1="700" y1="262" x2="800" y2="262"/>
+    <line x1="700" y1="290" x2="780" y2="290"/>
+    <line x1="700" y1="318" x2="795" y2="318"/>
+  </g>
+  <g fill="#8a9430">
+    <circle cx="690" cy="262" r="3"/>
+    <circle cx="690" cy="290" r="3"/>
+    <circle cx="690" cy="318" r="3"/>
+  </g>
+  <text x="750" y="385" font-family="monospace" font-size="15" fill="#D9D2C4" text-anchor="middle">recordar</text>
+  <text x="750" y="408" font-family="monospace" font-size="12" fill="#8d8879" text-anchor="middle">nada se pisa</text>
+
+  <!-- 4. PUNTUAR: dos señales, un puntaje -->
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="945" y="235" width="150" height="110" rx="12"/>
+  </g>
+  <rect x="975" y="285" width="22" height="42" rx="3" fill="#8a9430"/>
+  <rect x="1008" y="258" width="22" height="69" rx="3" fill="#EC7323"/>
+  <rect x="1041" y="272" width="22" height="55" rx="3" fill="#D9D2C4"/>
+  <text x="1020" y="385" font-family="monospace" font-size="15" fill="#D9D2C4" text-anchor="middle">puntuar</text>
+  <text x="1020" y="408" font-family="monospace" font-size="12" fill="#8d8879" text-anchor="middle">demanda + aptitud</text>
+
+  <text x="60" y="570" font-family="monospace" font-size="14" fill="#8d8879">sin elegir un producto de antemano · el mismo producto da el mismo puntaje</text>
+</svg>

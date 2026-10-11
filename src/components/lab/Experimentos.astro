@@ -1,0 +1,81 @@
+---
+import { getCollection } from 'astro:content';
+
+const etiquetas = {
+  'en-marcha': 'En marcha',
+  'en-pausa': 'En pausa',
+  'explorando': 'Explorando',
+  'terminado': 'Terminado',
+};
+
+const experimentos = (await getCollection('lab')).sort(
+  (a, b) => b.data.fecha.valueOf() - a.data.fecha.valueOf(),
+);
+---
+<section class="exps">
+  <div class="wrap">
+    <h2>Experimentos</h2>
+    <p class="sub">Lo que se está construyendo y probando ahora.</p>
+
+    <ul class="exps-grid">
+      {experimentos.map((e) => (
+        <li>
+          <a class="exp-card" href={`/lab/${e.slug}`}>
+            <div class="exp-top">
+              <span class={`estado estado-${e.data.estado}`}>{etiquetas[e.data.estado]}</span>
+              <span class="exp-tags">{e.data.tags.join(' · ')}</span>
+            </div>
+            <h3>{e.data.title}</h3>
+            <p class="desc">{e.data.description}</p>
+            {e.data.stack.length > 0 && (
+              <ul class="stack">
+                {e.data.stack.slice(0, 4).map((s) => <li>{s}</li>)}
+              </ul>
+            )}
+            <span class="link">Ver el experimento →</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .exps{ background: var(--fondo-claro); padding: 70px 0 120px; }
+  .exps h2{ font-size: 28px; font-weight: 800; color: var(--negro); margin: 0 0 8px; }
+  .sub{ font-size: 14.5px; color: var(--gris); margin: 0 0 34px; }
+
+  .exps-grid{ list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .exps-grid > li:only-child{ grid-column: 1 / -1; }
+  .exp-card{
+    display: flex; flex-direction: column; gap: 14px; height: 100%;
+    background: #fff; border-radius: 16px; padding: 32px 30px; border-left: 5px solid var(--naranja);
+  }
+  .exp-top{ display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .estado{
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 5px 12px; border-radius: 20px; background: var(--naranja); color: #fff;
+  }
+  .estado-en-pausa{ background: #4a4944; color: #E7E0D2; }
+  .estado-explorando{ background: var(--verde); color: #fff; }
+  .estado-terminado{ background: var(--crema); color: var(--negro); border: 1px solid rgba(21,22,18,0.15); }
+  .exp-tags{ font-size: 12.5px; color: var(--gris); opacity: 0.8; }
+  .exp-card h3{ font-size: 22px; font-weight: 800; line-height: 1.3; color: var(--negro); margin: 0; }
+  .desc{ font-size: 15px; line-height: 1.6; color: var(--gris); margin: 0; }
+  .stack{ list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .stack li{
+    font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--negro);
+    background: rgba(113,120,26,0.14); border: 1px solid rgba(113,120,26,0.35); border-radius: 20px; padding: 5px 12px;
+  }
+  .link{ font-size: 14.5px; font-weight: 700; color: var(--naranja); margin-top: auto; }
+
+  @media (max-width: 760px){
+    .exps{ padding: 44px 0 70px; }
+    .exps h2{ font-size: 22px; }
+    .sub{ margin-bottom: 22px; }
+    .exps-grid{ grid-template-columns: 1fr; gap: 16px; }
+    .exp-card{ padding: 26px 22px; border-radius: 14px; }
+    .exp-card h3{ font-size: 19px; }
+    .desc{ font-size: 14.5px; }
+  }
+</style>

@@ -6,6 +6,7 @@
   </a>
   <nav class="nav-desktop" aria-label="Navegación principal">
     <a href="/proyectos">Proyectos</a>
+    <a href="/lab">Lab</a>
     <a href="/recorrido">Recorrido</a>
     <a href="/notas">Notas y reflexiones</a>
     <a href="/#contacto">Contacto</a>
@@ -17,6 +18,7 @@
 
 <nav class="nav-mobile" id="nav-mobile" aria-label="Navegación móvil">
   <a href="/proyectos">Proyectos</a>
+  <a href="/lab">Lab</a>
   <a href="/recorrido">Recorrido</a>
   <a href="/notas">Notas y reflexiones</a>
   <a href="/#contacto">Contacto</a>
@@ -75,6 +77,16 @@
   .nav-mobile.open{
     max-height: 300px;
     padding-bottom: 12px;
+  }
+
+  .logo-link{ flex-shrink: 0; }
+  .nav-desktop a{ white-space: nowrap; }
+
+  /* Con cinco enlaces, el rango intermedio quedaba apretado (logo comprimido y
+     "Notas y reflexiones" partido en dos líneas): se compacta solo ahí. */
+  @media (min-width: 761px) and (max-width: 1040px){
+    .site-header{ padding: 24px 32px; }
+    .nav-desktop{ gap: 24px; font-size: 15px; }
   }
 
   @media (max-width: 760px){
