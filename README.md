@@ -44,6 +44,7 @@ src/
     Header.astro             # logo + navegación (desktop y menú mobile)
     Hero.astro
     Proyectos.astro
+    LabDestacado.astro       # tarjeta destacada de WildSoft-Lab en la home (WildFox científico, enlaza a /lab)
     ComoConstruyo.astro
     Recorrido.astro
     Notas.astro
