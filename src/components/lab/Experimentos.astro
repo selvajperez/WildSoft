@@ -18,6 +18,18 @@ const experimentos = (await getCollection('lab')).sort(
     <p class="sub">Lo que se está construyendo y probando ahora.</p>
 
     <ul class="exps-grid">
+      <li>
+        <a class="exp-card" href="https://la-jsoneta.vercel.app/" target="_blank" rel="noopener noreferrer">
+          <div class="exp-top">
+            <span class="estado estado-en-marcha">En marcha</span>
+            <span class="exp-tags">Mercor · Automatización · Empleo</span>
+          </div>
+          <h3>🚐 La JSONeta</h3>
+          <p class="desc">Explorador de oportunidades laborales con filtros y seguimiento de postulaciones. Versión web de consulta; actualización automática en preparación.</p>
+          <ul class="stack"><li>JavaScript</li><li>JSON</li><li>Vercel</li></ul>
+          <span class="link">Abrir aplicación →</span>
+        </a>
+      </li>
       {experimentos.map((e) => (
         <li>
           <a class="exp-card" href={`/lab/${e.slug}`}>
