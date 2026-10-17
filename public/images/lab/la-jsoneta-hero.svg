@@ -1,0 +1,89 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#151612"/>
+
+  <text x="60" y="70" font-family="monospace" font-size="16" fill="#8d8879" letter-spacing="2">WILDSOFT LAB · SEGUIMIENTO DE OFERTAS</text>
+
+  <!-- conectores -->
+  <g stroke="#EC7323" stroke-width="2" fill="none">
+    <line x1="290" y1="290" x2="395" y2="290"/>
+    <polygon points="395,282 410,290 395,298" fill="#EC7323"/>
+    <line x1="560" y1="290" x2="665" y2="290"/>
+    <polygon points="665,282 680,290 665,298" fill="#EC7323"/>
+    <line x1="830" y1="290" x2="935" y2="290"/>
+    <polygon points="935,282 950,290 935,298" fill="#EC7323"/>
+  </g>
+
+  <!-- 1. RECORRER: páginas del listado, una tras otra hasta el final -->
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="135" y="235" width="150" height="110" rx="12"/>
+  </g>
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="152" y="258" width="26" height="34" rx="4"/>
+    <rect x="186" y="258" width="26" height="34" rx="4"/>
+    <rect x="220" y="258" width="26" height="34" rx="4"/>
+  </g>
+  <rect x="254" y="258" width="16" height="34" rx="4" fill="none" stroke="#EC7323" stroke-width="2.5"/>
+  <g stroke="#8d8879" stroke-width="1.5" stroke-linecap="round">
+    <line x1="158" y1="268" x2="172" y2="268"/>
+    <line x1="158" y1="276" x2="168" y2="276"/>
+    <line x1="192" y1="268" x2="206" y2="268"/>
+    <line x1="192" y1="276" x2="202" y2="276"/>
+    <line x1="226" y1="268" x2="240" y2="268"/>
+    <line x1="226" y1="276" x2="236" y2="276"/>
+  </g>
+  <text x="210" y="322" font-family="monospace" font-size="12" fill="#8d8879" text-anchor="middle">1 · 2 · 3 … fin</text>
+  <text x="210" y="385" font-family="monospace" font-size="15" fill="#D9D2C4" text-anchor="middle">recorrer</text>
+  <text x="210" y="408" font-family="monospace" font-size="12" fill="#8d8879" text-anchor="middle">hasta la última página</text>
+
+  <!-- 2. ENRIQUECER: el texto de la ficha pasa a campos -->
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="405" y="235" width="150" height="110" rx="12"/>
+  </g>
+  <text x="425" y="262" font-family="monospace" font-size="13" fill="#EC7323">$ / hora</text>
+  <text x="425" y="285" font-family="monospace" font-size="13" fill="#D9D2C4">inglés</text>
+  <text x="425" y="308" font-family="monospace" font-size="13" fill="#D9D2C4">entrevista</text>
+  <text x="425" y="331" font-family="monospace" font-size="13" fill="#D9D2C4">ubicación</text>
+  <path d="M 517 258 L 523 264 L 535 252" stroke="#8a9430" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 517 281 L 523 287 L 535 275" stroke="#8a9430" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="518" y1="304" x2="534" y2="304" stroke="#8d8879" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 517 327 L 523 333 L 535 321" stroke="#8a9430" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="480" y="385" font-family="monospace" font-size="15" fill="#D9D2C4" text-anchor="middle">enriquecer</text>
+  <text x="480" y="408" font-family="monospace" font-size="12" fill="#8d8879" text-anchor="middle">del texto a los campos</text>
+
+  <!-- 3. FUSIONAR: activas y dejadas de publicar, sin borrar -->
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="675" y="235" width="150" height="110" rx="12"/>
+  </g>
+  <g stroke="#8a9430" stroke-width="2" fill="none" stroke-linecap="round">
+    <line x1="700" y1="262" x2="800" y2="262"/>
+    <line x1="700" y1="290" x2="785" y2="290"/>
+  </g>
+  <g fill="#8a9430">
+    <circle cx="690" cy="262" r="3"/>
+    <circle cx="690" cy="290" r="3"/>
+  </g>
+  <line x1="700" y1="318" x2="795" y2="318" stroke="#4a4944" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 6"/>
+  <circle cx="690" cy="318" r="3" fill="none" stroke="#8d8879" stroke-width="1.5"/>
+  <text x="750" y="385" font-family="monospace" font-size="15" fill="#D9D2C4" text-anchor="middle">fusionar</text>
+  <text x="750" y="408" font-family="monospace" font-size="12" fill="#8d8879" text-anchor="middle">se marca, no se borra</text>
+
+  <!-- 4. SEGUIR: estado de cada postulación -->
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="945" y="235" width="150" height="110" rx="12"/>
+  </g>
+  <rect x="962" y="254" width="72" height="20" rx="10" fill="none" stroke="#4a4944" stroke-width="1.5"/>
+  <text x="998" y="268" font-family="monospace" font-size="11" fill="#8d8879" text-anchor="middle">revisar</text>
+  <rect x="962" y="281" width="72" height="20" rx="10" fill="#EC7323"/>
+  <text x="998" y="295" font-family="monospace" font-size="11" fill="#151612" text-anchor="middle">aplicado</text>
+  <rect x="962" y="308" width="72" height="20" rx="10" fill="none" stroke="#8a9430" stroke-width="1.5"/>
+  <text x="998" y="322" font-family="monospace" font-size="11" fill="#8a9430" text-anchor="middle">aplicar</text>
+  <g stroke="#8d8879" stroke-width="1.5" stroke-linecap="round">
+    <line x1="1044" y1="264" x2="1078" y2="264"/>
+    <line x1="1044" y1="291" x2="1072" y2="291"/>
+    <line x1="1044" y1="318" x2="1076" y2="318"/>
+  </g>
+  <text x="1020" y="385" font-family="monospace" font-size="15" fill="#D9D2C4" text-anchor="middle">seguir</text>
+  <text x="1020" y="408" font-family="monospace" font-size="12" fill="#8d8879" text-anchor="middle">cada postulación</text>
+
+  <text x="60" y="570" font-family="monospace" font-size="14" fill="#8d8879">una corrida a medias no pisa la base · lo que deja de publicarse se marca, no se borra</text>
+</svg>

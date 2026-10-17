@@ -19,7 +19,7 @@ const notas = defineCollection({
 // Experimentos de WildSoft Lab (automatización y extracción de datos).
 // Un experimento = un archivo en src/content/lab/. `stats` y `pasos` son
 // opcionales: si existen, la página los muestra como tira de números y como
-// recorrido del flujo. `repo` también es opcional: un repositorio privado
+// recorrido del flujo. `app` enlaza la aplicación publicada. `repo` también es opcional: un repositorio privado
 // no se enlaza (el visitante vería un 404).
 const lab = defineCollection({
   type: 'content',
@@ -35,6 +35,10 @@ const lab = defineCollection({
     pasos: z.array(z.object({ titulo: z.string(), texto: z.string() })).default([]),
     repo: z.string().url().optional(),
     repoPrivado: z.boolean().default(false),
+    // Opcionales: enlace a la aplicación publicada y título de la tira de
+    // números (por ejemplo, para aclarar la fecha de los datos).
+    app: z.string().url().optional(),
+    statsTitulo: z.string().optional(),
   }),
 });
 

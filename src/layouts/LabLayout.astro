@@ -15,12 +15,14 @@ export interface Props {
   pasos?: { titulo: string; texto: string }[];
   repo?: string;
   repoPrivado?: boolean;
+  app?: string;
+  statsTitulo?: string;
   readingTime: number;
 }
 
 const {
   title, description, estado, fecha, tags, heroImage,
-  stack = [], stats = [], pasos = [], repo, repoPrivado = false, readingTime,
+  stack = [], stats = [], pasos = [], repo, repoPrivado = false, app, statsTitulo, readingTime,
 } = Astro.props;
 
 const etiquetaEstado = {
@@ -49,6 +51,9 @@ const fechaTexto = fecha.toLocaleDateString('es-AR', {
       </div>
       <h1>{title}</h1>
       <p class="lab-desc">{description}</p>
+      {app && (
+        <a class="btn btn-primary app-cta" href={app} target="_blank" rel="noopener noreferrer">Abrir la aplicación &rarr;</a>
+      )}
       <p class="lab-meta">Actualizado el {fechaTexto} · {readingTime} min de lectura</p>
     </div>
 
@@ -60,7 +65,7 @@ const fechaTexto = fecha.toLocaleDateString('es-AR', {
   {stats.length > 0 && (
     <section class="stats">
       <div class="stats-inner">
-        <p class="bloque-kicker">Una corrida real, en números</p>
+        <p class="bloque-kicker">{statsTitulo ?? 'Una corrida real, en números'}</p>
         <ul class="stats-grid">
           {stats.map((s) => (
             <li class="stat">
@@ -114,6 +119,12 @@ const fechaTexto = fecha.toLocaleDateString('es-AR', {
           <p class="repo-texto">Todavía sin repositorio publicado.</p>
         )}
       </div>
+      {app && (
+        <div class="ficha-bloque">
+          <p class="bloque-kicker">Aplicación</p>
+          <a class="repo-link" href={app} target="_blank" rel="noopener noreferrer">Abrir la aplicación &rarr;</a>
+        </div>
+      )}
     </div>
   </section>
 
@@ -154,6 +165,7 @@ const fechaTexto = fecha.toLocaleDateString('es-AR', {
     font-size: 46px; font-weight: 800; line-height: 1.2; color: #fff; margin: 0 0 26px; max-width: 760px;
   }
   .lab-desc{ font-size: 17px; line-height: 1.65; color: #D9D2C4; max-width: 640px; margin: 0 0 30px; }
+  .app-cta{ margin: 0 0 30px; }
   .lab-meta{ font-size: 13.5px; color: #9C9689; font-weight: 600; letter-spacing: 0.02em; margin: 0 0 56px; }
 
   .figura{
@@ -238,6 +250,7 @@ const fechaTexto = fecha.toLocaleDateString('es-AR', {
     .estado{ font-size: 11px; padding: 6px 12px; }
     .lab-hero h1{ font-size: 28px; margin-bottom: 20px; }
     .lab-desc{ font-size: 14.5px; margin-bottom: 20px; }
+    .app-cta{ margin-bottom: 20px; }
     .lab-meta{ font-size: 12.5px; margin-bottom: 0; }
     .figura{ margin: 30px -2px 0; border-radius: 16px; }
 

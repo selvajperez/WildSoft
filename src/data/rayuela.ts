@@ -96,6 +96,7 @@ export const proyectos: ProyectoRayuela[] = [
     subtitulo: 'Seguimiento de ofertas de Mercor',
     resumen:
       'Reúne las oportunidades publicadas en Mercor en un solo tablero para filtrarlas y llevar el seguimiento de cada postulación.',
+    experimento: 'la-jsoneta',
     recorrido: [
       {
         etapa: 'automatizacion',
