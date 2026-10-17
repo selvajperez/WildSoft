@@ -1,9 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Belleza&family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* Glacial Indifference es la tipografía principal oficial de la marca (Manual de Identidad, punto 4).
-   Es una fuente con licencia propia y no se distribuye por este medio: coloca aquí los archivos
-   GlacialIndifference-Regular.woff2 y GlacialIndifference-Bold.woff2 (ver public/fonts/README.txt).
-   Hasta que agregues esos archivos, el sitio usa Poppins como reemplazo visual equivalente. */
+   Los archivos .woff2 (Regular y Bold) están en public/fonts/, con su licencia SIL OFL 1.1 (OFL.txt).
+   Poppins queda como respaldo mientras la fuente carga o si no estuviera disponible. */
 @font-face {
   font-family: 'Glacial Indifference';
   src: url('/fonts/GlacialIndifference-Regular.woff2') format('woff2');
