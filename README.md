@@ -51,6 +51,9 @@ src/
     Contacto.astro
     Footer.astro
     lab/                     # Hero, Principios y Experimentos de la portada /lab
+    lab/rayuela/             # Rayuela de datos: mapa interactivo de etapas por proyecto
+  data/
+    rayuela.ts               # etapas de la arquitectura y recorrido de cada herramienta
   content/
     config.ts                # esquema de la colección "notas"
     notas/*.md                # una nota por archivo (frontmatter + cuerpo)
@@ -120,6 +123,32 @@ extracción de datos. Cada experimento es un archivo, igual que una nota.
    `public/images/lab/`.
 4. Aparece sola en `/lab` y en `/lab/tu-experimento`. **No enlaces un
    repositorio privado** (el visitante vería un 404): usá `repoPrivado: true`.
+
+## Cómo sumar una herramienta a la rayuela de datos
+
+La rayuela de `/lab` muestra qué etapas de la arquitectura (Extracción,
+Normalización, Almacenamiento, Análisis, Automatización) usa cada
+herramienta. Para sumar una, agregá un objeto a `proyectos` en
+`src/data/rayuela.ts`; el componente no se toca:
+
+```ts
+{
+  id: 'mi-herramienta',
+  nombre: 'Mi herramienta',
+  subtitulo: 'Opcional',
+  resumen: 'Qué hace, en una frase.',
+  experimento: 'mi-herramienta',   // opcional: slug en src/content/lab/
+  recorrido: [                     // en orden, solo las etapas que usa
+    { etapa: 'extraccion', texto: 'Qué hace en esta etapa.' },
+    { etapa: 'almacenamiento', texto: '...' },
+  ],
+},
+```
+
+El recorrido no tiene que ser lineal ni completo. Si `experimento` apunta a
+una ficha que no existe o una etapa se repite, el build falla con un mensaje
+claro. Sin `experimento` (ni `enlace`), el panel muestra «Ficha en
+preparación».
 
 ## Paleta y tipografías
 

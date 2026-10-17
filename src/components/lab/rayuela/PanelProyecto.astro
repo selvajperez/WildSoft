@@ -1,0 +1,92 @@
+---
+// Vista "Por proyecto": el recorrido de una herramienta, en el orden en que
+// pasa por las etapas. Cada paso se marca a medida que el zorro llega.
+import type { Etapa, ProyectoRayuela } from '../../../data/rayuela';
+
+interface Props {
+  proyecto: ProyectoRayuela;
+  etapas: Etapa[];
+  ficha: { href: string; texto: string } | null;
+  activo?: boolean;
+}
+
+const { proyecto, etapas, ficha, activo = false } = Astro.props;
+const etapaPorId = new Map(etapas.map((e) => [e.id, e]));
+---
+<article class="panel" data-panel-proyecto={proyecto.id} hidden={!activo}>
+  <header class="panel-head">
+    {proyecto.subtitulo && <p class="panel-kicker">{proyecto.subtitulo}</p>}
+    <h3>{proyecto.nombre}</h3>
+    <p class="panel-resumen">{proyecto.resumen}</p>
+    <p class="panel-uso">Usa {proyecto.recorrido.length} de {etapas.length} etapas</p>
+    {ficha
+      ? <a class="panel-ficha" href={ficha.href}>{ficha.texto} →</a>
+      : <span class="panel-ficha is-pendiente">Ficha en preparación</span>}
+  </header>
+
+  <ol class="pasos">
+    {proyecto.recorrido.map((paso, i) => {
+      const etapa = etapaPorId.get(paso.etapa)!;
+      return (
+        <li class:list={['paso', { 'is-active': activo }]} data-paso={paso.etapa}>
+          <span class="paso-num" aria-hidden="true">{i + 1}</span>
+          <div>
+            <p class="paso-titulo"><strong>{etapa.nombre}</strong> <span>· {etapa.accion}</span></p>
+            <p class="paso-texto">{paso.texto}</p>
+          </div>
+        </li>
+      );
+    })}
+  </ol>
+</article>
+
+<style>
+  .panel{ display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 44px; }
+  .panel[hidden]{ display: none; }
+
+  .panel-kicker{
+    font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #B9C05A; margin: 0 0 10px;
+  }
+  .panel h3{ font-size: 26px; font-weight: 800; line-height: 1.2; color: #fff; margin: 0 0 12px; }
+  .panel-resumen{ font-size: 15px; line-height: 1.6; color: rgba(251,242,226,0.75); margin: 0 0 18px; }
+  .panel-uso{ font-family: var(--font-mono); font-size: 12px; color: rgba(251,242,226,0.55); margin: 0 0 22px; }
+  .panel-ficha{ display: inline-block; font-size: 14.5px; font-weight: 700; color: var(--naranja); }
+  .panel-ficha:hover{ text-decoration: underline; text-underline-offset: 4px; }
+  .panel-ficha.is-pendiente{
+    font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(251,242,226,0.5); border: 1px dashed rgba(251,242,226,0.25); border-radius: 20px; padding: 6px 12px;
+  }
+
+  .pasos{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .paso{
+    display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 14px;
+    padding: 12px 14px; border-radius: 12px;
+    opacity: 0.45; transition: opacity 420ms ease, background-color 420ms ease;
+  }
+  .paso.is-active{ opacity: 1; }
+  .paso.is-current{ background: rgba(251,242,226,0.05); }
+  .paso-num{
+    display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
+    font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+    border: 1px solid rgba(251,242,226,0.3); color: rgba(251,242,226,0.7);
+    transition: background-color 420ms ease, border-color 420ms ease, color 420ms ease;
+  }
+  .paso.is-active .paso-num{ background: var(--naranja); border-color: var(--naranja); color: #fff; }
+  .paso-titulo{ font-size: 15px; margin: 3px 0 4px; color: #fff; }
+  .paso-titulo span{ font-size: 13px; color: rgba(251,242,226,0.55); }
+  .paso-texto{ font-size: 14px; line-height: 1.55; color: rgba(251,242,226,0.72); margin: 0; }
+
+  @media (max-width: 900px){
+    .panel{ grid-template-columns: 1fr; gap: 24px; }
+  }
+  @media (max-width: 760px){
+    .panel h3{ font-size: 21px; }
+    .panel-resumen{ font-size: 14.5px; }
+    .paso{ padding: 10px 6px; gap: 12px; }
+    .paso-texto{ font-size: 13.5px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .paso, .paso-num{ transition: none; }
+  }
+</style>
