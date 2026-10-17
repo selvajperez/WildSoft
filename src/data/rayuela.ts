@@ -155,4 +155,29 @@ export const proyectos: ProyectoRayuela[] = [
       },
     ],
   },
+  {
+    id: 'analizador-exploratorio',
+    nombre: 'Analizador exploratorio',
+    subtitulo: 'De Kaggle a Power BI',
+    resumen:
+      'Un notebook de Python que prepara un dataset, busca relaciones entre sus variables y evalúa si merece un caso de Power BI.',
+    experimento: 'analizador-exploratorio',
+    recorrido: [
+      {
+        etapa: 'automatizacion',
+        texto:
+          'Una tarea semanal propone tres datasets de Kaggle cada sábado. Elegir uno y descargarlo sigue siendo una decisión manual.',
+      },
+      {
+        etapa: 'normalizacion',
+        texto:
+          'Estandariza los nombres de columnas, detecta fechas, unifica las categorías y arma un perfil de calidad con nulos, duplicados y el rol probable de cada columna.',
+      },
+      {
+        etapa: 'analisis',
+        texto:
+          'Mide relaciones entre variables, las redacta como candidatos de hallazgo con su evidencia, los ordena y calcula un Portfolio Score. Es exploratorio: no usa modelos predictivos.',
+      },
+    ],
+  },
 ];

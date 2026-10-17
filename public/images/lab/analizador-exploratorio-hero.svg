@@ -1,0 +1,81 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#151612"/>
+
+  <text x="60" y="70" font-family="monospace" font-size="16" fill="#8d8879" letter-spacing="2">WILDSOFT LAB · ANÁLISIS EXPLORATORIO</text>
+
+  <!-- conectores -->
+  <g stroke="#EC7323" stroke-width="2" fill="none">
+    <line x1="290" y1="290" x2="395" y2="290"/>
+    <polygon points="395,282 410,290 395,298" fill="#EC7323"/>
+    <line x1="560" y1="290" x2="665" y2="290"/>
+    <polygon points="665,282 680,290 665,298" fill="#EC7323"/>
+    <line x1="830" y1="290" x2="935" y2="290"/>
+    <polygon points="935,282 950,290 935,298" fill="#EC7323"/>
+  </g>
+
+  <!-- 1. PROPONER: tres datasets, una persona elige uno -->
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="135" y="235" width="150" height="110" rx="12"/>
+  </g>
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="152" y="254" width="34" height="44" rx="4"/>
+    <rect x="234" y="254" width="34" height="44" rx="4"/>
+  </g>
+  <rect x="193" y="254" width="34" height="44" rx="4" fill="none" stroke="#EC7323" stroke-width="2.5"/>
+  <g stroke="#8d8879" stroke-width="1.5" stroke-linecap="round">
+    <line x1="159" y1="266" x2="179" y2="266"/>
+    <line x1="159" y1="274" x2="173" y2="274"/>
+    <line x1="200" y1="266" x2="220" y2="266"/>
+    <line x1="200" y1="274" x2="214" y2="274"/>
+    <line x1="241" y1="266" x2="261" y2="266"/>
+    <line x1="241" y1="274" x2="255" y2="274"/>
+  </g>
+  <text x="210" y="326" font-family="monospace" font-size="12" fill="#8d8879" text-anchor="middle">3 cada sábado</text>
+  <text x="210" y="385" font-family="monospace" font-size="15" fill="#D9D2C4" text-anchor="middle">proponer</text>
+  <text x="210" y="408" font-family="monospace" font-size="12" fill="#8d8879" text-anchor="middle">una persona elige</text>
+
+  <!-- 2. PREPARAR: nombres de columna estandarizados -->
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="405" y="235" width="150" height="110" rx="12"/>
+  </g>
+  <text x="424" y="266" font-family="monospace" font-size="12" fill="#8d8879">Total Sales</text>
+  <text x="424" y="290" font-family="monospace" font-size="13" fill="#EC7323">total_sales</text>
+  <path d="M 468 272 L 468 278" stroke="#8d8879" stroke-width="1.5" stroke-linecap="round"/>
+  <text x="424" y="318" font-family="monospace" font-size="12" fill="#D9D2C4">nulos · fechas</text>
+  <path d="M 517 326 L 523 332 L 535 320" stroke="#8a9430" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="480" y="385" font-family="monospace" font-size="15" fill="#D9D2C4" text-anchor="middle">preparar</text>
+  <text x="480" y="408" font-family="monospace" font-size="12" fill="#8d8879" text-anchor="middle">perfil de calidad</text>
+
+  <!-- 3. EXPLORAR: relación entre dos variables -->
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="675" y="235" width="150" height="110" rx="12"/>
+    <line x1="695" y1="328" x2="805" y2="328"/>
+    <line x1="695" y1="328" x2="695" y2="252"/>
+  </g>
+  <g fill="#8a9430">
+    <circle cx="708" cy="318" r="3"/>
+    <circle cx="720" cy="310" r="3"/>
+    <circle cx="731" cy="304" r="3"/>
+    <circle cx="742" cy="293" r="3"/>
+    <circle cx="752" cy="289" r="3"/>
+    <circle cx="764" cy="278" r="3"/>
+    <circle cx="776" cy="272" r="3"/>
+    <circle cx="788" cy="262" r="3"/>
+  </g>
+  <line x1="703" y1="322" x2="795" y2="258" stroke="#EC7323" stroke-width="2" stroke-dasharray="5 5"/>
+  <text x="750" y="385" font-family="monospace" font-size="15" fill="#D9D2C4" text-anchor="middle">explorar</text>
+  <text x="750" y="408" font-family="monospace" font-size="12" fill="#8d8879" text-anchor="middle">r · eta²</text>
+
+  <!-- 4. EVALUAR: candidatos ordenados -->
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="945" y="235" width="150" height="110" rx="12"/>
+  </g>
+  <rect x="965" y="256" width="96" height="12" rx="3" fill="#EC7323"/>
+  <rect x="965" y="278" width="78" height="12" rx="3" fill="#8a9430"/>
+  <rect x="965" y="300" width="56" height="12" rx="3" fill="#D9D2C4"/>
+  <rect x="965" y="322" width="38" height="12" rx="3" fill="none" stroke="#4a4944" stroke-width="1.5"/>
+  <text x="1020" y="385" font-family="monospace" font-size="15" fill="#D9D2C4" text-anchor="middle">evaluar</text>
+  <text x="1020" y="408" font-family="monospace" font-size="12" fill="#8d8879" text-anchor="middle">hallazgos + score</text>
+
+  <text x="60" y="570" font-family="monospace" font-size="14" fill="#8d8879">la búsqueda es automática, la elección es humana · candidatos de hallazgo, no conclusiones</text>
+</svg>
