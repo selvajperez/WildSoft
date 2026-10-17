@@ -1,0 +1,399 @@
+---
+// Rayuela de datos: mapa interactivo de qué etapas de la arquitectura usa
+// cada herramienta del Lab. Dos modos: "Por proyecto" (el zorro recorre las
+// etapas de una herramienta) y "Por etapa" (qué proyectos usan una casilla).
+//
+// Todo el contenido se genera en el build: sin JavaScript se ve el recorrido
+// del primer proyecto con sus casillas encendidas. El script solo cambia de
+// vista y anima. Los datos viven en src/data/rayuela.ts.
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import Casilla from './Casilla.astro';
+import PanelProyecto from './PanelProyecto.astro';
+import PanelEtapa from './PanelEtapa.astro';
+import zorroCara from '../../../assets/lab/zorro-cara.png';
+import {
+  etapas as etapasBase,
+  proyectos as proyectosBase,
+  type Etapa,
+  type ProyectoRayuela,
+} from '../../../data/rayuela';
+
+interface Props {
+  etapas?: Etapa[];
+  proyectos?: ProyectoRayuela[];
+}
+
+const { etapas = etapasBase, proyectos = proyectosBase } = Astro.props;
+
+// Validaciones de build: un error de carga se ve al compilar, no en producción.
+const slugsLab = new Set((await getCollection('lab')).map((e) => e.slug));
+const idsEtapa = new Set(etapas.map((e) => e.id));
+for (const p of proyectos) {
+  const vistas = new Set<string>();
+  for (const paso of p.recorrido) {
+    if (!idsEtapa.has(paso.etapa)) throw new Error(`Rayuela: "${p.id}" usa una etapa inexistente (${paso.etapa}).`);
+    if (vistas.has(paso.etapa)) throw new Error(`Rayuela: "${p.id}" repite la etapa ${paso.etapa}.`);
+    vistas.add(paso.etapa);
+  }
+  if (p.experimento && !slugsLab.has(p.experimento)) {
+    throw new Error(`Rayuela: "${p.id}" apunta a un experimento que no existe (src/content/lab/${p.experimento}.md).`);
+  }
+}
+
+const fichaDe = (p: ProyectoRayuela) =>
+  p.experimento
+    ? { href: `/lab/${p.experimento}`, texto: 'Ver la ficha del proyecto' }
+    : p.enlace ?? null;
+
+const inicial = proyectos[0];
+const usadasInicial = new Set(inicial?.recorrido.map((r) => r.etapa) ?? []);
+const ordenInicial = new Map(inicial?.recorrido.map((r, i) => [r.etapa, i + 1]) ?? []);
+---
+<section class="ray" data-rayuela aria-labelledby="ray-titulo">
+  <div class="wrap">
+    <div class="ray-head">
+      <p class="ray-kicker">Mapa del laboratorio</p>
+      <h2 id="ray-titulo">La rayuela de datos</h2>
+      <p class="ray-bajada">Cinco casillas, cinco tareas. Elegí una herramienta para ver por cuáles pasa, o tocá una casilla para ver qué herramientas la usan.</p>
+    </div>
+
+    <div class="ray-card">
+      <div class="ray-controles">
+        <div class="ray-modos" role="group" aria-label="Modo de exploración">
+          <button type="button" class="ray-modo" data-modo="proyecto" aria-pressed="true">Por proyecto</button>
+          <button type="button" class="ray-modo" data-modo="etapa" aria-pressed="false">Por etapa</button>
+        </div>
+
+        <div class="ray-proyectos" data-selector role="group" aria-label="Elegir proyecto">
+          {proyectos.map((p, i) => (
+            <button type="button" class="ray-chip" data-proyecto={p.id} aria-pressed={i === 0 ? 'true' : 'false'}>
+              {p.nombre}
+            </button>
+          ))}
+        </div>
+        <p class="ray-ayuda" data-ayuda hidden>Tocá una casilla para ver qué proyectos usan esa etapa.</p>
+      </div>
+
+      <div class="ray-tablero" data-tablero>
+        {etapas.map((etapa) => (
+          <Casilla
+            etapa={etapa}
+            encendida={usadasInicial.has(etapa.id)}
+            apagada={!usadasInicial.has(etapa.id)}
+            orden={ordenInicial.get(etapa.id)}
+          />
+        ))}
+        <div class="ray-zorro" data-zorro aria-hidden="true">
+          <Image src={zorroCara} alt="" width={96} format="webp" quality={85} loading="lazy" />
+        </div>
+      </div>
+
+      <p class="ray-estado" data-estado aria-live="polite">
+        {inicial && `${inicial.nombre} usa ${inicial.recorrido.length} de ${etapas.length} etapas.`}
+      </p>
+
+      <div class="ray-paneles">
+        {proyectos.map((p, i) => (
+          <PanelProyecto proyecto={p} etapas={etapas} ficha={fichaDe(p)} activo={i === 0} />
+        ))}
+        {etapas.map((etapa) => (
+          <PanelEtapa
+            etapa={etapa}
+            usos={proyectos.flatMap((p) => {
+              const paso = p.recorrido.find((r) => r.etapa === etapa.id);
+              return paso ? [{ proyecto: p, texto: paso.texto, ficha: fichaDe(p) }] : [];
+            })}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ray{ background: var(--crema); padding: 0 0 90px; }
+
+  .ray-head{ max-width: 680px; margin: 0 auto 34px; text-align: center; }
+  .ray-kicker{
+    font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--verde); margin: 0 0 14px;
+  }
+  .ray-head h2{ font-size: 34px; font-weight: 800; color: var(--negro); margin: 0 0 12px; }
+  .ray-bajada{ font-size: 15.5px; line-height: 1.65; color: var(--gris); margin: 0; }
+
+  .ray-card{
+    position: relative; overflow: hidden;
+    background: var(--negro); color: var(--crema);
+    border-radius: 24px; padding: 40px 48px 44px;
+  }
+  /* El mismo resplandor cálido de la tarjeta del Lab en la portada */
+  .ray-card::before{
+    content: ''; position: absolute; left: 50%; top: 210px; width: 760px; height: 420px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(ellipse, rgba(236,115,35,0.12) 0%, rgba(236,115,35,0) 70%);
+    pointer-events: none;
+  }
+  .ray-card > *{ position: relative; }
+
+  .ray-controles{ display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; margin-bottom: 30px; }
+  .ray-modos{ display: inline-flex; padding: 4px; border-radius: 10px; background: rgba(251,242,226,0.07); }
+  .ray-modo{
+    font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(251,242,226,0.65); background: transparent; border: 0; border-radius: 7px; padding: 8px 14px; cursor: pointer;
+    transition: background-color 250ms ease, color 250ms ease;
+  }
+  .ray-modo[aria-pressed='true']{ background: var(--crema); color: var(--negro); }
+
+  .ray-proyectos{ display: flex; flex-wrap: wrap; gap: 8px; }
+  .ray-proyectos[hidden]{ display: none; }
+  .ray-chip{
+    font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+    color: var(--crema); background: transparent;
+    border: 1px solid rgba(251,242,226,0.25); border-radius: 20px; padding: 8px 16px;
+    transition: background-color 250ms ease, border-color 250ms ease, color 250ms ease;
+  }
+  .ray-chip:hover{ border-color: rgba(251,242,226,0.6); }
+  .ray-chip[aria-pressed='true']{ background: var(--naranja); border-color: var(--naranja); color: #fff; }
+  .ray-modo:focus-visible, .ray-chip:focus-visible{ outline: 2px solid var(--naranja); outline-offset: 3px; }
+  .ray-ayuda{ font-size: 14px; color: rgba(251,242,226,0.6); margin: 0; }
+
+  /* La forma de la rayuela: 1 y 2 solas, 3 y 4 de a par, 5 sola. */
+  .ray-tablero{
+    position: relative;
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-areas:
+      'extraccion normalizacion almacenamiento automatizacion'
+      'extraccion normalizacion analisis automatizacion';
+  }
+
+  .ray-zorro{
+    position: absolute; top: 0; left: 0; z-index: 2;
+    width: 46px; height: 46px; pointer-events: none;
+    opacity: 0;
+    transition: transform 620ms cubic-bezier(0.45, 0.05, 0.25, 1), opacity 300ms ease;
+  }
+  .ray-zorro.is-visible{ opacity: 1; }
+  .ray-zorro.sin-transicion{ transition: opacity 300ms ease; }
+  .ray-zorro :global(img){
+    width: 100%; height: auto; display: block;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.45));
+  }
+  .ray-zorro.salta :global(img){ animation: ray-salto 620ms ease-in-out; }
+  @keyframes ray-salto{
+    0%, 100%{ transform: translateY(0); }
+    45%{ transform: translateY(-12px); }
+  }
+
+  .ray-estado{
+    font-family: var(--font-mono); font-size: 12px; color: rgba(251,242,226,0.55);
+    margin: 18px 0 30px; min-height: 1.4em;
+  }
+  .ray-paneles{ border-top: 1px solid rgba(251,242,226,0.12); padding-top: 30px; }
+
+  @media (max-width: 900px){
+    .ray-card{ padding: 32px 28px 36px; }
+  }
+
+  @media (max-width: 760px){
+    .ray{ padding: 0 0 56px; }
+    .ray-head{ margin-bottom: 24px; }
+    .ray-head h2{ font-size: 26px; }
+    .ray-bajada{ font-size: 14.5px; }
+    .ray-card{ padding: 22px 16px 28px; border-radius: 20px; }
+    .ray-card::before{ top: 300px; width: 420px; height: 520px; }
+    .ray-controles{ gap: 12px; margin-bottom: 22px; }
+    .ray-chip{ font-size: 13px; padding: 7px 13px; }
+    /* En el celular la rayuela se lee de arriba hacia abajo */
+    .ray-tablero{
+      gap: 10px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-areas:
+        'extraccion extraccion'
+        'normalizacion normalizacion'
+        'almacenamiento analisis'
+        'automatizacion automatizacion';
+    }
+    .ray-zorro{ width: 38px; height: 38px; }
+    .ray-estado{ margin: 14px 0 22px; }
+    .ray-paneles{ padding-top: 22px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .ray-zorro, .ray-zorro.sin-transicion, .ray-modo, .ray-chip{ transition: none; }
+    .ray-zorro.salta :global(img){ animation: none; }
+  }
+</style>
+
+<script>
+  const PAUSA_ENTRE_SALTOS = 760;
+  const movimientoReducido = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  function iniciar(raiz: HTMLElement) {
+    const tablero = raiz.querySelector<HTMLElement>('[data-tablero]')!;
+    const zorro = raiz.querySelector<HTMLElement>('[data-zorro]')!;
+    const estado = raiz.querySelector<HTMLElement>('[data-estado]')!;
+    const selector = raiz.querySelector<HTMLElement>('[data-selector]')!;
+    const ayuda = raiz.querySelector<HTMLElement>('[data-ayuda]')!;
+    const botonesModo = [...raiz.querySelectorAll<HTMLButtonElement>('[data-modo]')];
+    const chips = [...raiz.querySelectorAll<HTMLButtonElement>('[data-proyecto]')];
+    const casillas = new Map(
+      [...raiz.querySelectorAll<HTMLButtonElement>('[data-casilla]')].map((c) => [c.dataset.casilla!, c]),
+    );
+    const panelesProyecto = [...raiz.querySelectorAll<HTMLElement>('[data-panel-proyecto]')];
+    const panelesEtapa = [...raiz.querySelectorAll<HTMLElement>('[data-panel-etapa]')];
+    const totalEtapas = casillas.size;
+
+    let proyectoActual = chips[0]?.dataset.proyecto ?? '';
+    let etapaActual = casillas.keys().next().value ?? '';
+    let zorroEn: string | null = null;
+    let temporizadores: number[] = [];
+
+    const cancelar = () => {
+      temporizadores.forEach(clearTimeout);
+      temporizadores = [];
+    };
+
+    // El zorro se apoya en la esquina superior derecha de la casilla, para no tapar el texto.
+    function moverZorro(etapa: string, animar: boolean) {
+      const casilla = casillas.get(etapa);
+      if (!casilla) return;
+      const t = tablero.getBoundingClientRect();
+      const c = casilla.getBoundingClientRect();
+      const x = c.right - t.left - zorro.offsetWidth * 0.8;
+      const y = c.top - t.top - zorro.offsetHeight * 0.45;
+      const primeraVez = !zorro.classList.contains('is-visible');
+      const conTransicion = animar && !primeraVez && !movimientoReducido.matches;
+
+      zorro.classList.toggle('sin-transicion', !conTransicion);
+      zorro.style.transform = `translate(${x}px, ${y}px)`;
+      zorro.classList.add('is-visible');
+      if (conTransicion) {
+        zorro.classList.remove('salta');
+        void zorro.offsetWidth; // reinicia la animación del salto
+        zorro.classList.add('salta');
+      }
+      zorroEn = etapa;
+    }
+
+    function limpiarCasillas() {
+      casillas.forEach((c) => {
+        c.classList.remove('is-lit', 'is-dim', 'is-current');
+        c.setAttribute('aria-pressed', 'false');
+        const orden = c.querySelector<HTMLElement>('[data-orden]');
+        if (orden) orden.textContent = '';
+      });
+    }
+
+    function marcarModo(modo: 'proyecto' | 'etapa') {
+      botonesModo.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.modo === modo)));
+      selector.hidden = modo !== 'proyecto';
+      ayuda.hidden = modo !== 'etapa';
+    }
+
+    function mostrarProyecto(id: string, animar: boolean) {
+      cancelar();
+      proyectoActual = id;
+      marcarModo('proyecto');
+      chips.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.proyecto === id)));
+      panelesEtapa.forEach((p) => (p.hidden = true));
+
+      const panel = panelesProyecto.find((p) => p.dataset.panelProyecto === id);
+      panelesProyecto.forEach((p) => (p.hidden = p !== panel));
+      if (!panel) return;
+
+      const pasos = [...panel.querySelectorAll<HTMLElement>('[data-paso]')];
+      const recorrido = pasos.map((p) => p.dataset.paso!);
+      const nombre = raiz.querySelector(`[data-proyecto="${id}"]`)?.textContent?.trim() ?? '';
+      estado.textContent = `${nombre} usa ${recorrido.length} de ${totalEtapas} etapas.`;
+
+      limpiarCasillas();
+      pasos.forEach((p) => p.classList.remove('is-active', 'is-current'));
+      casillas.forEach((c, etapa) => {
+        if (!recorrido.includes(etapa)) c.classList.add('is-dim');
+      });
+
+      const encender = (i: number, animarZorro: boolean) => {
+        const etapa = recorrido[i];
+        const casilla = casillas.get(etapa);
+        if (!casilla) return;
+        casillas.forEach((c) => c.classList.remove('is-current'));
+        pasos.forEach((p) => p.classList.remove('is-current'));
+        casilla.classList.add('is-lit', 'is-current');
+        const orden = casilla.querySelector<HTMLElement>('[data-orden]');
+        if (orden) orden.textContent = `paso ${i + 1}`;
+        pasos[i].classList.add('is-active', 'is-current');
+        moverZorro(etapa, animarZorro);
+      };
+
+      if (!animar || movimientoReducido.matches) {
+        recorrido.forEach((_, i) => encender(i, false));
+        return;
+      }
+      recorrido.forEach((_, i) => {
+        temporizadores.push(window.setTimeout(() => encender(i, true), 200 + i * PAUSA_ENTRE_SALTOS));
+      });
+    }
+
+    function mostrarEtapa(id: string) {
+      cancelar();
+      etapaActual = id;
+      marcarModo('etapa');
+      panelesProyecto.forEach((p) => (p.hidden = true));
+      panelesEtapa.forEach((p) => (p.hidden = p.dataset.panelEtapa !== id));
+
+      limpiarCasillas();
+      const casilla = casillas.get(id);
+      casilla?.classList.add('is-lit', 'is-current');
+      casilla?.setAttribute('aria-pressed', 'true');
+
+      const usos = raiz.querySelectorAll(`[data-panel-etapa="${id}"] [data-ver-recorrido]`).length;
+      const nombre = casilla?.querySelector('.casilla-nombre')?.textContent ?? '';
+      estado.textContent = `${nombre}: ${usos === 1 ? '1 proyecto la usa' : `${usos} proyectos la usan`}.`;
+      moverZorro(id, true);
+    }
+
+    botonesModo.forEach((b) =>
+      b.addEventListener('click', () => {
+        if (b.getAttribute('aria-pressed') === 'true') return;
+        if (b.dataset.modo === 'etapa') mostrarEtapa(etapaActual);
+        else mostrarProyecto(proyectoActual, true);
+      }),
+    );
+    chips.forEach((b) => b.addEventListener('click', () => mostrarProyecto(b.dataset.proyecto!, true)));
+    casillas.forEach((c, etapa) => c.addEventListener('click', () => mostrarEtapa(etapa)));
+    raiz.querySelectorAll<HTMLButtonElement>('[data-ver-recorrido]').forEach((b) =>
+      b.addEventListener('click', () => {
+        mostrarProyecto(b.dataset.verRecorrido!, true);
+        raiz.querySelector<HTMLButtonElement>(`[data-proyecto="${b.dataset.verRecorrido}"]`)?.focus({ preventScroll: true });
+      }),
+    );
+
+    // Si cambia el tamaño del tablero (rotar el celular, achicar la ventana), el zorro se reacomoda sin saltar.
+    new ResizeObserver(() => {
+      if (zorroEn) moverZorro(zorroEn, false);
+    }).observe(tablero);
+
+    // Estado de partida: casillas sin encender hasta que la rayuela entra en pantalla.
+    limpiarCasillas();
+    if (movimientoReducido.matches || !('IntersectionObserver' in window)) {
+      mostrarProyecto(proyectoActual, false);
+      return;
+    }
+    casillas.forEach((c) => c.classList.add('is-dim'));
+    const observador = new IntersectionObserver(
+      (entradas) => {
+        if (entradas.some((e) => e.isIntersecting)) {
+          observador.disconnect();
+          // Si la persona ya eligió algo antes de llegar, no se pisa su elección.
+          if (!zorroEn) mostrarProyecto(proyectoActual, true);
+        }
+      },
+      { threshold: 0.35 },
+    );
+    observador.observe(tablero);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-rayuela]').forEach(iniciar);
+</script>

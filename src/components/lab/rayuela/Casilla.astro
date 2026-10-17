@@ -1,0 +1,79 @@
+---
+// Una casilla de la rayuela. Es un botón: tocarla abre la vista "Por etapa".
+// Su lugar en el tablero sale del id de la etapa (grid-area), así que el
+// tablero define la forma y la casilla no necesita saber dónde va.
+import type { Etapa } from '../../../data/rayuela';
+
+interface Props {
+  etapa: Etapa;
+  encendida?: boolean;
+  apagada?: boolean;
+  orden?: number;
+}
+
+const { etapa, encendida = false, apagada = false, orden } = Astro.props;
+---
+<button
+  type="button"
+  class:list={['casilla', { 'is-lit': encendida, 'is-dim': apagada }]}
+  style={`grid-area: ${etapa.id}`}
+  data-casilla={etapa.id}
+  aria-pressed="false"
+  aria-label={`Etapa ${etapa.numero}: ${etapa.nombre}. ${etapa.accion}. Ver qué proyectos la usan.`}
+>
+  <span class="casilla-num" aria-hidden="true">{String(etapa.numero).padStart(2, '0')}</span>
+  <span class="casilla-orden" data-orden aria-hidden="true">{orden ? `paso ${orden}` : ''}</span>
+  <span class="casilla-nombre">{etapa.corte ?? etapa.nombre}</span>
+  <span class="casilla-accion">{etapa.accion}</span>
+</button>
+
+<style>
+  .casilla{
+    position: relative;
+    display: flex; flex-direction: column; justify-content: flex-end; gap: 4px;
+    min-height: 92px; padding: 38px 18px 16px; text-align: left;
+    font: inherit; color: var(--crema); cursor: pointer;
+    background: rgba(251,242,226,0.03);
+    border: 1px solid rgba(251,242,226,0.16);
+    border-radius: 14px;
+    transition: border-color 420ms ease, background-color 420ms ease, box-shadow 420ms ease, opacity 420ms ease;
+  }
+  .casilla:hover{ border-color: rgba(251,242,226,0.4); }
+  .casilla:focus-visible{ outline: 2px solid var(--naranja); outline-offset: 3px; }
+
+  .casilla-num{
+    position: absolute; top: 14px; left: 18px;
+    font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+    color: rgba(251,242,226,0.45); transition: color 420ms ease;
+  }
+  .casilla-orden{
+    position: absolute; top: 14px; left: 50px;
+    font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--naranja); opacity: 0; transition: opacity 420ms ease;
+  }
+  .casilla-nombre{ font-size: 17px; font-weight: 800; line-height: 1.2; hyphens: auto; overflow-wrap: break-word; }
+  .casilla-accion{ font-size: 13px; line-height: 1.4; color: rgba(251,242,226,0.6); }
+
+  .casilla.is-lit{
+    border-color: var(--naranja);
+    background: rgba(236,115,35,0.1);
+    box-shadow: 0 0 0 1px rgba(236,115,35,0.25), 0 14px 34px -18px rgba(236,115,35,0.7);
+  }
+  .casilla.is-lit .casilla-num{ color: var(--naranja); }
+  .casilla.is-lit .casilla-orden:not(:empty){ opacity: 1; }
+  .casilla.is-current{ background: rgba(236,115,35,0.18); }
+  .casilla.is-dim{ opacity: 0.34; }
+  .casilla.is-dim:hover{ opacity: 0.6; }
+
+  @media (max-width: 760px){
+    .casilla{ min-height: 82px; padding: 34px 12px 14px; border-radius: 12px; }
+    .casilla-num{ top: 12px; left: 12px; }
+    .casilla-orden{ top: 12px; left: 42px; }
+    .casilla-nombre{ font-size: clamp(12.5px, 3.4vw, 15.5px); letter-spacing: -0.01em; }
+    .casilla-accion{ font-size: 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .casilla, .casilla-num, .casilla-orden{ transition: none; }
+  }
+</style>
