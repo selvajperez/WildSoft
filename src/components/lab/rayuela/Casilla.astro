@@ -22,7 +22,7 @@ const { etapa, encendida = false, apagada = false, orden } = Astro.props;
   aria-label={`Etapa ${etapa.numero}: ${etapa.nombre}. ${etapa.accion}. Ver qué proyectos la usan.`}
 >
   <span class="casilla-num" aria-hidden="true">{String(etapa.numero).padStart(2, '0')}</span>
-  <span class="casilla-orden" data-orden aria-hidden="true">{orden ? `paso ${orden}` : ''}</span>
+  <span class="casilla-orden" data-orden aria-hidden="true">{orden ? `Paso ${orden}` : ''}</span>
   <span class="casilla-nombre">{etapa.corte ?? etapa.nombre}</span>
   <span class="casilla-accion">{etapa.accion}</span>
 </button>
@@ -46,11 +46,15 @@ const { etapa, encendida = false, apagada = false, orden } = Astro.props;
     font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
     color: rgba(251,242,226,0.45); transition: color 420ms ease;
   }
+  /* Dos numeraciones distintas: el número de etapa (01-05) es fijo y neutro;
+     el paso es una pastilla naranja que indica el orden del proyecto elegido. */
   .casilla-orden{
-    position: absolute; top: 14px; left: 50px;
-    font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--naranja); opacity: 0; transition: opacity 420ms ease;
+    position: absolute; top: 11px; left: 50px;
+    font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; line-height: 1;
+    color: #fff; background: var(--naranja); border-radius: 20px; padding: 4px 9px;
+    opacity: 0; transition: opacity 420ms ease;
   }
+  .casilla-orden:empty{ display: none; }
   .casilla-nombre{ font-size: 17px; font-weight: 800; line-height: 1.2; hyphens: auto; overflow-wrap: break-word; }
   .casilla-accion{ font-size: 13px; line-height: 1.4; color: rgba(251,242,226,0.6); }
 
@@ -59,7 +63,7 @@ const { etapa, encendida = false, apagada = false, orden } = Astro.props;
     background: rgba(236,115,35,0.1);
     box-shadow: 0 0 0 1px rgba(236,115,35,0.25), 0 14px 34px -18px rgba(236,115,35,0.7);
   }
-  .casilla.is-lit .casilla-num{ color: var(--naranja); }
+  .casilla.is-lit .casilla-num{ color: rgba(251,242,226,0.85); }
   .casilla.is-lit .casilla-orden:not(:empty){ opacity: 1; }
   .casilla.is-current{ background: rgba(236,115,35,0.18); }
   .casilla.is-dim{ opacity: 0.34; }
@@ -68,7 +72,7 @@ const { etapa, encendida = false, apagada = false, orden } = Astro.props;
   @media (max-width: 760px){
     .casilla{ min-height: 82px; padding: 34px 12px 14px; border-radius: 12px; }
     .casilla-num{ top: 12px; left: 12px; }
-    .casilla-orden{ top: 12px; left: 42px; }
+    .casilla-orden{ top: 9px; left: 40px; }
     .casilla-nombre{ font-size: clamp(12.5px, 3.4vw, 15.5px); letter-spacing: -0.01em; }
     .casilla-accion{ font-size: 12px; }
   }

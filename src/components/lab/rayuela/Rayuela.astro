@@ -322,7 +322,7 @@ const ordenInicial = new Map(inicial?.recorrido.map((r, i) => [r.etapa, i + 1]) 
         pasos.forEach((p) => p.classList.remove('is-current'));
         casilla.classList.add('is-lit', 'is-current');
         const orden = casilla.querySelector<HTMLElement>('[data-orden]');
-        if (orden) orden.textContent = `paso ${i + 1}`;
+        if (orden) orden.textContent = `Paso ${i + 1}`;
         pasos[i].classList.add('is-active', 'is-current');
         moverZorro(etapa, animarZorro);
       };
