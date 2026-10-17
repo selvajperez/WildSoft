@@ -1,19 +1,14 @@
 Tipografia principal de marca: Glacial Indifference
 -----------------------------------------------------
-Es una fuente con licencia propia (no es de Google Fonts ni de uso libre),
-por lo que no se incluye en este proyecto.
 
-Para usar la tipografia oficial en el sitio:
-1. Exporta los archivos .woff2 de Glacial Indifference (Regular y Bold) desde
-   tu Kit de Marca de Canva o tu fuente de licencia habitual.
-2. Copialos en esta carpeta con estos nombres exactos:
-   - GlacialIndifference-Regular.woff2
-   - GlacialIndifference-Bold.woff2
-3. Volve a cargar el sitio: se aplicara automaticamente (ver @font-face en
-   src/styles/global.css).
+Archivos incluidos (version web oficial del paquete GlacialIndifference_1312):
+  - GlacialIndifference-Regular.woff2
+  - GlacialIndifference-Bold.woff2
 
-Mientras estos archivos no esten presentes, el sitio usa Poppins (Google
-Fonts) como reemplazo visual equivalente, para no romper el diseño.
+Licencia: SIL Open Font License 1.1 (ver OFL.txt). Permite usarla e
+incluirla en el sitio; el archivo de licencia debe acompanar a la fuente.
 
-La tipografia secundaria (Belleza) SI esta incluida via Google Fonts y
-funciona sin pasos adicionales.
+Se aplica desde los @font-face de src/styles/global.css. Poppins (Google
+Fonts) queda como respaldo mientras carga.
+
+La tipografia secundaria (Belleza) se carga desde Google Fonts.

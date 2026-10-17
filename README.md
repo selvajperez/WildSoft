@@ -67,7 +67,7 @@ src/
   styles/global.css          # paleta, tipografías, estilos base
 public/
   images/                    # logo e ilustraciones aprobadas (WildFox)
-  fonts/                     # ver README.txt para agregar Glacial Indifference
+  fonts/                     # Glacial Indifference (woff2) + licencia OFL
   favicon.png
 ```
 
@@ -109,6 +109,8 @@ extracción de datos. Cada experimento es un archivo, igual que una nota.
    stack: ["Python", "Playwright"]   # opcional
    repo: "https://github.com/usuario/repo"   # opcional; solo si es público
    repoPrivado: true                  # opcional; muestra "repositorio privado"
+   app: "https://mi-app.vercel.app/"  # opcional; botón "Abrir la aplicación"
+   statsTitulo: "La base al 9 de octubre de 2026, en números"  # opcional
    stats:                             # opcional: tira de números
      - valor: "470"
        etiqueta: "qué mide ese número"
@@ -166,9 +168,8 @@ en `src/styles/global.css`:
 
 Tipografías: **Glacial Indifference** (principal) y **Belleza** (secundaria,
 frases destacadas y cierres). Belleza se carga automáticamente desde Google
-Fonts. Glacial Indifference tiene licencia propia y no se distribuye en este
-repo — instrucciones para agregarla en `public/fonts/README.txt` (mientras
-tanto, el sitio usa Poppins como reemplazo visual).
+Fonts. Glacial Indifference está incluida en `public/fonts/` (woff2 Regular y
+Bold, licencia SIL OFL 1.1 en `OFL.txt`); Poppins queda como respaldo.
 
 ## Responsive
 
