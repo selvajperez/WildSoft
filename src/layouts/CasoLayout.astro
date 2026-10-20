@@ -20,9 +20,10 @@ import type { Lectura } from '../lib/relacionados';
 export interface Props {
   caso: Caso;
   lecturas: Lectura[];
+  conexiones?: { titulo: string; bajada?: string; lecturas: Lectura[] }[];
 }
 
-const { caso, lecturas } = Astro.props;
+const { caso, lecturas, conexiones = [] } = Astro.props;
 const { data } = caso;
 
 const ancla = (numero: string) => `acto-${numero.toLowerCase()}`;
@@ -178,7 +179,7 @@ const fechaTexto = data.fecha.toLocaleDateString('es-AR', {
   </div>
 
   <Fuentes fuentes={data.fuentes} nota={data.notaFuentes} />
-  <LecturasRelacionadas lecturas={lecturas} />
+  <LecturasRelacionadas lecturas={lecturas} grupos={conexiones} titulo={conexiones.length > 0 ? 'Conexiones' : undefined} />
 
   <div class="fin-caso">
     <a class="volver-abajo" href="/lab/casos">&larr; Volver a Casos</a>

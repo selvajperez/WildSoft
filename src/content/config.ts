@@ -170,6 +170,21 @@ const casos = defineCollection({
       // Aclaración que encabeza la sección Fuentes (p. ej., diferencias entre
       // las fuentes o el carácter de la reconstrucción).
       notaFuentes: z.string().optional(),
+      // Conexiones del caso con otros contenidos del sitio, agrupadas por eje.
+      // Usan las mismas referencias que `relacionados` y, como ellas, se leen
+      // en los dos sentidos: la página enlazada muestra el caso sola. Un eje
+      // sin contenidos enlazados no se muestra.
+      conexiones: z
+        .array(
+          z.object({
+            eje: z.string(),
+            descripcion: z.string().optional(),
+            notas: z.array(reference('notas')).default([]),
+            lab: z.array(reference('lab')).default([]),
+            casos: z.array(reference('casos')).default([]),
+          }),
+        )
+        .default([]),
       relacionados,
     });
   },

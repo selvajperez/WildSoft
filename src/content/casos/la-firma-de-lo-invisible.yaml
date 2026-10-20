@@ -121,6 +121,19 @@ fuentes:
     url: "https://www.tbs-biometrics.com/en/blog/evolution_of_biometrics"
     nota: "Blog de una empresa de tecnología biométrica."
 
+# Conexiones con otros contenidos del sitio, por eje. Solo se enlazan
+# contenidos que existen (slugs de notas, experimentos del Lab o casos). Un eje
+# sin enlaces no se muestra; cuando haya contenido, basta con sumar su slug.
+# Las páginas enlazadas muestran el caso solas, en «Lecturas relacionadas».
+conexiones:
+  - eje: "De las huellas a los datos"
+    descripcion: "Clasificación, patrones y bases de datos."
+    lab: [analizador-exploratorio, la-jsoneta, sourcing-scraper]
+  - eje: "Patrones de la naturaleza"
+    descripcion: "Formación y características de las huellas."
+  - eje: "Identidad y tecnología"
+    descripcion: "Biometría, identificación y privacidad."
+
 # Lecturas relacionadas: slugs de notas, experimentos del Lab u otros casos.
 # Basta con declarar la relación de un lado; la otra página la muestra sola.
 relacionados:

@@ -2,29 +2,42 @@
 import type { Lectura } from '../../lib/relacionados';
 
 export interface Props {
-  lecturas: Lectura[];
+  lecturas?: Lectura[];
+  // Opcional: lecturas agrupadas (p. ej., las conexiones de un caso por eje).
+  grupos?: { titulo: string; bajada?: string; lecturas: Lectura[] }[];
+  titulo?: string;
 }
 
 // Sin lecturas no se muestra nada: la sección aparece sola cuando alguna
 // entrada declara la relación en su campo `relacionados`.
-const { lecturas } = Astro.props;
+const { lecturas = [], grupos = [], titulo = 'Lecturas relacionadas' } = Astro.props;
+const bloques = [
+  ...grupos.filter((g) => g.lecturas.length > 0),
+  ...(lecturas.length > 0 ? [{ titulo: grupos.length > 0 ? 'Otras lecturas' : '', bajada: undefined, lecturas }] : []),
+];
 ---
-{lecturas.length > 0 && (
-  <section class="relacionadas">
+{bloques.length > 0 && (
+  <section class="relacionadas" id={grupos.length > 0 ? 'conexiones' : undefined}>
     <div class="relacionadas-inner">
-      <p class="kicker">Lecturas relacionadas</p>
-      <ul class="lista">
-        {lecturas.map((l) => (
-          <li>
-            <a class="card" href={l.href}>
-              <span class={`tipo tipo-${l.tipo.toLowerCase()}`}>{l.tipo}</span>
-              <span class="titulo">{l.titulo}</span>
-              <span class="desc">{l.descripcion}</span>
-              <span class="link">Leer →</span>
-            </a>
-          </li>
-        ))}
-      </ul>
+      <p class="kicker">{titulo}</p>
+      {bloques.map((b) => (
+        <div class="bloque">
+          {b.titulo && <h2 class="eje">{b.titulo}</h2>}
+          {b.bajada && <p class="bajada">{b.bajada}</p>}
+          <ul class="lista">
+            {b.lecturas.map((l) => (
+              <li>
+                <a class="card" href={l.href}>
+                  <span class={`tipo tipo-${l.tipo.toLowerCase()}`}>{l.tipo}</span>
+                  <span class="titulo">{l.titulo}</span>
+                  <span class="desc">{l.descripcion}</span>
+                  <span class="link">Leer →</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </div>
   </section>
 )}
@@ -36,6 +49,9 @@ const { lecturas } = Astro.props;
     font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
     color: var(--verde); margin: 0 0 20px;
   }
+  .bloque + .bloque{ margin-top: 40px; }
+  .eje{ font-size: 21px; font-weight: 800; color: var(--negro); margin: 0 0 6px; }
+  .bajada{ font-size: 15px; line-height: 1.6; color: var(--gris); margin: 0 0 18px; }
   .lista{ list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
   .card{
     display: flex; flex-direction: column; gap: 10px; height: 100%;
@@ -55,6 +71,8 @@ const { lecturas } = Astro.props;
     .relacionadas{ padding: 20px 22px 6px; }
     .relacionadas-inner{ padding-top: 30px; }
     .lista{ grid-template-columns: 1fr; gap: 12px; }
+    .eje{ font-size: 18px; }
+    .bajada{ font-size: 14px; }
     .card{ padding: 20px 18px; }
     .titulo{ font-size: 16.5px; }
   }

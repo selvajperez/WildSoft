@@ -1,7 +1,7 @@
 ---
 import CasoLayout from '../../../layouts/CasoLayout.astro';
 import { getCasosVisibles } from '../../../lib/casos';
-import { getRelacionados } from '../../../lib/relacionados';
+import { getConexiones, getRelacionados } from '../../../lib/relacionados';
 
 // Un caso, una página: /lab/casos/<nombre del YAML>. Los borradores solo se
 // generan en desarrollo.
@@ -14,6 +14,9 @@ export async function getStaticPaths() {
 }
 
 const { caso } = Astro.props;
-const lecturas = await getRelacionados('casos', caso.id);
+// Las conexiones se muestran por eje; las demás relaciones, aparte.
+const conexiones = await getConexiones(caso);
+const enConexiones = new Set(conexiones.flatMap((c) => c.lecturas.map((l) => l.href)));
+const lecturas = (await getRelacionados('casos', caso.id)).filter((l) => !enConexiones.has(l.href));
 ---
-<CasoLayout caso={caso} lecturas={lecturas} />
+<CasoLayout caso={caso} lecturas={lecturas} conexiones={conexiones} />
