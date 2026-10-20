@@ -1,7 +1,7 @@
 # La firma de lo invisible — El caso Rojas
 #
-# Borrador: con `publicado: false` el caso solo se ve con `npm run dev`.
-# Para publicarlo, pasalo a true: el build falla si falta alguna imagen, `alt`
+# Publicado. Con `publicado: false` volvería a ser un borrador (solo visible con `npm run dev`).
+# Mientras esté publicado, el build falla si falta alguna imagen, `alt`
 # o infografía.
 #
 # La página sigue este orden: historieta → «Detrás de las huellas» → fuentes.
@@ -19,7 +19,7 @@ lugar: "Necochea, Argentina"
 epoca: "1892"
 fecha: 2026-10-18
 tags: ["Novela gráfica", "Historia", "Identificación", "Datos y sociedad"]
-publicado: false
+publicado: true
 # portada: ../../assets/casos/la-firma-de-lo-invisible/portada.webp
 # portadaAlt: ""
 
