@@ -1,0 +1,84 @@
+---
+import { Image, getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+export interface Props {
+  pagina: { imagen: ImageMetadata; alt: string };
+  etiqueta: string; // "Acto I, página 1" o el título de la infografía
+  ampliarTexto?: string;
+}
+
+const { pagina, etiqueta, ampliarTexto = 'Ampliar página' } = Astro.props;
+
+// La imagen se muestra entera, en su proporción original y sin recortes: solo
+// cambia el ancho según la pantalla, hasta su tamaño real (con un tope para no
+// servir archivos enormes). Los textos ya están dibujados, así que no se
+// repiten en HTML.
+const anchoMax = Math.min(pagina.imagen.width, 2000);
+const widths = [480, 768, 1024, 1536].filter((w) => w < anchoMax).concat(anchoMax);
+
+// Ampliar abre la imagen a tamaño real en el Lightbox del sitio, donde se
+// recorre deslizando (cómodo en el celular para leer los diálogos). Sin
+// JavaScript, el enlace abre la misma imagen en el navegador.
+const ampliada = await getImage({ src: pagina.imagen, width: anchoMax, format: 'webp' });
+let hash = 5381;
+for (const c of pagina.imagen.src) hash = ((hash * 33) ^ c.charCodeAt(0)) >>> 0;
+const zoomId = `zoom-${hash.toString(36)}`;
+const altoAmpliada = Math.round((pagina.imagen.height * anchoMax) / pagina.imagen.width);
+---
+<figure class="pagina" style={`max-width: ${anchoMax}px`}>
+  <a
+    href={ampliada.src}
+    class="pagina-enlace"
+    data-lightbox={zoomId}
+    data-lightbox-type="content"
+    aria-label={`${etiqueta}: ampliar`}
+  >
+    <Image
+      class="pagina-img"
+      src={pagina.imagen}
+      alt={pagina.alt}
+      widths={widths}
+      sizes={`(max-width: ${anchoMax + 40}px) calc(100vw - 24px), ${anchoMax}px`}
+      loading="lazy"
+    />
+  </a>
+  <figcaption class="pagina-pie">
+    <a href={ampliada.src} data-lightbox={zoomId} data-lightbox-type="content">{ampliarTexto} ↗</a>
+  </figcaption>
+  <template id={zoomId}>
+    <img class="caso-zoom" src={ampliada.src} width={anchoMax} height={altoAmpliada} alt={pagina.alt} />
+  </template>
+</figure>
+
+<script>
+  // El Lightbox abre la ampliación; acá solo se evita que el enlace, además,
+  // navegue a la imagen.
+  document.addEventListener('click', (e) => {
+    if ((e.target as Element).closest('.pagina a[data-lightbox]')) e.preventDefault();
+  });
+</script>
+
+<style>
+  .pagina{ margin: 0 auto; width: 100%; }
+  .pagina-enlace{ display: block; line-height: 0; box-shadow: 0 24px 50px rgba(0,0,0,0.45); cursor: zoom-in; }
+  /* Fondo blanco detrás de las imágenes con transparencias (p. ej. un mapa
+     mental exportado de NotebookLM), para que no se pierdan sobre el fondo oscuro. */
+  .pagina-img{ width: 100%; height: auto; display: block; background: #fff; }
+  .pagina-pie{
+    display: flex; justify-content: flex-end; gap: 16px; margin-top: 12px;
+    font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--caso-papel); opacity: 0.65;
+  }
+  .pagina-pie a{ color: var(--caso-acento); }
+  .pagina-pie a:hover{ text-decoration: underline; }
+</style>
+
+<style is:global>
+  /* Solo para las ampliaciones de los Casos: a tamaño real y desplazable,
+     en lugar de ajustarse a la pantalla como el resto de los Lightbox. */
+  .lightbox-inner:has(img.caso-zoom){ max-width: 100%; }
+  .lightbox-inner img.caso-zoom{
+    max-width: none; max-height: none; height: auto; border-radius: 0; background: #fff;
+  }
+</style>

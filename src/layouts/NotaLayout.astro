@@ -2,6 +2,8 @@
 import BaseLayout from './BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import LecturasRelacionadas from '../components/casos/LecturasRelacionadas.astro';
+import type { Lectura } from '../lib/relacionados';
 
 export interface Props {
   title: string;
@@ -15,6 +17,7 @@ export interface Props {
   siguienteTexto?: string;
   siguienteHref?: string;
   siguienteLinkTexto?: string;
+  lecturas?: Lectura[];
 }
 
 const {
@@ -24,6 +27,7 @@ const {
   siguienteTexto = 'Apuntes sobre datos, tecnología, proyectos y aprendizaje continuo — la misma bitácora abierta donde vive esta nota.',
   siguienteHref = '/notas',
   siguienteLinkTexto = 'Ver todas las notas →',
+  lecturas = [],
 } = Astro.props;
 
 const fecha = pubDate.toLocaleDateString('es-AR', {
@@ -57,6 +61,8 @@ const fecha = pubDate.toLocaleDateString('es-AR', {
   <div class="articulo-body prose">
     <slot />
   </div>
+
+  <LecturasRelacionadas lecturas={lecturas} />
 
   <div class="fin-nota">
     <a class="volver-abajo" href="/notas">&larr; Volver a Notas</a>

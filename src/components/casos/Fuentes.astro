@@ -1,0 +1,72 @@
+---
+import type { Caso } from '../../lib/casos';
+
+export interface Props {
+  fuentes: Caso['data']['fuentes'];
+  nota?: string;
+}
+
+const { fuentes, nota } = Astro.props;
+
+const grupos = [
+  { titulo: 'Fuentes documentales', items: fuentes.filter((f) => f.tipo === 'documental') },
+  { titulo: 'Bibliografía', items: fuentes.filter((f) => f.tipo === 'bibliografia') },
+  { titulo: 'Prensa y divulgación', items: fuentes.filter((f) => f.tipo === 'prensa') },
+].filter((g) => g.items.length > 0);
+---
+{grupos.length > 0 && (
+  <section class="fuentes" id="fuentes">
+    <div class="fuentes-inner">
+      <p class="kicker">Fuentes</p>
+      {nota && <p class="nota-fuentes">{nota}</p>}
+      {grupos.map((g) => (
+        <div class="grupo">
+          <h2>{g.titulo}</h2>
+          <ul>
+            {g.items.map((f) => (
+              <li>
+                {f.autor && <span class="autor">{f.autor}. </span>}
+                {f.url ? (
+                  <a href={f.url} target="_blank" rel="noopener noreferrer"><cite>{f.titulo}</cite></a>
+                ) : (
+                  <cite>{f.titulo}</cite>
+                )}
+                {f.detalle && <span>{/[?!.]$/.test(f.titulo) ? ' ' : '. '}{f.detalle}</span>}
+                {f.anio && <span>, {f.anio}</span>}.
+                {f.nota && <span class="nota">{f.nota}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </section>
+)}
+
+<style>
+  .fuentes{ padding: 70px 60px 10px; }
+  .fuentes-inner{ max-width: 810px; margin: 0 auto; }
+  .kicker{
+    font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--verde); margin: 0 0 20px;
+  }
+  .nota-fuentes{
+    font-size: 15.5px; line-height: 1.7; color: var(--gris); margin: 0 0 34px;
+    padding: 16px 20px; background: var(--crema); border-left: 4px solid var(--naranja); border-radius: 4px;
+  }
+  .grupo + .grupo{ margin-top: 34px; }
+  h2{ font-size: 22px; font-weight: 800; color: var(--negro); margin: 0 0 14px; }
+  ul{ margin: 0; padding-left: 20px; }
+  li{ font-size: 15.5px; line-height: 1.7; color: var(--gris); margin-bottom: 10px; }
+  .autor{ font-weight: 700; color: var(--negro); }
+  cite{ font-style: italic; }
+  .nota{ display: block; font-size: 14.5px; line-height: 1.6; margin-top: 4px; opacity: 0.85; }
+  a{ color: var(--naranja); text-decoration: underline; text-underline-offset: 3px; }
+
+  @media (max-width: 760px){
+    .fuentes{ padding: 44px 22px 6px; }
+    h2{ font-size: 19px; }
+    li{ font-size: 14.5px; }
+    .nota-fuentes{ font-size: 14.5px; padding: 14px 16px; margin-bottom: 28px; }
+  }
+</style>

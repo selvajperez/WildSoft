@@ -1,0 +1,61 @@
+---
+import type { Lectura } from '../../lib/relacionados';
+
+export interface Props {
+  lecturas: Lectura[];
+}
+
+// Sin lecturas no se muestra nada: la sección aparece sola cuando alguna
+// entrada declara la relación en su campo `relacionados`.
+const { lecturas } = Astro.props;
+---
+{lecturas.length > 0 && (
+  <section class="relacionadas">
+    <div class="relacionadas-inner">
+      <p class="kicker">Lecturas relacionadas</p>
+      <ul class="lista">
+        {lecturas.map((l) => (
+          <li>
+            <a class="card" href={l.href}>
+              <span class={`tipo tipo-${l.tipo.toLowerCase()}`}>{l.tipo}</span>
+              <span class="titulo">{l.titulo}</span>
+              <span class="desc">{l.descripcion}</span>
+              <span class="link">Leer →</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+)}
+
+<style>
+  .relacionadas{ padding: 30px 60px 10px; }
+  .relacionadas-inner{ max-width: 810px; margin: 0 auto; border-top: 1px solid rgba(21,22,18,0.15); padding-top: 40px; }
+  .kicker{
+    font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--verde); margin: 0 0 20px;
+  }
+  .lista{ list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .card{
+    display: flex; flex-direction: column; gap: 10px; height: 100%;
+    background: #fff; border-radius: 14px; padding: 24px 22px; border-left: 4px solid var(--naranja);
+  }
+  .tipo{
+    align-self: flex-start; font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 4px 10px; border-radius: 20px; background: var(--naranja); color: #fff;
+  }
+  .tipo-lab{ background: var(--verde); }
+  .tipo-caso{ background: var(--negro); }
+  .titulo{ font-size: 18px; font-weight: 800; line-height: 1.3; color: var(--negro); }
+  .desc{ font-size: 14px; line-height: 1.55; color: var(--gris); }
+  .link{ font-size: 14px; font-weight: 700; color: var(--naranja); margin-top: auto; }
+
+  @media (max-width: 760px){
+    .relacionadas{ padding: 20px 22px 6px; }
+    .relacionadas-inner{ padding-top: 30px; }
+    .lista{ grid-template-columns: 1fr; gap: 12px; }
+    .card{ padding: 20px 18px; }
+    .titulo{ font-size: 16.5px; }
+  }
+</style>

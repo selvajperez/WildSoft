@@ -1,0 +1,55 @@
+---
+import { Image } from 'astro:assets';
+import type { Caso } from '../../lib/casos';
+
+export interface Props {
+  caso: Caso;
+}
+
+const { caso } = Astro.props;
+const { data } = caso;
+const actosPublicados = data.actos.filter((a) => a.estado === 'publicado').length;
+---
+<a class="caso-card" href={`/lab/casos/${caso.id}`} style={`--caso-fondo: ${data.tema.fondo}; --caso-papel: ${data.tema.papel}; --caso-acento: ${data.tema.acento}`}>
+  {data.portada && (
+    <Image class="portada" src={data.portada} alt={data.portadaAlt ?? ''} widths={[480, 800]} sizes="(max-width: 760px) 100vw, 600px" />
+  )}
+  <div class="cuerpo">
+    <div class="top">
+      {!data.publicado && <span class="borrador">Borrador</span>}
+      <span class="lugar">{data.lugar} · {data.epoca}</span>
+    </div>
+    <h3>{data.title}</h3>
+    <p class="subtitulo">{data.subtitulo}</p>
+    <p class="desc">{data.description}</p>
+    <span class="actos">Novela gráfica · {actosPublicados} de {data.actos.length} actos</span>
+    <span class="link">Leer el caso →</span>
+  </div>
+</a>
+
+<style>
+  .caso-card{
+    display: flex; flex-direction: column; height: 100%; overflow: hidden;
+    background: var(--caso-fondo); color: var(--caso-papel); border-radius: 16px;
+  }
+  .portada{ width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; }
+  .cuerpo{ display: flex; flex-direction: column; gap: 12px; padding: 30px 30px 28px; flex: 1; }
+  .top{ display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .lugar{ font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.75; }
+  .borrador{
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 20px; border: 1px dashed currentColor;
+  }
+  h3{ font-size: 24px; font-weight: 800; line-height: 1.2; color: #fff; margin: 0; text-transform: uppercase; }
+  .subtitulo{ font-family: var(--font-secundaria); font-size: 19px; color: var(--caso-acento); margin: -4px 0 0; }
+  .desc{ font-size: 15px; line-height: 1.6; margin: 0; opacity: 0.88; }
+  .actos{ font-size: 13px; font-weight: 600; opacity: 0.65; }
+  .link{ font-size: 14.5px; font-weight: 700; color: var(--caso-acento); margin-top: auto; }
+
+  @media (max-width: 760px){
+    .cuerpo{ padding: 24px 22px; }
+    h3{ font-size: 20px; }
+    .subtitulo{ font-size: 17px; }
+    .desc{ font-size: 14.5px; }
+  }
+</style>

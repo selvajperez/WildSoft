@@ -2,6 +2,8 @@
 import BaseLayout from './BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import LecturasRelacionadas from '../components/casos/LecturasRelacionadas.astro';
+import type { Lectura } from '../lib/relacionados';
 
 export interface Props {
   title: string;
@@ -18,11 +20,12 @@ export interface Props {
   app?: string;
   statsTitulo?: string;
   readingTime: number;
+  lecturas?: Lectura[];
 }
 
 const {
   title, description, estado, fecha, tags, heroImage,
-  stack = [], stats = [], pasos = [], repo, repoPrivado = false, app, statsTitulo, readingTime,
+  stack = [], stats = [], pasos = [], repo, repoPrivado = false, app, statsTitulo, readingTime, lecturas = [],
 } = Astro.props;
 
 const etiquetaEstado = {
@@ -127,6 +130,8 @@ const fechaTexto = fecha.toLocaleDateString('es-AR', {
       )}
     </div>
   </section>
+
+  <LecturasRelacionadas lecturas={lecturas} />
 
   <div class="fin-lab">
     <a class="volver-abajo" href="/lab">&larr; Volver al Lab</a>

@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import NotaLayout from '../../layouts/NotaLayout.astro';
+import { getRelacionados } from '../../lib/relacionados';
 
 export async function getStaticPaths() {
   const notas = await getCollection('notas');
@@ -15,6 +16,7 @@ const { Content } = await nota.render();
 
 const palabras = nota.body.trim().split(/\s+/).length;
 const readingTime = Math.max(1, Math.round(palabras / 200));
+const lecturas = await getRelacionados('notas', nota.slug);
 ---
 <NotaLayout
   title={nota.data.title}
@@ -28,6 +30,7 @@ const readingTime = Math.max(1, Math.round(palabras / 200));
   siguienteTexto={nota.data.siguienteTexto}
   siguienteHref={nota.data.siguienteHref}
   siguienteLinkTexto={nota.data.siguienteLinkTexto}
+  lecturas={lecturas}
 >
   <Content />
 </NotaLayout>

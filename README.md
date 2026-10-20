@@ -40,6 +40,7 @@ src/
     BaseLayout.astro         # <head>, fuentes, favicon
     NotaLayout.astro         # plantilla de página de nota (hero oscuro, cuerpo, cierre)
     LabLayout.astro          # plantilla de página de experimento (hero oscuro, números, pasos, cuerpo, ficha)
+    CasoLayout.astro         # plantilla de novela gráfica vertical para los Casos del Lab
   components/
     Header.astro             # logo + navegación (desktop y menú mobile)
     Hero.astro
@@ -52,18 +53,26 @@ src/
     Footer.astro
     lab/                     # Hero, Principios y Experimentos de la portada /lab
     lab/rayuela/             # Rayuela de datos: mapa interactivo de etapas por proyecto
+    casos/                   # Pagina, Escena, Fuentes, TarjetaCaso y LecturasRelacionadas (compartida con Notas y Lab)
+  lib/
+    casos.ts                 # casos visibles (borradores solo en dev) y control de imágenes faltantes
+    relacionados.ts          # lecturas relacionadas entre Notas, Lab y Casos, en ambos sentidos
   data/
     rayuela.ts               # etapas de la arquitectura y recorrido de cada herramienta
   content/
     config.ts                # esquema de la colección "notas"
     notas/*.md                # una nota por archivo (frontmatter + cuerpo)
     lab/*.md                  # un experimento del Lab por archivo (frontmatter + cuerpo)
+    casos/*.yaml              # un caso (novela gráfica) por archivo: actos, páginas o escenas, fuentes
   pages/
     index.astro               # ensambla la home
     notas/index.astro          # listado de Notas
     notas/[slug].astro         # página de una nota (a partir de content/notas)
     lab/index.astro            # portada de WildSoft Lab (experimentos de automatización y datos)
     lab/[slug].astro           # página de un experimento (a partir de content/lab)
+    lab/casos/index.astro      # listado de Casos (vuelve a /lab si no hay ninguno publicado)
+    lab/casos/[slug].astro     # página de un caso (a partir de content/casos)
+    lab/casos/[slug]/[archivo].ts  # PDF de las infografías de un caso visible
   styles/global.css          # paleta, tipografías, estilos base
 public/
   images/                    # logo e ilustraciones aprobadas (WildFox)
@@ -151,6 +160,53 @@ El recorrido no tiene que ser lineal ni completo. Si `experimento` apunta a
 una ficha que no existe o una etapa se repite, el build falla con un mensaje
 claro. Sin `experimento` (ni `enlace`), el panel muestra «Ficha en
 preparación».
+
+## Cómo agregar un caso (novela gráfica)
+
+Los Casos de WildSoft Lab (`/lab/casos`) son historias reales contadas como
+novela gráfica de lectura vertical. Cada caso es **un** archivo YAML y **una**
+página: `src/content/casos/mi-caso.yaml` → `/lab/casos/mi-caso`. Tomá como
+modelo `la-firma-de-lo-invisible.yaml`, que tiene comentado cada campo.
+
+- **Actos.** Cada acto tiene `estado: publicado` o `en-preparacion` (se
+  anuncia en el índice, sin mostrar contenido), y se cuenta de una de dos
+  formas: `paginas` o `escenas`.
+- **Páginas completas.** Si la ilustración es una página entera de historieta
+  con los textos dibujados, va en `paginas` (`imagen` + `alt`). Se muestra
+  entera, sin recortes, con el ancho de la pantalla hasta su tamaño real, y un
+  enlace «Ampliar página» abre el original para leerla en el celular. Sus
+  textos no se repiten en el YAML; el título del acto queda solo para lectores
+  de pantalla y para el índice.
+- **Escenas.** Si cada escena tiene su propia imagen, va en `escenas`. Cada escena
+  tiene un `id`, un `titulo` opcional (las escenas con título se numeran), un
+  `ancho` (`completo`, `medio` o `tercio`: en celulares siempre se apilan) y
+  sus `textos` en orden: `narracion` (recuadro) o `dialogo` (globo, con
+  `personaje` opcional).
+- **Imágenes.** Una por página o por escena, en
+  `src/assets/casos/mi-caso/` (ruta relativa al YAML, por ejemplo
+  `../../assets/casos/mi-caso/acto-1/01-escena.webp`), con su `alt`. Astro
+  genera versiones livianas para celular.
+- **Borrador.** Con `publicado: false` el caso solo se ve con `npm run dev`
+  (con la marca «Borrador»): no entra en el build ni en los listados. Al pasar
+  a `true`, el build falla si a algún acto publicado le falta contenido, una
+  imagen o un `alt`.
+- **Identidad visual.** `tema` define fondo, papel, tinta y acento del
+  interior de la novela. Cabecera, pie y tipografías siguen siendo las del sitio.
+- **Infografías.** `infografias` (opcional) agrega una sección debajo de la
+  historieta, con su `titulo` y sus `items`: cada uno es una imagen
+  (`imagen` + `alt`, se muestra entera y se puede ampliar) o un PDF
+  (`archivo`, se enlaza con su peso). Los PDF se guardan junto a las imágenes
+  y se sirven en `/lab/casos/mi-caso/archivo.pdf` solo si el caso es visible.
+- **Un solo acto.** Si el caso es una historieta completa, alcanza con un acto:
+  la página omite el índice de actos y la numeración.
+- **Ampliar.** «Ampliar página» abre la imagen a tamaño real en el Lightbox del
+  sitio, donde se recorre deslizando (pensado para leer diálogos en el celular).
+- **Fuentes.** `fuentes` lista fuentes documentales y bibliografía; la sección
+  aparece cuando hay al menos una.
+- **Lecturas relacionadas.** `relacionados` acepta slugs de `notas`, `lab` y
+  `casos`. Las notas y los experimentos también tienen ese campo (opcional).
+  La relación se declara de un solo lado y se muestra en las dos páginas; si
+  un slug no existe, el build falla.
 
 ## Paleta y tipografías
 

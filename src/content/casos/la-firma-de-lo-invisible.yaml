@@ -1,0 +1,129 @@
+# La firma de lo invisible — El caso Rojas
+#
+# Borrador: con `publicado: false` el caso solo se ve con `npm run dev`.
+# Para publicarlo, pasalo a true: el build falla si falta alguna imagen, `alt`
+# o infografía.
+#
+# La página sigue este orden: historieta → «Detrás de las huellas» → fuentes.
+# Todos los archivos están en src/assets/casos/la-firma-de-lo-invisible/.
+# La historieta es una sola pieza completa: se muestra entera, sin recortes, y
+# sus textos no se repiten acá porque ya están dibujados.
+#
+# Material de trabajo (no se muestra en la página): las páginas anteriores de
+# los actos I y II, en material-de-trabajo/.
+
+title: "La firma de lo invisible"
+subtitulo: "El caso Rojas"
+description: "Necochea, 1892. Un doble crimen, una acusación que no cierra y una huella ensangrentada en el marco de una puerta: el primer caso del mundo resuelto con identificación dactiloscópica."
+lugar: "Necochea, Argentina"
+epoca: "1892"
+fecha: 2026-10-18
+tags: ["Novela gráfica", "Historia", "Identificación", "Datos y sociedad"]
+publicado: false
+# portada: ../../assets/casos/la-firma-de-lo-invisible/portada.webp
+# portadaAlt: ""
+
+tema:
+  fondo: "#120F0B"
+  papel: "#F1E4C8"
+  tinta: "#1D1A15"
+  acento: "#C8963E"
+
+# Por qué este caso está en el Lab (datos, tecnología y consecuencias
+# sociales). Un párrafo por elemento; se muestra antes del Acto I.
+contexto: []
+
+actos:
+  - numero: "I"
+    titulo: "La historieta"
+    estado: publicado
+    paginas:
+      - imagen: ../../assets/casos/la-firma-de-lo-invisible/historieta.png
+        alt: "Historieta en seis viñetas. De noche, en una casa de campo cerca de Necochea, la policía llega a la escena del crimen y un oficial descubre una huella de mano ensangrentada en el marco de la puerta y decide cortar ese trozo de madera. Toma las huellas de Francisca Rojas y de Ramón Velázquez; con una lupa compara la huella del marco con la ficha y encuentra que es el pulgar derecho de Francisca. Ella confiesa, llorando, y Velázquez queda en libertad. En La Plata, Juan Vucetich lee la noticia en su escritorio. Al final, fichas dactiloscópicas y un periódico titulado «Un nuevo método para la justicia»."
+
+# «Detrás de las huellas»: infografías elaboradas con NotebookLM, debajo de
+# la historieta.
+infografias:
+  titulo: "Detrás de las huellas"
+  items:
+    - titulo: "Historia de la dactiloscopia"
+      archivo: ../../assets/casos/la-firma-de-lo-invisible/detras-de-las-huellas/historia-de-la-dactiloscopia.pdf
+      detalle: "Presentación de 15 diapositivas."
+    - titulo: "Anatomía de la piel de fricción"
+      imagen: ../../assets/casos/la-firma-de-lo-invisible/detras-de-las-huellas/anatomia-piel-de-friccion.png
+      alt: "Infografía «Anatomía transversal de la piel de fricción: estructura y distribución molecular». Un corte en bloque de la piel muestra las capas de la epidermis (estrato córneo, lúcido, granuloso, espinoso y basal), las crestas primarias bajo los relieves, con los conductos de las glándulas sudoríparas y queratina K9, y las crestas secundarias bajo los surcos, con queratina K16. Explica el anclaje interdigitado entre epidermis y dermis, y una ampliación circular muestra desmosomas de mayor tamaño entre las células."
+    - titulo: "Mapa mental de las huellas dactilares"
+      imagen: ../../assets/casos/la-firma-de-lo-invisible/detras-de-las-huellas/mapa-mental-huellas-dactilares.png
+      alt: "Mapa mental «Evolución y biomecánica de las huellas dactilares» con cuatro ramas: adaptación evolutiva y convergente (evolución convergente en primates y koalas, desplazamiento en hábitats tridimensionales); función biomecánica (regulación de fricción y humedad); sensibilidad y percepción del entorno (mecanorreceptores, amplificación sensorial y selección de alimentos), y origen físico y embriológico (crestas dérmicas desde la décima semana de gestación; patrones en arco, bucle o remolino, y una marca irrepetible generada por la dinámica de los tejidos)."
+
+# Fuentes: los datos de cada una se tomaron del propio documento guardado en
+# WildSoft-Lab/Vucetich (portada y créditos, o encabezado y pie de la página
+# impresa). Tipos: documental (expedientes, archivos, prensa de época),
+# bibliografia y prensa (artículos actuales). Ninguna es un expediente
+# original del caso.
+notaFuentes: "Las publicaciones consultadas presentan diferencias en algunos detalles del caso Rojas, entre ellos la fecha exacta del crimen y la ubicación del hecho. La historieta es una reconstrucción narrativa basada en estas fuentes, no una reproducción del expediente judicial original."
+fuentes:
+  # WildSoft-Lab/Vucetich/huellas 2.pdf
+  - tipo: bibliografia
+    autor: "Departamento de Justicia de los Estados Unidos, Oficina de Programas de Justicia, Instituto Nacional de Justicia (NIJ)"
+    titulo: "El libro de referencia de las huellas dactilares"
+    detalle: "Alan McRoberts, editor. Washington, DC. NCJ 249575"
+    nota: "Versión en español de The Fingerprint Sourcebook. Obra de referencia técnica e histórica sobre la identificación por crestas de fricción, escrita por especialistas y revisada en el marco del grupo de trabajo SWGFAST. Su capítulo 1 (Historia, de Jeffery G. Barnes) resume el caso Rojas."
+
+  # WildSoft-Lab/Vucetich/rojas2.pdf
+  - tipo: prensa
+    autor: "Alberto Amato"
+    titulo: "Dos niños degollados, dos sospechosos y huellas con sangre: el primer crimen que resolvió el método de Vucetich"
+    detalle: "Infobae, 19 de junio de 2023"
+    url: "https://www.infobae.com/sociedad/2023/06/19/dos-ninos-degollados-dos-sospechosos-y-huellas-con-sangre-el-primer-crimen-que-resolvio-el-metodo-de-vucetich/"
+
+  # WildSoft-Lab/Vucetich/rojas3.pdf
+  - tipo: prensa
+    autor: "Redacción BBC News Mundo"
+    titulo: "Juan Vucetich, el comisario argentino precursor en el uso de las huellas digitales para resolver crímenes"
+    detalle: "BBC News Mundo, 1 de septiembre de 2023"
+    url: "https://www.bbc.com/mundo/articles/cnlzr5ewn9eo"
+
+  # WildSoft-Lab/Vucetich/rojas.pdf
+  - tipo: prensa
+    autor: "Luciana Soria Vildoza"
+    titulo: "Degolló a sus hijos de cuatro y seis años: cuál es el dato oculto de la masacre de Necochea"
+    detalle: "TN, 12 de junio de 2022"
+    url: "https://tn.com.ar/policiales/2022/06/13/degollo-a-sus-hijos-de-4-y-6-anos-la-verdad-detras-de-la-masacre-que-estuvo-oculta-mas-de-un-siglo/"
+    nota: "La fotografía que el artículo atribuye a Francisca Rojas corresponde a Ethel y Julius Rosenberg, en 1951."
+
+  # WildSoft-Lab/Vucetich/fingerprints.pdf
+  - tipo: prensa
+    autor: "Chantel Tattoli"
+    titulo: "The Surprising History (and Future) of Fingerprints"
+    detalle: "The Paris Review, 15 de mayo de 2018"
+    url: "https://www.theparisreview.org/blog/2018/05/15/the-surprising-history-and-future-of-fingerprints/"
+
+  # WildSoft-Lab/Vucetich/fingerprints2 .pdf
+  - tipo: prensa
+    autor: "Dante Martignoni"
+    titulo: "Por qué existen las huellas dactilares: una adaptación esencial en la historia evolutiva"
+    detalle: "Infobae, 16 de abril de 2026"
+    url: "https://www.infobae.com/salud/ciencia/2026/04/16/por-que-existen-las-huellas-dactilares-una-adaptacion-esencial-en-la-historia-evolutiva/"
+
+  # WildSoft-Lab/Vucetich/huellas.pdf
+  - tipo: prensa
+    autor: "Lucía Blasco"
+    titulo: "¿Pueden realmente «hackear» tus huellas dactilares usando tus fotos en internet?"
+    detalle: "BBC Mundo, 31 de enero de 2017"
+    url: "https://www.bbc.com/mundo/noticias-38610567"
+
+  # WildSoft-Lab/Vucetich/biometric.pdf
+  - tipo: prensa
+    autor: "Touchless Biometric Systems AG"
+    titulo: "The Evolution of Biometric Technology: Past, Present, and Future"
+    detalle: "Blog de TBS, 23 de enero de 2024"
+    url: "https://www.tbs-biometrics.com/en/blog/evolution_of_biometrics"
+    nota: "Blog de una empresa de tecnología biométrica."
+
+# Lecturas relacionadas: slugs de notas, experimentos del Lab u otros casos.
+# Basta con declarar la relación de un lado; la otra página la muestra sola.
+relacionados:
+  notas: []
+  lab: []
+  casos: []

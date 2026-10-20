@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import LabLayout from '../../layouts/LabLayout.astro';
+import { getRelacionados } from '../../lib/relacionados';
 
 export async function getStaticPaths() {
   const experimentos = await getCollection('lab');
@@ -15,6 +16,7 @@ const { Content } = await experimento.render();
 
 const palabras = experimento.body.trim().split(/\s+/).length;
 const readingTime = Math.max(1, Math.round(palabras / 200));
+const lecturas = await getRelacionados('lab', experimento.slug);
 ---
 <LabLayout
   title={experimento.data.title}
@@ -31,6 +33,7 @@ const readingTime = Math.max(1, Math.round(palabras / 200));
   app={experimento.data.app}
   statsTitulo={experimento.data.statsTitulo}
   readingTime={readingTime}
+  lecturas={lecturas}
 >
   <Content />
 </LabLayout>

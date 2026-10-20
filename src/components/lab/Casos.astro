@@ -1,0 +1,36 @@
+---
+import TarjetaCaso from '../casos/TarjetaCaso.astro';
+import { getCasosVisibles } from '../../lib/casos';
+
+// Los casos viven en src/content/casos/. Sin casos publicados, la sección no
+// aparece en la portada del Lab.
+const casos = await getCasosVisibles();
+---
+{casos.length > 0 && (
+  <section class="casos" id="casos">
+    <div class="wrap">
+      <h2>Casos</h2>
+      <p class="sub">Historias reales contadas como novela gráfica: datos, tecnología y sus consecuencias sociales.</p>
+      <ul class="casos-grid">
+        {casos.slice(0, 2).map((caso) => <li><TarjetaCaso caso={caso} /></li>)}
+      </ul>
+      <a class="todos" href="/lab/casos">Ver todos los casos →</a>
+    </div>
+  </section>
+)}
+
+<style>
+  .casos{ background: var(--fondo-claro); padding: 0 0 120px; }
+  .casos h2{ font-size: 28px; font-weight: 800; color: var(--negro); margin: 0 0 8px; }
+  .sub{ font-size: 14.5px; color: var(--gris); margin: 0 0 34px; }
+  .casos-grid{ list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .casos-grid > li:only-child{ grid-column: 1 / -1; }
+  .todos{ display: inline-block; margin-top: 28px; font-size: 14.5px; font-weight: 700; color: var(--naranja); }
+
+  @media (max-width: 760px){
+    .casos{ padding: 0 0 70px; }
+    .casos h2{ font-size: 22px; }
+    .sub{ margin-bottom: 22px; }
+    .casos-grid{ grid-template-columns: 1fr; gap: 16px; }
+  }
+</style>

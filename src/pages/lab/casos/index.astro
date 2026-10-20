@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import TarjetaCaso from '../../../components/casos/TarjetaCaso.astro';
+import { getCasosVisibles } from '../../../lib/casos';
+
+const casos = await getCasosVisibles();
+
+// Mientras no haya casos publicados, la sección no muestra una página vacía:
+// devuelve al Lab.
+if (casos.length === 0) return Astro.redirect('/lab');
+---
+<BaseLayout
+  title="Casos — WildSoft Lab"
+  description="Historias reales contadas como novela gráfica: datos, tecnología y sus consecuencias sociales."
+>
+  <Header />
+
+  <section class="chero">
+    <div class="wrap chero-inner">
+      <a class="volver" href="/lab">&larr; Volver al Lab</a>
+      <div class="kicker">WildSoft Lab · Casos</div>
+      <h1>Casos</h1>
+      <p class="bajada">Historias reales contadas como novela gráfica, donde los datos y la tecnología cambiaron la manera de entender la realidad, con sus consecuencias sociales.</p>
+    </div>
+  </section>
+
+  <section class="lista">
+    <div class="wrap">
+      <ul class="grid">
+        {casos.map((caso) => <li><TarjetaCaso caso={caso} /></li>)}
+      </ul>
+    </div>
+  </section>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .chero{ background: var(--crema); padding: 70px 0 60px; }
+  .chero-inner{ display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .volver{ font-size: 14px; font-weight: 600; color: var(--gris); margin-bottom: 30px; }
+  .kicker{ font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--verde); margin-bottom: 18px; }
+  .chero h1{ font-size: 52px; font-weight: 800; line-height: 1.08; color: var(--negro); margin: 0 0 20px; }
+  .bajada{ font-size: 18px; line-height: 1.6; color: var(--gris); max-width: 640px; margin: 0; }
+
+  .lista{ background: var(--fondo-claro); padding: 70px 0 120px; }
+  .grid{ list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .grid > li:only-child{ grid-column: 1 / -1; max-width: 720px; justify-self: center; width: 100%; }
+
+  @media (max-width: 760px){
+    .chero{ padding: 40px 0 40px; }
+    .volver{ font-size: 13px; margin-bottom: 22px; }
+    .chero h1{ font-size: 32px; }
+    .bajada{ font-size: 15.5px; }
+    .lista{ padding: 40px 0 70px; }
+    .grid{ grid-template-columns: 1fr; gap: 16px; }
+  }
+</style>

@@ -1,0 +1,122 @@
+---
+import { Image } from 'astro:assets';
+import type { Caso } from '../../lib/casos';
+
+type Escena = Caso['data']['actos'][number]['escenas'][number];
+
+export interface Props {
+  escena: Escena;
+  numero?: number; // solo las escenas con título llevan número
+}
+
+const { escena, numero } = Astro.props;
+
+// Ancho real de la viñeta en la grilla (máx. 1100px), para que el navegador
+// baje la versión de la imagen que corresponde.
+const sizes = {
+  completo: '(max-width: 760px) 100vw, 1100px',
+  medio: '(max-width: 760px) 100vw, 545px',
+  tercio: '(max-width: 900px) 100vw, 360px',
+}[escena.ancho];
+
+// En los diálogos sin nombre se alternan los lados, como en la historieta.
+let lado = 0;
+---
+<article class={`escena escena-${escena.ancho}`} id={escena.id}>
+  {escena.titulo && (
+    <h3 class="escena-titulo">
+      {numero && <span class="escena-num">{numero}.</span>} {escena.titulo}
+    </h3>
+  )}
+
+  {escena.imagen ? (
+    <Image
+      class="escena-img"
+      src={escena.imagen}
+      alt={escena.alt ?? ''}
+      widths={[480, 800, 1100, 1600]}
+      sizes={sizes}
+      loading="lazy"
+    />
+  ) : (
+    // Solo puede verse en desarrollo: un caso publicado sin imágenes no compila.
+    <div class="escena-pendiente" aria-hidden="true">Imagen pendiente · {escena.id}</div>
+  )}
+
+  {escena.textos.length > 0 && (
+    <div class="escena-textos">
+      {escena.textos.map((t) =>
+        t.tipo === 'narracion' ? (
+          <p class="narracion">{t.texto}</p>
+        ) : (
+          <div class={`dialogo ${lado++ % 2 === 0 ? 'izq' : 'der'}`}>
+            {t.personaje && <span class="personaje">{t.personaje}</span>}
+            <p class="globo">{t.texto}</p>
+          </div>
+        ),
+      )}
+    </div>
+  )}
+</article>
+
+<style>
+  .escena{
+    display: flex; flex-direction: column; min-width: 0;
+    background: color-mix(in srgb, var(--caso-fondo) 88%, #fff);
+    border: 2px solid var(--caso-papel); border-radius: 4px; overflow: hidden;
+  }
+  .escena-completo{ grid-column: span 6; }
+  .escena-medio{ grid-column: span 3; }
+  .escena-tercio{ grid-column: span 2; }
+
+  .escena-titulo{
+    margin: 0; padding: 10px 16px; background: var(--caso-papel); color: var(--caso-tinta);
+    font-size: 15px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .escena-num{ color: var(--caso-acento); filter: brightness(0.75); }
+
+  .escena-img{ width: 100%; height: auto; display: block; }
+  .escena-pendiente{
+    aspect-ratio: 16 / 10; display: grid; place-items: center; padding: 20px; text-align: center;
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--caso-papel); opacity: 0.6; border-bottom: 2px dashed currentColor;
+  }
+
+  .escena-textos{ display: flex; flex-direction: column; gap: 14px; padding: 18px 16px 22px; }
+  .narracion{
+    margin: 0; padding: 12px 16px; background: var(--caso-papel); color: var(--caso-tinta);
+    font-family: var(--font-secundaria); font-size: 17px; line-height: 1.55;
+    border: 1.5px solid var(--caso-tinta); box-shadow: 3px 3px 0 rgba(0,0,0,0.35);
+  }
+
+  .dialogo{ display: flex; flex-direction: column; gap: 6px; max-width: 86%; margin-bottom: 8px; }
+  .dialogo.izq{ align-self: flex-start; align-items: flex-start; }
+  .dialogo.der{ align-self: flex-end; align-items: flex-end; }
+  .personaje{
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--caso-acento);
+  }
+  .globo{
+    position: relative; margin: 0; padding: 12px 18px; background: #fff; color: var(--caso-tinta);
+    font-size: 16px; line-height: 1.5; border-radius: 22px; border: 1.5px solid var(--caso-tinta);
+  }
+  .globo::after{
+    content: ''; position: absolute; bottom: -8.5px; width: 14px; height: 14px; background: #fff;
+    border-right: 1.5px solid var(--caso-tinta); border-bottom: 1.5px solid var(--caso-tinta);
+  }
+  .izq .globo::after{ left: 24px; transform: rotate(45deg); }
+  .der .globo::after{ right: 24px; transform: rotate(45deg); }
+
+  @media (max-width: 900px){
+    .escena-tercio{ grid-column: span 6; }
+  }
+
+  @media (max-width: 760px){
+    .escena-completo, .escena-medio, .escena-tercio{ grid-column: span 6; }
+    .escena-titulo{ font-size: 13.5px; padding: 9px 14px; }
+    .escena-textos{ padding: 14px 12px 18px; gap: 12px; }
+    .narracion{ font-size: 15.5px; padding: 11px 14px; }
+    .globo{ font-size: 15px; padding: 11px 16px; }
+    .dialogo{ max-width: 92%; }
+  }
+</style>

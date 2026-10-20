@@ -1,0 +1,340 @@
+---
+// Plantilla de novela gráfica de lectura vertical para los Casos del Lab.
+// Todo el contenido sale del YAML del caso (src/content/casos/): actos,
+// páginas completas o escenas, infografías, fuentes y relaciones. La paleta
+// del caso (`tema`) solo tiñe el interior de la novela; cabecera, pie y
+// tipografías son las del sitio.
+import { existsSync, statSync } from 'node:fs';
+import { Image } from 'astro:assets';
+import BaseLayout from './BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Escena from '../components/casos/Escena.astro';
+import Pagina from '../components/casos/Pagina.astro';
+import Fuentes from '../components/casos/Fuentes.astro';
+import LecturasRelacionadas from '../components/casos/LecturasRelacionadas.astro';
+import Lightbox from '../components/caso-bid/Lightbox.astro';
+import { archivoDelCaso, type Caso } from '../lib/casos';
+import type { Lectura } from '../lib/relacionados';
+
+export interface Props {
+  caso: Caso;
+  lecturas: Lectura[];
+}
+
+const { caso, lecturas } = Astro.props;
+const { data } = caso;
+
+const ancla = (numero: string) => `acto-${numero.toLowerCase()}`;
+const publicados = data.actos.filter((a) => a.estado === 'publicado');
+const pendientes = data.actos.filter((a) => a.estado === 'en-preparacion');
+// Con un solo acto (una historieta completa) no hace falta índice ni numeración.
+const variosActos = data.actos.length > 1;
+
+// Los PDF de las infografías viven junto a las imágenes, en src/assets/casos/.
+const infografias = (data.infografias?.items ?? []).map((item) => {
+  if (!item.archivo) return { ...item, pdf: undefined };
+  const { ruta, url } = archivoDelCaso(caso, item.archivo);
+  if (!existsSync(ruta)) throw new Error(`El caso "${caso.id}" enlaza un PDF que no existe: ${item.archivo}`);
+  const mb = statSync(ruta).size / 1_000_000;
+  return { ...item, pdf: { url, peso: `${mb < 1 ? mb.toFixed(1) : Math.round(mb)} MB` } };
+});
+
+const tema = [
+  `--caso-fondo: ${data.tema.fondo}`,
+  `--caso-papel: ${data.tema.papel}`,
+  `--caso-tinta: ${data.tema.tinta}`,
+  `--caso-acento: ${data.tema.acento}`,
+].join('; ');
+
+const fechaTexto = data.fecha.toLocaleDateString('es-AR', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+---
+<BaseLayout title={`${data.title}: ${data.subtitulo} — WildSoft Lab`} description={data.description}>
+  <Header />
+
+  <div class="caso" style={tema}>
+    <section class="caso-hero">
+      <div class="hero-inner">
+        <a class="volver" href="/lab/casos">&larr; Volver a Casos</a>
+        <div class="chips">
+          {!data.publicado && <span class="borrador">Borrador · solo en desarrollo</span>}
+          <span class="kicker">WildSoft Lab · Casos</span>
+        </div>
+        <h1>{data.title}</h1>
+        <p class="subtitulo">{data.subtitulo}</p>
+        <p class="lugar">{data.lugar} · {data.epoca}</p>
+        <p class="desc">{data.description}</p>
+        {data.tags.length > 0 && (
+          <ul class="tags">{data.tags.map((t) => <li>{t}</li>)}</ul>
+        )}
+        <p class="meta">Actualizado el {fechaTexto}</p>
+      </div>
+
+      {data.portada && (
+        <div class="portada">
+          <Image src={data.portada} alt={data.portadaAlt ?? ''} widths={[600, 1100, 1600]} sizes="(max-width: 760px) 100vw, 1100px" />
+        </div>
+      )}
+
+      {variosActos && (
+      <nav class="actos-nav" aria-label="Actos del caso">
+        <ol>
+          {data.actos.map((acto) => (
+            <li class={acto.estado}>
+              {acto.estado === 'publicado' ? (
+                <a href={`#${ancla(acto.numero)}`}>
+                  <span class="nav-num">Acto {acto.numero}</span>
+                  <span class="nav-titulo">{acto.titulo}</span>
+                </a>
+              ) : (
+                <span>
+                  <span class="nav-num">Acto {acto.numero} · en preparación</span>
+                  <span class="nav-titulo">{acto.titulo}</span>
+                </span>
+              )}
+            </li>
+          ))}
+        </ol>
+      </nav>
+      )}
+    </section>
+
+    {data.contexto.length > 0 && (
+      <section class="contexto">
+        <div class="contexto-inner">
+          {data.contexto.map((p) => <p>{p}</p>)}
+        </div>
+      </section>
+    )}
+
+    <div class="novela">
+      {publicados.map((acto) => {
+        let numero = 0;
+        return (
+          <section class="acto" id={ancla(acto.numero)} aria-labelledby={`${ancla(acto.numero)}-titulo`}>
+            {/* Con páginas completas, el título del acto ya está dibujado: la
+                cabecera queda solo para lectores de pantalla y para el índice. */}
+            <header class={acto.paginas.length > 0 ? 'acto-cabecera solo-lectores' : 'acto-cabecera'}>
+              {variosActos && <p class="acto-num">Acto {acto.numero}</p>}
+              <h2 id={`${ancla(acto.numero)}-titulo`}>{acto.titulo}</h2>
+              {acto.bajada && <p class="acto-bajada">{acto.bajada}</p>}
+            </header>
+            {acto.paginas.length > 0 ? (
+              <div class="paginas">
+                {acto.paginas.map((pagina, i) => (
+                  <Pagina
+                    pagina={pagina}
+                    etiqueta={variosActos ? `Acto ${acto.numero}, página ${i + 1}` : acto.paginas.length > 1 ? `Página ${i + 1}` : acto.titulo}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div class="escenas">
+                {acto.escenas.map((escena) => (
+                  <Escena escena={escena} numero={escena.titulo ? ++numero : undefined} />
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })}
+
+      {pendientes.length > 0 && (
+        <p class="continua">
+          Continúa en {pendientes.map((a) => `el Acto ${a.numero}`).join(' y ')}, en preparación.
+        </p>
+      )}
+    </div>
+
+    {data.infografias && infografias.length > 0 && (
+      <section class="infografias" aria-labelledby="infografias-titulo">
+        <h2 id="infografias-titulo">{data.infografias.titulo}</h2>
+        <div class="infografias-lista">
+          {infografias.map((item) => (
+            <article class="infografia">
+              <h3>{item.titulo}</h3>
+              {item.imagen && item.alt ? (
+                <Pagina pagina={{ imagen: item.imagen, alt: item.alt }} etiqueta={item.titulo} ampliarTexto="Ampliar infografía" />
+              ) : item.pdf ? (
+                <a class="documento" href={item.pdf.url} target="_blank" rel="noopener">
+                  <span class="documento-tipo">PDF · {item.pdf.peso}</span>
+                  {item.detalle && <span class="documento-detalle">{item.detalle}</span>}
+                  <span class="documento-link">Abrir el documento ↗</span>
+                </a>
+              ) : (
+                // Solo puede verse en desarrollo: un caso publicado no compila con piezas vacías.
+                <div class="infografia-pendiente">Infografía pendiente</div>
+              )}
+            </article>
+          ))}
+        </div>
+      </section>
+    )}
+  </div>
+
+  <Fuentes fuentes={data.fuentes} nota={data.notaFuentes} />
+  <LecturasRelacionadas lecturas={lecturas} />
+
+  <div class="fin-caso">
+    <a class="volver-abajo" href="/lab/casos">&larr; Volver a Casos</a>
+    <div class="siguiente-card">
+      <p class="siguiente-label">Seguir explorando</p>
+      <p class="siguiente-periodo">WildSoft Lab</p>
+      <p class="siguiente-texto">Experimentos de automatización y datos, y casos donde la tecnología cambió la manera de entender la realidad.</p>
+      <a class="siguiente-link" href="/lab">Ir al Lab →</a>
+    </div>
+  </div>
+
+  <Footer />
+  <Lightbox />
+</BaseLayout>
+
+<style>
+  .caso{ background: var(--caso-fondo); color: var(--caso-papel); }
+
+  /* PORTADA DEL CASO */
+  .caso-hero{ padding: 56px 60px 50px; }
+  .hero-inner{ max-width: 920px; margin: 0 auto; }
+  .volver{ display: inline-flex; font-size: 14px; font-weight: 600; color: var(--caso-papel); opacity: 0.75; margin-bottom: 34px; }
+  .chips{ display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 22px; }
+  .kicker{ font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--caso-acento); }
+  .borrador{
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 6px 12px; border-radius: 20px; border: 1px dashed var(--caso-papel);
+  }
+  .caso-hero h1{ font-size: 56px; font-weight: 800; line-height: 1.08; color: #fff; margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.01em; }
+  .subtitulo{ font-family: var(--font-secundaria); font-size: 28px; color: var(--caso-acento); margin: 0 0 22px; }
+  .lugar{ font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8; margin: 0 0 22px; }
+  .desc{ font-size: 17px; line-height: 1.65; max-width: 660px; margin: 0 0 24px; opacity: 0.9; }
+  .tags{ list-style: none; margin: 0 0 24px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .tags li{
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 6px 14px; border-radius: 20px; border: 1px solid var(--caso-acento); color: var(--caso-acento);
+  }
+  .meta{ font-size: 13px; font-weight: 600; opacity: 0.6; margin: 0; }
+
+  .portada{ max-width: 1100px; margin: 44px auto 0; border: 2px solid var(--caso-papel); border-radius: 4px; overflow: hidden; line-height: 0; }
+  .portada :global(img){ width: 100%; height: auto; }
+
+  .actos-nav{ max-width: 1100px; margin: 50px auto 0; }
+  .actos-nav ol{ list-style: none; margin: 0; padding: 0; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 12px; }
+  .actos-nav a, .actos-nav li > span{
+    display: flex; flex-direction: column; gap: 6px; height: 100%; padding: 16px 18px;
+    border: 1.5px solid var(--caso-papel); border-radius: 4px;
+  }
+  .actos-nav a:hover{ background: var(--caso-papel); color: var(--caso-tinta); }
+  .actos-nav .en-preparacion > span{ border-style: dashed; opacity: 0.55; }
+  .nav-num{ font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--caso-acento); }
+  .actos-nav a:hover .nav-num{ color: inherit; }
+  .nav-titulo{ font-size: 16px; font-weight: 700; line-height: 1.35; }
+
+  /* CONTEXTO */
+  .contexto{ padding: 10px 60px 30px; }
+  .contexto-inner{ max-width: 760px; margin: 0 auto; }
+  .contexto p{ font-size: 17.5px; line-height: 1.8; margin: 0 0 22px; opacity: 0.9; }
+
+  /* NOVELA */
+  .novela{ max-width: 1100px; margin: 0 auto; padding: 20px 0 90px; }
+  .acto{ padding: 0; scroll-margin-top: 20px; } /* anula el padding global de section */
+  .acto + .acto{ margin-top: 80px; }
+  .acto-cabecera{ text-align: center; padding: 40px 20px 34px; }
+  .acto-num{ font-size: 52px; font-weight: 800; line-height: 1; color: #fff; margin: 0 0 14px; text-transform: uppercase; }
+  .acto-cabecera h2{
+    font-size: 22px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 auto;
+    padding-top: 14px; border-top: 1px solid var(--caso-acento); display: inline-block;
+  }
+  .acto-bajada{ font-family: var(--font-secundaria); font-size: 18px; opacity: 0.8; margin: 12px 0 0; }
+  .escenas{ display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; align-items: start; }
+  .paginas{ display: flex; flex-direction: column; gap: 56px; padding-top: 30px; }
+  .solo-lectores{
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
+  /* INFOGRAFÍAS */
+  .infografias{ max-width: 1100px; margin: 0 auto; padding: 0 0 100px; }
+  .infografias h2{
+    text-align: center; font-size: 22px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin: 0 auto 50px; padding-top: 14px; border-top: 1px solid var(--caso-acento); width: fit-content;
+  }
+  .infografias-lista{ display: flex; flex-direction: column; gap: 64px; }
+  .infografia h3{
+    font-family: var(--font-mono); font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--caso-acento); margin: 0 0 18px;
+  }
+  .documento{
+    display: flex; flex-direction: column; gap: 10px; padding: 26px 28px; max-width: 520px;
+    border: 1.5px solid var(--caso-papel); border-radius: 4px;
+  }
+  .documento:hover{ background: var(--caso-papel); color: var(--caso-tinta); }
+  .documento-tipo{ font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; }
+  .documento-detalle{ font-size: 16px; line-height: 1.5; }
+  .documento-link{ font-size: 14.5px; font-weight: 700; color: var(--caso-acento); }
+  .documento:hover .documento-link{ color: inherit; }
+  .infografia-pendiente{
+    aspect-ratio: 16 / 9; display: grid; place-items: center; border: 2px dashed var(--caso-papel); opacity: 0.5;
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+
+  .continua{
+    margin: 60px auto 0; text-align: center; font-family: var(--font-secundaria); font-size: 20px; opacity: 0.75;
+  }
+
+  /* VOLVER + SUGERENCIA FINAL (mismo bloque que las fichas del Lab) */
+  .fin-caso{ max-width: 810px; margin: 0 auto; padding: 50px 60px 90px; }
+  .volver-abajo{
+    display: inline-flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 700;
+    color: var(--verde); border-bottom: 1px solid var(--verde); padding-bottom: 2px; margin-bottom: 60px;
+  }
+  .siguiente-card{ background: var(--negro); border-radius: 20px; padding: 60px 64px; color: var(--crema); }
+  .siguiente-label{ font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--naranja); margin: 0 0 16px; }
+  .siguiente-periodo{ font-family: var(--font-secundaria); font-size: 30px; color: #fff; margin: 0 0 14px; }
+  .siguiente-texto{ font-size: 15.5px; line-height: 1.7; color: #D9D2C4; margin: 0 0 24px; max-width: 560px; }
+  .siguiente-link{ font-size: 15px; font-weight: 700; color: var(--naranja); }
+
+  @media (max-width: 1160px){
+    .novela, .infografias{ padding-left: 30px; padding-right: 30px; }
+  }
+
+  @media (max-width: 760px){
+    .caso-hero{ padding: 28px 22px 36px; }
+    .volver{ font-size: 13px; margin-bottom: 22px; }
+    .caso-hero h1{ font-size: 32px; }
+    .subtitulo{ font-size: 21px; margin-bottom: 16px; }
+    .lugar{ font-size: 12px; margin-bottom: 16px; }
+    .desc{ font-size: 15px; }
+    .portada{ margin-top: 30px; }
+    .actos-nav{ margin-top: 34px; }
+    .actos-nav ol{ grid-auto-flow: row; gap: 10px; }
+    .actos-nav a, .actos-nav li > span{ padding: 13px 15px; }
+    .nav-titulo{ font-size: 15px; }
+
+    .contexto{ padding: 0 22px 20px; }
+    .contexto p{ font-size: 15.5px; line-height: 1.75; }
+
+    .novela{ padding: 10px 12px 60px; }
+    .acto + .acto{ margin-top: 50px; }
+    .acto-cabecera{ padding: 30px 10px 24px; }
+    .acto-num{ font-size: 38px; }
+    .acto-cabecera h2{ font-size: 16px; }
+    .escenas{ gap: 12px; }
+    .paginas{ gap: 36px; padding-top: 16px; }
+    .continua{ font-size: 17px; margin-top: 40px; padding: 0 10px; }
+    .infografias{ padding: 0 12px 60px; }
+    .infografias h2{ font-size: 16px; margin-bottom: 34px; }
+    .infografias-lista{ gap: 44px; }
+    .documento{ padding: 20px 20px; }
+
+    .fin-caso{ padding: 30px 22px 56px; }
+    .volver-abajo{ font-size: 14px; margin-bottom: 36px; }
+    .siguiente-card{ border-radius: 18px; padding: 40px 32px; }
+    .siguiente-label{ font-size: 11px; margin-bottom: 14px; }
+    .siguiente-periodo{ font-size: 24px; margin-bottom: 12px; }
+    .siguiente-texto{ font-size: 14.5px; margin-bottom: 20px; }
+    .siguiente-link{ font-size: 14.5px; }
+  }
+</style>

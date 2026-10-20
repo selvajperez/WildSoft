@@ -1,0 +1,19 @@
+---
+import CasoLayout from '../../../layouts/CasoLayout.astro';
+import { getCasosVisibles } from '../../../lib/casos';
+import { getRelacionados } from '../../../lib/relacionados';
+
+// Un caso, una página: /lab/casos/<nombre del YAML>. Los borradores solo se
+// generan en desarrollo.
+export async function getStaticPaths() {
+  const casos = await getCasosVisibles();
+  return casos.map((caso) => ({
+    params: { slug: caso.id },
+    props: { caso },
+  }));
+}
+
+const { caso } = Astro.props;
+const lecturas = await getRelacionados('casos', caso.id);
+---
+<CasoLayout caso={caso} lecturas={lecturas} />
