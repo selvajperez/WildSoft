@@ -133,6 +133,7 @@ conexiones:
     descripcion: "Formación y características de las huellas."
   - eje: "Identidad y tecnología"
     descripcion: "Biometría, identificación y privacidad."
+    notas: [debido-proceso-tecnologico]
 
 # Lecturas relacionadas: slugs de notas, experimentos del Lab u otros casos.
 # Basta con declarar la relación de un lado; la otra página la muestra sola.
