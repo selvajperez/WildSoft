@@ -1,0 +1,49 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#151612"/>
+
+  <!-- LEFT: lo que dice la ley -->
+  <g font-family="monospace" fill="#8d8879" font-size="14">
+    <text x="90" y="118">LA LEY</text>
+  </g>
+  <g stroke="#4a4944" stroke-width="1.5" fill="none">
+    <rect x="90" y="138" width="360" height="236" rx="10"/>
+  </g>
+  <g font-family="monospace" font-size="16" fill="#D9D2C4">
+    <text x="116" y="184">Puede solicitar asistencia:</text>
+    <text x="116" y="226">· la persona interesada</text>
+    <text x="116" y="262">· su representante legal</text>
+    <text x="116" y="298" fill="#EC7323">· un familiar, en nombre</text>
+    <text x="132" y="322" fill="#EC7323">de un niño</text>
+  </g>
+
+  <!-- bridge arrow: la traducción a código -->
+  <g stroke="#EC7323" stroke-width="2" fill="none">
+    <line x1="490" y1="256" x2="640" y2="256"/>
+    <polygon points="640,248 655,256 640,264" fill="#EC7323"/>
+  </g>
+  <text x="572" y="236" font-family="monospace" font-size="13" fill="#8d8879" text-anchor="middle">traducción</text>
+
+  <!-- RIGHT: lo que ofrece el formulario (menú desplegable) -->
+  <g font-family="monospace" fill="#8d8879" font-size="14">
+    <text x="710" y="118">EL FORMULARIO</text>
+  </g>
+  <g>
+    <rect x="710" y="138" width="400" height="48" rx="8" fill="#151612" stroke="#D9D2C4" stroke-width="2"/>
+    <text x="732" y="169" font-family="monospace" font-size="16" fill="#D9D2C4">Solicitante…</text>
+    <polygon points="1078,156 1094,156 1086,166" fill="#D9D2C4"/>
+  </g>
+  <g>
+    <rect x="710" y="192" width="400" height="104" rx="8" fill="#1d1e19" stroke="#4a4944" stroke-width="1.5"/>
+    <text x="732" y="230" font-family="monospace" font-size="16" fill="#D9D2C4">La persona interesada</text>
+    <line x1="722" y1="246" x2="1098" y2="246" stroke="#2e2f29" stroke-width="1"/>
+    <text x="732" y="276" font-family="monospace" font-size="16" fill="#D9D2C4">Representante legal</text>
+  </g>
+  <!-- la opción que no existe -->
+  <rect x="710" y="306" width="400" height="48" rx="8" fill="none" stroke="#EC7323" stroke-width="1.5" stroke-dasharray="6 6"/>
+  <text x="910" y="336" font-family="monospace" font-size="15" fill="#EC7323" text-anchor="middle">(esta opción no existe)</text>
+
+  <!-- caption -->
+  <text x="600" y="476" font-family="Georgia, serif" font-size="30" fill="#F2EEE3" text-anchor="middle" font-style="italic">La ley lo permitía; el menú desplegable, no.</text>
+  <text x="600" y="514" font-family="Georgia, serif" font-size="22" fill="#D9D2C4" text-anchor="middle" font-style="italic">Y como el formulario era la única vía, el menú ganó.</text>
+  <text x="600" y="560" font-family="monospace" font-size="14" fill="#8d8879" text-anchor="middle">Debido proceso tecnológico — D. K. Citron, 2008</text>
+</svg>
