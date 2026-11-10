@@ -47,6 +47,8 @@ const lab = defineCollection({
     pasos: z.array(z.object({ titulo: z.string(), texto: z.string() })).default([]),
     repo: z.string().url().optional(),
     repoPrivado: z.boolean().default(false),
+    // Opcional: versión pública (showcase) de un proyecto con repositorio privado.
+    repoPublico: z.string().url().optional(),
     // Opcionales: enlace a la aplicación publicada y título de la tira de
     // números (por ejemplo, para aclarar la fecha de los datos).
     app: z.string().url().optional(),

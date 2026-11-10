@@ -118,6 +118,7 @@ extracción de datos. Cada experimento es un archivo, igual que una nota.
    stack: ["Python", "Playwright"]   # opcional
    repo: "https://github.com/usuario/repo"   # opcional; solo si es público
    repoPrivado: true                  # opcional; muestra "repositorio privado"
+   repoPublico: "https://github.com/usuario/showcase"  # opcional; versión pública de un repo privado
    app: "https://mi-app.vercel.app/"  # opcional; botón "Abrir la aplicación"
    statsTitulo: "La base al 9 de octubre de 2026, en números"  # opcional
    stats:                             # opcional: tira de números

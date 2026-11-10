@@ -7,6 +7,7 @@ tags: ["Extracción de datos", "Automatización", "SQLite"]
 heroImage: "/images/lab/sourcing-scraper-hero.svg"
 stack: ["Python", "Playwright", "BeautifulSoup", "SQLite", "sentence-transformers", "pytest"]
 repoPrivado: true
+repoPublico: "https://github.com/selvajperez/sourcingscraper-showcase"
 stats:
   - valor: "470"
     etiqueta: "tarjetas de producto extraídas en una corrida (466 productos únicos)"

@@ -17,6 +17,7 @@ export interface Props {
   pasos?: { titulo: string; texto: string }[];
   repo?: string;
   repoPrivado?: boolean;
+  repoPublico?: string;
   app?: string;
   statsTitulo?: string;
   readingTime: number;
@@ -25,7 +26,7 @@ export interface Props {
 
 const {
   title, description, estado, fecha, tags, heroImage,
-  stack = [], stats = [], pasos = [], repo, repoPrivado = false, app, statsTitulo, readingTime, lecturas = [],
+  stack = [], stats = [], pasos = [], repo, repoPrivado = false, repoPublico, app, statsTitulo, readingTime, lecturas = [],
 } = Astro.props;
 
 const etiquetaEstado = {
@@ -116,6 +117,11 @@ const fechaTexto = fecha.toLocaleDateString('es-AR', {
         <p class="bloque-kicker">Código</p>
         {repo ? (
           <a class="repo-link" href={repo} target="_blank" rel="noopener">Ver el repositorio &rarr;</a>
+        ) : repoPrivado && repoPublico ? (
+          <>
+            <p class="repo-texto">El desarrollo completo se mantiene en un repositorio privado. Podés consultar una versión pública con módulos seleccionados, documentación técnica y pruebas automatizadas en GitHub.</p>
+            <a class="repo-link repo-link-publico" href={repoPublico} target="_blank" rel="noopener noreferrer">Ver la versión pública en GitHub &rarr;</a>
+          </>
         ) : repoPrivado ? (
           <p class="repo-texto">El código vive en un repositorio privado.</p>
         ) : (
@@ -230,6 +236,7 @@ const fechaTexto = fecha.toLocaleDateString('es-AR', {
   }
   .repo-texto{ font-size: 15px; line-height: 1.6; color: var(--gris); margin: 0; }
   .repo-link{ font-size: 15px; font-weight: 700; color: var(--naranja); }
+  .repo-link-publico{ display: inline-block; margin-top: 12px; }
 
   /* VOLVER + SUGERENCIA FINAL */
   .fin-lab{ max-width: 810px; margin: 0 auto; padding: 50px 60px 90px; }
