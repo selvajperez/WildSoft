@@ -10,6 +10,13 @@ const etiquetas = {
 
 // La JSONeta tiene su ficha en src/content/lab/: aparece acá como cualquier
 // experimento y el enlace a la aplicación vive en esa ficha.
+// Tarjetas que llevan a una página fuera del sitio en lugar de la ficha del
+// Lab. SourcingScraper tiene el código privado: la tarjeta abre su showcase
+// público en GitHub.
+const enlacesExternos: Record<string, string> = {
+  'sourcing-scraper': 'https://github.com/selvajperez/sourcingscraper-showcase',
+};
+
 const experimentos = (await getCollection('lab')).sort(
   (a, b) => b.data.fecha.valueOf() - a.data.fecha.valueOf(),
 );
@@ -22,7 +29,11 @@ const experimentos = (await getCollection('lab')).sort(
     <ul class="exps-grid">
       {experimentos.map((e) => (
         <li>
-          <a class="exp-card" href={`/lab/${e.slug}`}>
+          <a
+            class="exp-card"
+            href={enlacesExternos[e.slug] ?? `/lab/${e.slug}`}
+            {...(enlacesExternos[e.slug] ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+          >
             <div class="exp-top">
               <span class={`estado estado-${e.data.estado}`}>{etiquetas[e.data.estado]}</span>
               <span class="exp-tags">{e.data.tags.join(' · ')}</span>
