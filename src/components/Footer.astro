@@ -1,7 +1,11 @@
 ---
 ---
 <footer>
-  Tecnología construida con años de experiencia y la curiosidad del primer día.
+  <p class="lema">Tecnología construida con años de experiencia y la curiosidad del primer día.</p>
+  <div class="creditos" aria-label="Créditos de colaboración">
+    <span>WildSoft · Proyecto y dirección: Selva J. Pérez</span>
+    <span>Desarrollo y revisión técnica con asistencia de ChatGPT (OpenAI) y Claude Code (Anthropic).</span>
+  </div>
 </footer>
 
 <style>
@@ -15,11 +19,29 @@
     border-top: 1px solid #3a3a35;
   }
 
+  .lema{
+    margin: 0;
+  }
+
+  .creditos{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 18px;
+    font-size: 12px;
+    line-height: 1.5;
+    opacity: .75;
+  }
+
   @media (max-width: 760px){
     footer{
       padding: 22px 24px 30px;
       font-size: 15.5px;
       line-height: 1.5;
+    }
+
+    .creditos{
+      font-size: 11px;
     }
   }
 </style>
